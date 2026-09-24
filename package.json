@@ -5,8 +5,16 @@
   "scripts": {
     "test": "playwright test",
     "test:headed": "playwright test --headed",
-    "report": "playwright show-report",
-    "typecheck": "tsc"
+    "test:positive": "playwright test --grep @positive",
+    "test:negative": "playwright test --grep @negative",
+    "test:regression": "playwright test --grep @regression",
+    "report:html": "playwright show-report",
+    "report:allure": "allure generate allure-results && allure open allure-report",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "tsc",
+    "check": "npm run typecheck && npm run lint && npm run format:check"
   },
   "repository": {
     "type": "git",
@@ -19,10 +27,24 @@
   },
   "homepage": "https://github.com/dkelle1/rekrutacja-kis#readme",
   "devDependencies": {
-    "@playwright/test": "1.56.1",
+    "@eslint/js": "^10.0.1",
+    "@faker-js/faker": "^10.6.0",
+    "@playwright/test": "^1.63.0",
     "@types/node": "^26.6.2",
+    "allure": "^3.18.0",
+    "allure-js-commons": "^3.12.2",
+    "allure-playwright": "^3.12.2",
     "dotenv": "^18.0.3",
-    "typescript": "^7.0.2"
+    "eslint": "^10.11.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-playwright": "^2.12.0",
+    "prettier": "^3.9.9",
+    "typescript": "~6.0",
+    "typescript-eslint": "^8.70.1",
+    "zod": "^4.6.5"
   },
-  "private": true
+  "private": true,
+  "engines": {
+    "node": ">=20"
+  }
 }
