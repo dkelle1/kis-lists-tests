@@ -1,0 +1,28 @@
+{
+  "name": "rekrutacja-kis",
+  "version": "1.0.0",
+  "description": "Testy E2E (Playwright + TypeScript) systemu powiadomień o komentarzach w KIS List",
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "report": "playwright show-report",
+    "typecheck": "tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dkelle1/rekrutacja-kis.git"
+  },
+  "author": "",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/dkelle1/rekrutacja-kis/issues"
+  },
+  "homepage": "https://github.com/dkelle1/rekrutacja-kis#readme",
+  "devDependencies": {
+    "@playwright/test": "1.56.1",
+    "@types/node": "^26.6.2",
+    "dotenv": "^18.0.3",
+    "typescript": "^7.0.2"
+  },
+  "private": true
+}
