@@ -1,12 +1,16 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "module": "commonjs",
+    "module": "esnext",
+    "moduleResolution": "bundler",
     "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitOverride": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "noEmit": true,
-    "types": ["node", "@playwright/test"]
+    "types": ["node"]
   },
-  "include": ["tests/**/*.ts", "playwright.config.ts"]
+  "include": ["src/**/*.ts", "tests/**/*.ts", "playwright.config.ts"]
 }
