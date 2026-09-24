@@ -2,6 +2,8 @@
 
 Raport testerski oraz test E2E (Playwright + TypeScript) do zadania rekrutacyjnego KIS List.
 
+> Plan realizacji z podziałem na subtaski: [PLAN.md](PLAN.md).
+>
 > **Status:** plan testów i automatyzacja są gotowe. Sekcja „Wyniki” jest do uzupełnienia
 > po wykonaniu testów na projekcie testowym – wpisane są tylko wyniki faktycznie zaobserwowane.
 
