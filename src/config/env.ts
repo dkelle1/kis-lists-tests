@@ -30,6 +30,9 @@ const schema = z.object({
   ANNA_DISPLAY_NAME: z.string().min(1).optional(),
   MARCIN_DISPLAY_NAME: z.string().min(1).optional(),
   MICHALINA_DISPLAY_NAME: z.string().min(1).optional(),
+  /** Mailosaur – skrzynki testowe do odczytu kodów 2FA i zaproszeń (src/support/mailbox.ts). */
+  MAILOSAUR_API_KEY: z.string().min(1).optional(),
+  MAILOSAUR_SERVER_ID: z.string().min(1).optional(),
   CLIENT_SHARE_URL: z.url(),
   CLIENT_PROPOSAL_URL: z.url(),
   /** Okno (ms), w którym czekamy na powiadomienie – i po którym uznajemy jego brak w testach negatywnych. */
