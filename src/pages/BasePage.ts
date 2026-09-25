@@ -2,11 +2,13 @@ import { Page } from '@playwright/test';
 import { NotificationCenter } from './components/NotificationCenter';
 
 /**
- * Wspólna baza Page Objectów.
+ * Baza Page Objectów zalogowanego członka zespołu (nagłówek z dzwonkiem jest na każdej stronie).
  *
- * Konwencja lokatorów: role/etykiety widoczne dla użytkownika (getByRole, getByLabel, getByPlaceholder),
- * bez selektorów CSS opartych na strukturze DOM. Lokatory są wstępne – zweryfikować je
- * po rozpoznaniu UI (PLAN.md, 1.4 / 5.3); zmiana dotyczy wyłącznie klas w src/pages.
+ * Zasady Page Objectów w tym projekcie:
+ *  - udostępniają lokatory i akcje biznesowe; NIE zawierają asercji (`expect`) – weryfikacja należy do testów
+ *    (pilnuje tego reguła ESLint `no-restricted-imports` dla src/pages);
+ *  - mogą czekać na gotowość UI (`locator.waitFor`), bo to synchronizacja akcji, a nie sprawdzenie wyniku;
+ *  - akcje są oznaczone `@step`, więc w raporcie widać kroki biznesowe zamiast pojedynczych kliknięć.
  */
 export abstract class BasePage {
   readonly notifications: NotificationCenter;

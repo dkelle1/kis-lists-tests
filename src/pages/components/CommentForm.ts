@@ -1,4 +1,5 @@
-import { expect, Locator, Page } from '@playwright/test';
+import { Locator, Page } from '@playwright/test';
+import { step } from '../../support/step';
 
 /**
  * Formularz komentarza (edytor TipTap/ProseMirror) – ten sam komponent u członka zespołu
@@ -19,29 +20,30 @@ export class CommentForm {
   }
 
   /**
-   * Oznacza osobę: "@" + początek imienia, wybór z listy podpowiedzi.
-   * Lista podpowiedzi TipTap renderuje się poza formularzem (popup), stąd wyszukiwanie w całej stronie.
-   * UWAGA: niezweryfikowane na żywo – na koncie nie było jeszcze innych członków zespołu.
+   * Podpowiedź po wpisaniu "@". Niezweryfikowane na żywo (na koncie nie było jeszcze innych członków
+   * zespołu): lista TipTap renderuje się poza formularzem, stąd wyszukiwanie w całej stronie.
    */
-  async mention(displayName: string): Promise<void> {
-    await this.editor.pressSequentially(`@${displayName.slice(0, 3)}`);
-    await this.page
-      .getByRole('option', { name: new RegExp(displayName, 'i') })
-      .or(this.page.locator('.tippy-box, [data-tippy-root], .mention-list, .suggestion').getByText(displayName))
-      .first()
-      .click();
+  mentionSuggestion(appName: string): Locator {
+    return this.page
+      .getByRole('option', { name: appName })
+      .or(this.page.locator('.kis-dropdown-item').filter({ hasText: appName }))
+      .first();
   }
 
-  async send(text: string, options: { mentions?: string[] } = {}): Promise<void> {
+  @step('Oznacz osobę @{0}')
+  async mention(appName: string): Promise<void> {
+    await this.editor.pressSequentially(`@${appName.slice(0, 3)}`);
+    await this.mentionSuggestion(appName).click();
+    await this.editor.pressSequentially(' ');
+  }
+
+  @step('Wyślij komentarz: „{0}”')
+  async send(text: string, options: { mentions?: readonly string[] } = {}): Promise<void> {
     await this.editor.click();
-    for (const name of options.mentions ?? []) {
-      await this.mention(name);
-      await this.editor.pressSequentially(' ');
+    for (const appName of options.mentions ?? []) {
+      await this.mention(appName);
     }
     await this.editor.pressSequentially(text);
     await this.submit.click();
-    await expect(this.editor, 'edytor nie wyczyścił się po wysłaniu – komentarz mógł nie zostać zapisany').toHaveText(
-      '',
-    );
   }
 }

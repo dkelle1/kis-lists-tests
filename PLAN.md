@@ -60,22 +60,23 @@ Termin: 3 dni robocze od otrzymania zadania. Legenda: ✅ zrobione · ⬜ do zro
 | 5.1  | Struktura projektu: `src/` (framework) + `tests/` (specyfikacje), `playwright.config.ts`, `tsconfig.json` (strict)                                         | –         | ✅     |
 | 5.2  | Konfiguracja z walidacją (zod): `src/config/env.ts`, `.env.example`, sekrety poza repo                                                                     | 5.1       | ✅     |
 | 5.3  | Page Object Model: `LoginPage`/`TwoFactorPage`, `ListPage`, `ClientViewPage`, `TeamPage` + komponenty `CommentsModal`, `CommentForm`, `NotificationCenter` | 5.1       | ✅     |
-| 5.4  | Fixtures (`test.extend`): `actor(osoba)` – osobny kontekst na osobę, `client`, `listName`                                                                  | 5.3       | ✅     |
+| 5.4  | Fixtures (`test.extend`): `teamMember(osoba)` – osobny kontekst na osobę, `client`, `listId`, `testItem`                                                   | 5.3       | ✅     |
 | 5.5  | Logowanie raz na przebieg: projekt `setup` + `storageState` w `.auth/`                                                                                     | 5.4       | ✅     |
-| 5.6  | Dane testowe z faker (odpowiednik Bogus): fabryki komentarzy i klienta, unikalne znaczniki, opcjonalny `FAKER_SEED`                                        | 5.1       | ✅     |
-| 5.7  | Asercje domenowe (`expect.extend`): `toHaveNotification` / `not.toHaveNotification` z oknem czasowym                                                       | 5.3       | ✅     |
-| 5.8  | Raportowanie: Allure 3 (epic/feature/story/severity, `testId`, kroki, zrzuty/wideo/trace) + raport HTML Playwright                                         | 5.1       | ✅     |
+| 5.6  | Dane testowe z faker (odpowiednik Bogus): komentarze z unikalnym znacznikiem, opcjonalny `FAKER_SEED`                                                      | 5.1       | ✅     |
+| 5.7  | Asercje domenowe (`expect.extend`): dokładnie 1 powiadomienie / brak do końca okna od wysłania / liczba wpisów bez zmian                                   | 5.3       | ✅     |
+| 5.8  | Raportowanie: Allure 3 (metadane w adnotacjach, link do planu, kroki `@step`, dowody przy sukcesie, PL) + HTML Playwright                                  | 5.1       | ✅     |
 | 5.9  | Tagi i zestawy: `@positive`, `@negative`, `@regression`, `@R1`–`@R3` + skrypty npm                                                                         | 5.1       | ✅     |
 | 5.10 | Jakość kodu: ESLint (typescript-eslint, eslint-plugin-playwright), Prettier, `npm run check`                                                               | 5.1       | ✅     |
 | 5.11 | Lokatory na rzeczywistym DOM + smoke tylko do odczytu na żywej aplikacji (brak: „@”, wpis powiadomienia)                                                   | 1.4       | ✅     |
 | 5.12 | Uruchomić framework na żywej aplikacji i ustabilizować (okno czasowe, logowanie, zależności między testami)                                                | 5.11, 0.6 | ⬜     |
+| 5.13 | Review testów: asercje wyłącznie w testach (ESLint), dokładnie 1 powiadomienie, treść (P-10), próby kontrolne, poprawka N-08                               | 5.11      | ✅     |
 
 ## Etap 6 – Automatyzacja scenariuszy i test regresyjny (część 2)
 
 | #   | Subtask                                                                                          | Zależy od | Status |
 | --- | ------------------------------------------------------------------------------------------------ | --------- | ------ |
 | 6.1 | Scenariusze R1/R2 (klient) – P-01, P-02, N-08                                                    | 5.x       | ✅     |
-| 6.2 | Scenariusze R3 (zespół) – P-03…P-07, N-01, N-02; każdy odbiorca w osobnym `test.step`            | 5.x       | ✅     |
+| 6.2 | Scenariusze R3 (zespół) – P-03…P-08, P-10, N-01, N-02; każdy odbiorca w osobnym `test.step`      | 5.x       | ✅     |
 | 6.3 | Wydzielić test regresyjny odtwarzający znaleziony błąd (albo test pozytywny, jeśli błędu brak)   | 4.2, 5.12 | ⬜     |
 | 6.4 | Dopisać do README, który test odtwarza błąd i jaki jest jego oczekiwany wynik (obecnie czerwony) | 6.3       | ⬜     |
 

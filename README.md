@@ -109,58 +109,80 @@ Macierz autor × odbiorca (P-03…P-06) pokrywa wszystkie 12 par nadawca→odbio
 
 ## 5. Test automatyczny (Playwright + TypeScript)
 
-Framework automatyzuje scenariusze R1–R3 z planu (P-01…P-07, N-01, N-02, N-08). Każdy odbiorca
-jest sprawdzany w osobnym `test.step`, więc raport wskazuje dokładnie, **kto** nie dostał powiadomienia.
+Framework automatyzuje scenariusze R1–R3 z planu: P-01…P-08, P-10 (treść powiadomienia) oraz N-01, N-02, N-08.
 
 > Page Objecty są oparte na rzeczywistym DOM aplikacji i sprawdzone na żywo w trybie tylko do odczytu
-> (otwarcie list, modala komentarzy, panelu powiadomień, podglądu propozycji, zespołu, logowania – bez wysyłania).
+> (lista, modal komentarzy, panel powiadomień, podgląd propozycji, zespół, logowanie – bez wysyłania).
 > Niezweryfikowane: wybór osoby po „@” (brak innych członków zespołu na koncie), struktura pojedynczego
-> powiadomienia (konto nie miało jeszcze powiadomień) i widok udostępnionej listy.
+> powiadomienia i wpisu w wątku komentarzy (konto nie miało jeszcze ani jednego) oraz widok udostępnionej listy.
+
+### Co dokładnie weryfikują testy
+
+| Sprawdzenie                                              | Jak                                                                                                                      | Po co                                                                           |
+| -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------- |
+| Komentarz został zapisany                                | modal dotyczy właściwego produktu, komentarz widoczny w wątku, edytor wyczyszczony, (P-07/N-02) oznaczenie `@` wstawione | brak powiadomienia nie jest mylony z niewysłanym komentarzem                    |
+| Każdy odbiorca dostaje **dokładnie jedno** powiadomienie | `toHaveNotification` – osobny krok na osobę; 2 wpisy = błąd (duplikat, P-08)                                             | raport wskazuje, **kto** nie dostał powiadomienia                               |
+| Autor **nie** dostaje powiadomienia                      | `not.toHaveNotification` do końca okna liczonego od wysłania komentarza                                                  | „pozostali” w R3 wyklucza autora (N-01, N-02)                                   |
+| Treść powiadomienia                                      | asercje miękkie: nazwa produktu i autor (P-10)                                                                           | wszystkie rozbieżności w treści widoczne w jednym przebiegu                     |
+| Samo przeglądanie listy nie generuje powiadomień         | liczba wpisów u każdego członka bez zmian (N-08)                                                                         | zamiast szukać znanego tekstu – odporne na wcześniejsze przebiegi               |
+| Próby kontrolne w testach negatywnych                    | N-02: Piotr musi dostać powiadomienie; N-08: panel pokazuje wpisy albo komunikat „pusto”                                 | test „braku” nie przechodzi przy zepsutym lokatorze czy niedziałającym systemie |
+
+Powiadomienia powstają asynchronicznie, więc asercje odpytują centrum powiadomień (odświeżenie co 3 s)
+w oknie `NOTIFICATION_WINDOW_MS` (domyślnie 20 s) liczonym **od wysłania komentarza**.
 
 ### Architektura
 
 ```
 src/
-├── config/env.ts                 # konfiguracja z .env / sekretów CI, walidowana (zod)
+├── config/                       # env.ts – konfiguracja walidowana (zod); timeouts.ts – czasy w jednym miejscu
 ├── data/
-│   ├── team.ts                   # Piotr, Anna, Marcin, Michalina – dane kont, ścieżki storageState
-│   └── factories.ts              # dane testowe z faker (komentarze z unikalnym znacznikiem, klient)
-├── pages/                        # Page Object Model
-│   ├── LoginPage.ts              # /login + TwoFactorPage (/2fa – kod z e-maila)
-│   ├── ListPage.ts               # /lists/<id>/edit – produkty, otwieranie komentarzy
-│   ├── ClientViewPage.ts         # widok klienta: propozycja / udostępniona lista
-│   ├── TeamPage.ts               # /team – członkowie i zaproszenia
-│   └── components/
-│       ├── CommentsModal.ts      # modal "Komentarze" (zakładki Prywatne / Komentarze klienta)
-│       ├── CommentForm.ts        # edytor komentarza (TipTap) – wspólny dla zespołu i klienta
-│       └── NotificationCenter.ts # dzwonek + panel powiadomień
-├── fixtures/test.ts              # test.extend: actor(osoba), client, listId, itemId + metadane Allure
-└── assertions/notifications.ts   # expect.extend: toHaveNotification / not.toHaveNotification
+│   ├── team.ts                   # Piotr, Anna, Marcin, Michalina: osoba z zadania + nazwa konta w aplikacji
+│   └── factories.ts              # komentarze z unikalnym znacznikiem (faker)
+├── pages/                        # Page Objecty – lokatory i akcje, BEZ asercji
+│   ├── LoginPage.ts  TwoFactorPage.ts  ListPage.ts  ClientViewPage.ts  TeamPage.ts
+│   └── components/               # CommentsModal, CommentForm (TipTap), NotificationCenter
+├── support/                      # @step (metoda Page Objectu = krok raportu), retryUntil (synchronizacja)
+├── fixtures/test.ts              # teamMember(osoba), client, listId, testItem
+├── assertions/notifications.ts   # asercje domenowe: toHaveNotification, toKeepNotificationCount
+└── allure/                       # metadane (adnotacje) i dowody (zrzuty) do raportu
 tests/
-├── setup/auth.setup.ts           # sesje 4 osób (storageState w .auth/), logowanie z 2FA tylko gdy sesja wygasła
+├── setup/auth.setup.ts           # sesje 4 osób (.auth/), logowanie z 2FA tylko gdy sesja wygasła
 └── notifications/
-    ├── client-comments.spec.ts   # R1, R2 (P-01, P-02, N-08)
-    └── team-comments.spec.ts     # R3 (P-03…P-07, N-01, N-02)
+    ├── steps.ts                  # kroki testów z asercjami: postTeamComment, expectNotified, expectNotNotified
+    ├── team-comments.spec.ts     # R3: P-03…P-08, N-01, N-02
+    └── client-comments.spec.ts   # R1/R2: P-01, P-02, N-08
 ```
 
-Zastosowane praktyki:
+### Zasady pisania testów
 
-- **Page Object Model + komponenty** – testy opisują zachowanie („Anna komentuje element”), a nie kliknięcia.
-  Kolejność wyboru lokatorów: `data-testid` i stabilne `id` nadane przez aplikację → role i dostępne nazwy
-  (`getByRole`, `getByTitle`) → klasy komponentów (`.kis-comment-form`, `.notifications-window`) tylko tam,
-  gdzie aplikacja nie daje nic lepszego. Bez XPath, bez pozycji w DOM i bez klas stylów (Bootstrap).
-- **Fixtures** – `actor('anna')` zwraca zalogowaną osobę w osobnym `BrowserContext` (osobne cookies),
-  kontekstami zarządza fixture (sprzątanie po teście).
-- **Logowanie raz** – projekt `setup` zapisuje sesje (`storageState`), testy od nich zależą (`dependencies`).
-- **Dane testowe (faker)** – każdy komentarz ma unikalny znacznik, więc testy nie mylą powiadomień z różnych
-  przebiegów; `FAKER_SEED` pozwala odtworzyć te same dane.
-- **Asercje domenowe** – `expect(center).toHaveNotification(marker)` odpytuje centrum powiadomień w oknie
-  czasowym; wariant `.not` czeka **całe** okno, zanim uzna brak powiadomienia (powiadomienia mogą być asynchroniczne).
-- **Raportowanie** – Allure 3 (epic → feature → story, severity, `testId` z planu, kroki, zrzuty, wideo, trace)
-  oraz raport HTML Playwright.
-- **Tagi** – `@positive`, `@negative`, `@regression`, `@R1`, `@R2`, `@R3`.
-- **Jakość** – TypeScript `strict`, ESLint (typescript-eslint + eslint-plugin-playwright), Prettier.
-- **Sekwencyjne wykonanie** – testy współdzielą konta i listę, więc `workers: 1`.
+- **Asercje tylko w testach.** Page Objecty udostępniają lokatory i akcje; mogą czekać na gotowość UI
+  (`waitFor`, `retryUntil`), ale niczego nie weryfikują. Pilnuje tego ESLint (`no-restricted-imports`:
+  `expect` jest zabroniony w `src/pages`), a w testach reguła `no-raw-locators` wymusza korzystanie z Page Objectów.
+- **Układ testu: akcja z warunkami wstępnymi → weryfikacja per osoba**, każdy etap jako nazwany `test.step`.
+- **Asercje web-first i domenowe** – `toBeVisible`, `toHaveText`, `toContainText` oraz własne
+  `toHaveNotification` / `toKeepNotificationCount` z czytelnym komunikatem błędu (osoba, znacznik, okno).
+- **Asercje miękkie** (`expect.soft`) tylko dla niezależnych cech jednego obiektu (treść powiadomienia).
+- **Izolacja danych** – unikalny znacznik w każdym komentarzu; testy nie zależą od kolejności ani od
+  wcześniejszych przebiegów (N-08 porównuje liczby „przed/po” zamiast szukać znanego tekstu).
+- **Bez sztywnych czekań** – jedyne odczekiwanie to okno w testach negatywnych („brak” wymaga czasu),
+  zaszyte w asercji domenowej i opisane.
+- **Ponowienia nie ukrywają błędu** – zgłoszony problem jest przerywany („nie zawsze”), więc w CI
+  `retries: 1` + `failOnFlakyTests: true`: test, który przejdzie dopiero za drugim razem, i tak kończy przebieg błędem.
+- **Fixtures** – `teamMember('anna')` zwraca zalogowaną osobę w osobnym `BrowserContext`; `testItem`
+  ustala produkt (`KIS_ITEM_ID` lub pierwszy na liście) i odczytuje jego nazwę do weryfikacji treści.
+- **Jakość** – TypeScript `strict`, ESLint (typescript-eslint + eslint-plugin-playwright), Prettier; CI na każdym PR.
+
+### Raport Allure
+
+- **Drzewo:** epic „Powiadomienia o komentarzach” → feature = wymaganie (R1/R2/R3) → story = wariant scenariusza.
+- **Metadane przy deklaracji testu** (adnotacje `allure.label.*`), więc są w raporcie także wtedy, gdy test
+  upadnie w fixture. Każdy test ma link **„Plan testów: P-xx”** do sekcji 3 i ważność (severity).
+- **Kroki biznesowe:** metody Page Objectów oznaczone `@step` („Otwórz komentarze produktu…”, „Wyślij komentarz…”)
+  oraz kroki testu („Anna dostaje dokładnie jedno powiadomienie”). Wywołania API są w nich zagnieżdżone,
+  a asercje widoczne jako osobne kroki (`detail: true`).
+- **Dowody także przy sukcesie:** zrzut dodanego komentarza i zrzut powiadomienia każdego odbiorcy;
+  przy błędzie dodatkowo zrzut ekranu, wideo i trace Playwrighta.
+- Interfejs raportu po polsku (`reportLanguage: 'pl'`), informacje o środowisku (URL, przeglądarka, okno czasowe).
 
 ### Kluczowe selektory
 
@@ -181,14 +203,15 @@ Zastosowane praktyki:
 
 Zachowania aplikacji uwzględnione w Page Objectach:
 
-- **Ikona komentarzy** – zwykły klik myszą bywa przechwytywany przez przeciąganie wierszy (sortable);
-  `ListPage.openComments()` najeżdża na ikonę i wysyła zdarzenie `click`, ponawiając do otwarcia modala.
-- **Panel powiadomień** jest zawsze w DOM i wysuwa się (`.slider.slide-in` / `.slide-out`), więc stan
-  sprawdzany jest klasą, nie widocznością. Po przeładowaniu strony aplikacja pamięta otwarty panel
-  (zasłania wtedy dzwonek) – `open()` otwiera tylko, gdy panel jest zamknięty.
+- **Ikona komentarzy** – pierwsze kliknięcie po wczytaniu listy nie otwiera okna (komponent ładuje się dopiero wtedy),
+  kolejne po ok. 1 s – tak; zwykły klik bywa też przechwytywany przez przeciąganie wierszy. `openComments()` wysyła
+  zdarzenie `click` i ponawia do skutku, sprawdzając stan bez rzucania błędu (ponowienia nie są „czerwone” w raporcie).
+- **Panel powiadomień** jest zawsze w DOM i wysuwa się (`.slider.slide-in` / `.slide-out`), więc stan sprawdzany jest
+  klasą. Po przeładowaniu aplikacja sama wysuwa panel (zasłania wtedy dzwonek). Strona `/lists` ma drugi, osadzony
+  panel – odświeżanie powiadomień korzysta z `/team`, gdzie jest tylko panel z nagłówka.
 - **Logowanie wymaga kodu 2FA z e-maila.** Projekt `setup` używa zapisanych sesji (`.auth/<osoba>.json`,
   „Zapamiętaj mnie”) i loguje się tylko, gdy sesja wygasła – kod podaje się w zmiennej `<OSOBA>_2FA_CODE`
-  albo wpisuje do pliku `.auth/<osoba>.code`, na który test czeka do 5 minut.
+  albo wpisuje do pliku `.auth/<osoba>.code`, na który setup czeka do 5 minut.
 
 ### Uruchomienie lokalne
 
@@ -199,7 +222,7 @@ git clone https://github.com/dkelle1/rekrutacja-kis.git
 cd rekrutacja-kis
 npm ci
 npx playwright install chromium
-cp .env.example .env               # uzupełnij loginy/hasła 4 członków zespołu, id listy i linki klienta
+cp .env.example .env               # loginy/hasła i nazwy kont 4 członków zespołu, id listy, linki klienta
 npm test                           # wszystkie scenariusze
 npm run test:regression            # tylko @regression (także: test:positive, test:negative)
 npx playwright test --grep @R3     # tylko wybrane wymaganie
@@ -223,4 +246,5 @@ w repozytorium nie ma żadnych haseł.
 Konfiguracja jednorazowa: **Settings → Secrets and variables → Actions** – dodać sekrety o nazwach z
 `.env.example`: `KIS_LIST_ID`, `PIOTR_EMAIL`, `PIOTR_PASSWORD`, `ANNA_EMAIL`, `ANNA_PASSWORD`,
 `MARCIN_EMAIL`, `MARCIN_PASSWORD`, `MICHALINA_EMAIL`, `MICHALINA_PASSWORD`, `CLIENT_SHARE_URL`,
-`CLIENT_PROPOSAL_URL` (opcjonalnie zmienna `BASE_URL`).
+`CLIENT_PROPOSAL_URL`, opcjonalnie `KIS_ITEM_ID` i `<OSOBA>_DISPLAY_NAME`, oraz sesje `<OSOBA>_STORAGE_STATE`
+(base64 z plików `.auth/<osoba>.json` – logowanie wymaga 2FA). Opcjonalnie zmienna `BASE_URL`.

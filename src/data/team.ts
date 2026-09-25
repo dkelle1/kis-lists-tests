@@ -5,33 +5,38 @@ export type TeamMemberKey = (typeof TEAM)[number];
 
 export interface TeamMember {
   key: TeamMemberKey;
-  displayName: string;
+  /** Osoba z opisu zadania – używana w tytułach testów i kroków. */
+  name: string;
+  /** Nazwa konta w KIS List – tak osoba jest pokazywana w powiadomieniach i na liście "@". */
+  appName: string;
   role: string;
   email: string;
   password: string;
 }
 
-const profiles: Record<TeamMemberKey, { displayName: string; role: string }> = {
-  piotr: { displayName: 'Piotr', role: 'założyciel, właściciel konta' },
-  anna: { displayName: 'Anna', role: 'zarządza projektem' },
-  marcin: { displayName: 'Marcin', role: 'tworzy kosztorys' },
-  michalina: { displayName: 'Michalina', role: 'praca w terenie' },
+const PERSONAS: Record<TeamMemberKey, { name: string; role: string }> = {
+  piotr: { name: 'Piotr', role: 'założyciel, właściciel konta' },
+  anna: { name: 'Anna', role: 'zarządza projektem' },
+  marcin: { name: 'Marcin', role: 'tworzy kosztorys' },
+  michalina: { name: 'Michalina', role: 'praca w terenie' },
 };
 
+/** Imię osoby bez sięgania do konfiguracji – bezpieczne w tytułach testów (`playwright test --list`). */
+export const personaName = (key: TeamMemberKey): string => PERSONAS[key].name;
+
 export function member(key: TeamMemberKey): TeamMember {
-  const e = env();
-  const upper = key.toUpperCase() as Uppercase<TeamMemberKey>;
+  const config = env();
+  const prefix = key.toUpperCase() as Uppercase<TeamMemberKey>;
   return {
     key,
-    ...profiles[key],
-    email: e[`${upper}_EMAIL`],
-    password: e[`${upper}_PASSWORD`],
+    ...PERSONAS[key],
+    appName: config[`${prefix}_DISPLAY_NAME`] ?? PERSONAS[key].name,
+    email: config[`${prefix}_EMAIL`],
+    password: config[`${prefix}_PASSWORD`],
   };
 }
 
-export const displayName = (key: TeamMemberKey): string => profiles[key].displayName;
-
-export const othersThan = (author: TeamMemberKey): TeamMemberKey[] => TEAM.filter((k) => k !== author);
+export const othersThan = (key: TeamMemberKey): TeamMemberKey[] => TEAM.filter((other) => other !== key);
 
 /** Ścieżka do zapisanej sesji (storageState) członka zespołu – tworzona w projekcie "setup". */
 export const storageStatePath = (key: TeamMemberKey): string => `.auth/${key}.json`;

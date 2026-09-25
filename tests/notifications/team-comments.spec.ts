@@ -1,85 +1,97 @@
+import { allureMeta } from '../../src/allure/metadata';
 import { buildComment } from '../../src/data/factories';
-import { displayName, othersThan } from '../../src/data/team';
-import { expect, scenario, test } from '../../src/fixtures/test';
+import { member, othersThan, personaName, TeamMemberKey } from '../../src/data/team';
+import { test } from '../../src/fixtures/test';
+import { expectNotified, expectNotNotified, postTeamComment } from './steps';
 
 /**
- * R3: członek zespołu komentuje element listy -> powiadomienie dostają POZOSTALI członkowie zespołu.
- * Każdy odbiorca jest weryfikowany w osobnym kroku, więc raport wskazuje, KTO nie dostał powiadomienia.
+ * R3: członek zespołu komentuje element listy → powiadomienie dostają POZOSTALI członkowie zespołu listy.
+ *
+ * "Pozostali" oznacza dwie rzeczy naraz, więc każdy test sprawdza pełny zbiór odbiorców:
+ * każdy inny członek dostaje dokładnie jedno powiadomienie, a autor – żadnego.
  */
-test.describe('R3: komentarz członka zespołu', { tag: ['@R3'] }, () => {
-  const authors = [
-    { author: 'piotr', id: 'P-03' },
-    { author: 'anna', id: 'P-04' },
-    { author: 'marcin', id: 'P-05' },
-    { author: 'michalina', id: 'P-06' },
-  ] as const;
+const AUTHORS: ReadonlyArray<{ author: TeamMemberKey; scenario: string }> = [
+  { author: 'piotr', scenario: 'P-03' },
+  { author: 'anna', scenario: 'P-04' },
+  { author: 'marcin', scenario: 'P-05' },
+  { author: 'michalina', scenario: 'P-06' },
+];
 
-  for (const { author, id } of authors) {
+test.describe('R3: komentarz członka zespołu', { tag: '@R3' }, () => {
+  for (const { author: authorKey, scenario } of AUTHORS) {
     test(
-      `${id}: ${displayName(author)} komentuje element -> pozostali dostają powiadomienie`,
-      { tag: ['@positive', '@regression'] },
-      async ({ actor, listId, itemId }) => {
-        await scenario({ id, requirement: 'R3', story: 'Członek zespołu dodał komentarz' });
-        const comment = buildComment(id);
+      `${scenario} + N-01: ${personaName(authorKey)} komentuje produkt → powiadomieni pozostali członkowie, autor nie`,
+      {
+        tag: ['@positive', '@negative', '@regression'],
+        annotation: allureMeta({ requirement: 'R3', story: 'Komentarz bez oznaczeń', scenarios: [scenario, 'N-01'] }),
+      },
+      async ({ teamMember, listId, testItem }) => {
+        const author = await teamMember(authorKey);
+        const comment = buildComment(scenario);
 
-        await test.step(`${displayName(author)} dodaje komentarz bez oznaczeń`, async () => {
-          const { list } = await actor(author);
-          await list.goto(listId);
-          const comments = await list.openComments(itemId);
-          await comments.addTeamComment(comment.text);
-        });
+        const sentAt = await postTeamComment(author, { listId, item: testItem, comment });
 
-        for (const recipient of othersThan(author)) {
-          await test.step(`${displayName(recipient)} dostaje powiadomienie`, async () => {
-            const { list } = await actor(recipient);
-            await expect(list.notifications).toHaveNotification(comment.marker);
+        for (const recipientKey of othersThan(authorKey)) {
+          await expectNotified(await teamMember(recipientKey), {
+            comment,
+            sentAt,
+            content: { produkt: testItem.name, autor: author.member.appName },
           });
         }
-
-        await test.step(`N-01: ${displayName(author)} (autor) NIE dostaje powiadomienia`, async () => {
-          const { list } = await actor(author);
-          await expect(list.notifications).not.toHaveNotification(comment.marker);
-        });
+        await expectNotNotified(author, { comment, sentAt, reason: 'autor komentarza' });
       },
     );
   }
 
   test(
-    'P-07: komentarz z oznaczeniem @ jednej osoby -> powiadomieni są wszyscy pozostali, nie tylko oznaczony',
-    { tag: ['@positive', '@regression'] },
-    async ({ actor, listId, itemId }) => {
-      await scenario({ id: 'P-07', requirement: 'R3', story: 'Członek zespołu dodał komentarz z oznaczeniem' });
+    'P-07: Anna oznacza @Marcin → powiadomieni wszyscy pozostali (nie tylko oznaczony), Marcin tylko raz',
+    {
+      tag: ['@positive', '@regression'],
+      annotation: allureMeta({ requirement: 'R3', story: 'Komentarz z oznaczeniem @', scenarios: ['P-07', 'P-08'] }),
+    },
+    async ({ teamMember, listId, testItem }) => {
+      const anna = await teamMember('anna');
       const comment = buildComment('P-07');
 
-      await test.step('Anna dodaje komentarz z oznaczeniem @Marcin', async () => {
-        const { list } = await actor('anna');
-        await list.goto(listId);
-        const comments = await list.openComments(itemId);
-        await comments.addTeamComment(comment.text, { mentions: [displayName('marcin')] });
-      });
+      const sentAt = await postTeamComment(anna, { listId, item: testItem, comment, mentions: [member('marcin')] });
 
-      for (const recipient of othersThan('anna')) {
-        await test.step(`${displayName(recipient)} dostaje powiadomienie`, async () => {
-          const { list } = await actor(recipient);
-          await expect(list.notifications).toHaveNotification(comment.marker);
+      // expectNotified wymaga dokładnie jednego wpisu – u Marcina wykrywa też osobne powiadomienie o oznaczeniu.
+      for (const recipientKey of othersThan('anna')) {
+        await expectNotified(await teamMember(recipientKey), {
+          comment,
+          sentAt,
+          content: { produkt: testItem.name, autor: anna.member.appName },
         });
       }
+      await expectNotNotified(anna, { comment, sentAt, reason: 'autorka komentarza' });
     },
   );
 
   test(
-    'N-02: autor oznaczający samego siebie nie dostaje powiadomienia',
-    { tag: ['@negative'] },
-    async ({ actor, listId, itemId }) => {
-      await scenario({ id: 'N-02', requirement: 'R3', story: 'Brak powiadomienia dla autora', severity: 'normal' });
+    'N-02: Anna oznacza samą siebie → nie dostaje powiadomienia (kontrola: Piotr dostaje)',
+    {
+      tag: ['@negative'],
+      annotation: allureMeta({
+        requirement: 'R3',
+        story: 'Brak powiadomienia dla autora',
+        scenarios: ['N-02'],
+        severity: 'normal',
+      }),
+    },
+    async ({ teamMember, listId, testItem }) => {
+      const anna = await teamMember('anna');
       const comment = buildComment('N-02');
 
-      const { list } = await actor('anna');
-      await list.goto(listId);
-      const comments = await list.openComments(itemId);
-      await comments.addTeamComment(comment.text, { mentions: [displayName('anna')] });
+      const sentAt = await postTeamComment(anna, { listId, item: testItem, comment, mentions: [anna.member] });
 
-      await expect(list.notifications).not.toHaveNotification(comment.marker);
+      // Próba kontrolna: bez niej "brak powiadomienia" przechodziłby także przy zepsutym lokatorze
+      // albo niedziałającym systemie powiadomień.
+      await expectNotified(await teamMember('piotr'), {
+        comment,
+        sentAt,
+        content: { produkt: testItem.name, autor: anna.member.appName },
+      });
+      await expectNotNotified(anna, { comment, sentAt, reason: 'oznaczyła samą siebie' });
     },
   );
 });

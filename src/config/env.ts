@@ -22,6 +22,14 @@ const schema = z.object({
   MARCIN_PASSWORD: credentials.password,
   MICHALINA_EMAIL: credentials.email,
   MICHALINA_PASSWORD: credentials.password,
+  /**
+   * Nazwy kont widoczne w aplikacji (autor w powiadomieniu, wybór osoby po "@").
+   * Domyślnie imię z opisu zadania; np. konto Piotra nazywa się w aplikacji "Damian Keller".
+   */
+  PIOTR_DISPLAY_NAME: z.string().min(1).optional(),
+  ANNA_DISPLAY_NAME: z.string().min(1).optional(),
+  MARCIN_DISPLAY_NAME: z.string().min(1).optional(),
+  MICHALINA_DISPLAY_NAME: z.string().min(1).optional(),
   CLIENT_SHARE_URL: z.url(),
   CLIENT_PROPOSAL_URL: z.url(),
   /** Okno (ms), w którym czekamy na powiadomienie – i po którym uznajemy jego brak w testach negatywnych. */

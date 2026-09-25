@@ -1,15 +1,14 @@
-import { expect, Locator, Page } from '@playwright/test';
+import { Locator, Page } from '@playwright/test';
+import { step } from '../support/step';
 import { CommentForm } from './components/CommentForm';
 
 /**
  * Widok klienta (bez logowania): propozycja (/proposal/...) lub udostępniona lista.
  *
- * DOM propozycji:
  *   produkt              .proposal-item#item_<itemId>   (podkreślnik – inaczej niż na liście zespołu)
- *   kolumna komentarzy   .proposal-item-comments > button "Napisz komentarz"
- *   formularz            .kis-comment-form.active (ten sam komponent co u zespołu)
+ *   kolumna komentarzy   .proposal-item-comments z przyciskiem "Napisz komentarz"
  *
- * UWAGA: zweryfikowane na podglądzie propozycji; widok udostępnionej listy do potwierdzenia po jej udostępnieniu.
+ * Zweryfikowane na podglądzie propozycji; widok udostępnionej listy do potwierdzenia po jej udostępnieniu.
  */
 export class ClientViewPage {
   readonly items: Locator;
@@ -18,27 +17,28 @@ export class ClientViewPage {
     this.items = page.locator('.proposal-item');
   }
 
+  @step('Klient otwiera link')
   async goto(url: string): Promise<void> {
     await this.page.goto(url);
-    await expect(this.items.first()).toBeVisible();
+    await this.items.first().waitFor();
   }
 
-  item(itemId?: string): Locator {
-    return itemId ? this.page.locator(`#item_${itemId}`) : this.items.first();
+  item(itemId: string): Locator {
+    return this.page.locator(`#item_${itemId}`);
   }
 
-  async openComments(itemId?: string): Promise<CommentForm> {
-    const item = this.item(itemId);
-    await item.hover();
-    await item.getByRole('button', { name: 'Napisz komentarz' }).click();
-    const form = new CommentForm(this.page, item.locator('.kis-comment-form.active'));
-    await expect(form.editor).toBeVisible();
-    return form;
+  comments(itemId: string): Locator {
+    return this.item(itemId).locator('.proposal-item-comments');
   }
 
-  async addComment(text: string, itemId?: string): Promise<void> {
-    const form = await this.openComments(itemId);
-    await form.send(text);
-    await expect(this.item(itemId).locator('.proposal-item-comments').getByText(text)).toBeVisible();
+  commentForm(itemId: string): CommentForm {
+    return new CommentForm(this.page, this.item(itemId).locator('.kis-comment-form.active'));
+  }
+
+  @step('Klient komentuje produkt {0}: „{1}”')
+  async sendComment(itemId: string, text: string): Promise<void> {
+    await this.item(itemId).hover();
+    await this.item(itemId).getByRole('button', { name: 'Napisz komentarz' }).click();
+    await this.commentForm(itemId).send(text);
   }
 }
