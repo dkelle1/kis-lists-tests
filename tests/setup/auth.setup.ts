@@ -1,17 +1,20 @@
+/* eslint-disable playwright/no-conditional-in-test -- logowanie tylko wtedy, gdy zapisana sesja wygasła */
 import { expect, test as setup } from '@playwright/test';
 import fs from 'node:fs';
 import { member, storageStatePath, TEAM, TeamMemberKey } from '../../src/data/team';
-import { LoginPage, TwoFactorPage } from '../../src/pages/LoginPage';
+import { LoginPage } from '../../src/pages/LoginPage';
+import { TwoFactorPage } from '../../src/pages/TwoFactorPage';
 
 /**
  * Sesje członków zespołu (.auth/<osoba>.json) używane przez testy przez storageState.
  *
  * KIS List wymaga przy logowaniu kodu 2FA wysłanego e-mailem, więc:
  *  - jeśli zapisana sesja jest nadal ważna – logowanie jest pomijane;
- *  - w przeciwnym razie test loguje się i czeka na kod: ze zmiennej <OSOBA>_2FA_CODE
+ *  - w przeciwnym razie setup loguje się i czeka na kod: ze zmiennej <OSOBA>_2FA_CODE
  *    albo z pliku .auth/<osoba>.code (wpisz kod do pliku, gdy przyjdzie e-mail).
  */
 const CODE_WAIT_MS = 5 * 60_000;
+const LOGIN_PATH = /\/(login|logowanie)/;
 
 async function waitForCode(key: TeamMemberKey): Promise<string> {
   const fromEnv = process.env[`${key.toUpperCase()}_2FA_CODE`];
@@ -25,9 +28,9 @@ async function waitForCode(key: TeamMemberKey): Promise<string> {
       fs.unlinkSync(file);
       if (/^\d{4}$/.test(code)) return code;
     }
-    await new Promise((r) => setTimeout(r, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
   }
-  throw new Error(`Brak kodu 2FA dla ${key} w ciągu ${CODE_WAIT_MS / 1000}s`);
+  throw new Error(`Brak kodu 2FA dla ${key} w ciągu ${CODE_WAIT_MS / 1000} s`);
 }
 
 for (const key of TEAM) {
@@ -38,15 +41,15 @@ for (const key of TEAM) {
     const page = await context.newPage();
 
     await page.goto('/lists');
-    if (/\/(login|logowanie)/.test(page.url())) {
+    if (LOGIN_PATH.test(page.url())) {
       const login = new LoginPage(page);
       await login.goto();
-      await login.submitCredentials(member(key));
+      await login.login(member(key));
       const twoFactor = new TwoFactorPage(page);
-      if (await twoFactor.isShown()) await twoFactor.enter(await waitForCode(key));
+      if (twoFactor.isCurrent()) await twoFactor.enterCode(await waitForCode(key));
     }
 
-    await expect(page, `sesja ${key} nieaktywna`).not.toHaveURL(/\/(login|logowanie|2fa)/);
+    await expect(page, `sesja ${key} jest aktywna`).not.toHaveURL(/\/(login|logowanie|2fa)/);
     fs.mkdirSync('.auth', { recursive: true });
     await context.storageState({ path });
     await context.close();

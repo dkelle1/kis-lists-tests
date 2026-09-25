@@ -1,11 +1,6 @@
 import { faker } from '@faker-js/faker';
 import { env } from '../config/env';
 
-/**
- * Fabryki danych testowych (faker – odpowiednik Bogus z .NET).
- * Każdy komentarz ma unikalny znacznik, żeby jednoznacznie znaleźć "jego" powiadomienie,
- * nawet gdy w centrum powiadomień są wpisy z wcześniejszych przebiegów.
- */
 let seeded = false;
 
 function ensureSeed(): void {
@@ -16,29 +11,19 @@ function ensureSeed(): void {
 }
 
 export interface CommentData {
-  /** Unikalny znacznik wyszukiwany w powiadomieniach. */
+  /** Unikalny znacznik – po nim test znajduje "swój" komentarz i "swoje" powiadomienie. */
   marker: string;
-  /** Pełna treść komentarza (znacznik + realistyczny tekst). */
+  /** Pełna treść: znacznik + realistyczny tekst (faker – odpowiednik Bogus z .NET). */
   text: string;
 }
 
-export function buildComment(scenario: string): CommentData {
+/**
+ * Komentarz z unikalnym znacznikiem, np. "[e2e P-03 k3j9x0qa] Ut enim ad minima…".
+ * Znacznik pozwala odróżnić powiadomienia z bieżącego przebiegu od wcześniejszych
+ * i wykryć duplikaty (to samo powiadomienie dwa razy).
+ */
+export function buildComment(scenarioId: string): CommentData {
   ensureSeed();
-  const marker = `[e2e ${scenario} ${faker.string.alphanumeric({ length: 8, casing: 'lower' })}]`;
+  const marker = `[e2e ${scenarioId} ${faker.string.alphanumeric({ length: 8, casing: 'lower' })}]`;
   return { marker, text: `${marker} ${faker.lorem.sentence({ min: 4, max: 10 })}` };
-}
-
-export interface ClientData {
-  name: string;
-  email: string;
-}
-
-export function buildClient(): ClientData {
-  ensureSeed();
-  const firstName = faker.person.firstName();
-  const lastName = faker.person.lastName();
-  return {
-    name: `${firstName} ${lastName}`,
-    email: faker.internet.email({ firstName, lastName, provider: 'example.com' }).toLowerCase(),
-  };
 }
