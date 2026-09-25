@@ -1,0 +1,91 @@
+name: E2E – powiadomienia o komentarzach
+
+# Uruchomienie ręczne z zakładki Actions ("Run workflow") z wyborem zestawu testów.
+on:
+  workflow_dispatch:
+    inputs:
+      suite:
+        description: Zestaw testów
+        type: choice
+        default: all
+        options: [all, positive, negative, regression, R1, R2, R3]
+
+concurrency:
+  # Testy współdzielą konta i listę testową – nie uruchamiamy dwóch przebiegów naraz.
+  group: e2e-kislist
+  cancel-in-progress: false
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      BASE_URL: ${{ vars.BASE_URL || 'https://kislist.com' }}
+      KIS_LIST_ID: ${{ secrets.KIS_LIST_ID }}
+      KIS_ITEM_ID: ${{ secrets.KIS_ITEM_ID }}
+      PIOTR_EMAIL: ${{ secrets.PIOTR_EMAIL }}
+      PIOTR_PASSWORD: ${{ secrets.PIOTR_PASSWORD }}
+      ANNA_EMAIL: ${{ secrets.ANNA_EMAIL }}
+      ANNA_PASSWORD: ${{ secrets.ANNA_PASSWORD }}
+      MARCIN_EMAIL: ${{ secrets.MARCIN_EMAIL }}
+      MARCIN_PASSWORD: ${{ secrets.MARCIN_PASSWORD }}
+      MICHALINA_EMAIL: ${{ secrets.MICHALINA_EMAIL }}
+      MICHALINA_PASSWORD: ${{ secrets.MICHALINA_PASSWORD }}
+      PIOTR_DISPLAY_NAME: ${{ vars.PIOTR_DISPLAY_NAME }}
+      ANNA_DISPLAY_NAME: ${{ vars.ANNA_DISPLAY_NAME }}
+      MARCIN_DISPLAY_NAME: ${{ vars.MARCIN_DISPLAY_NAME }}
+      MICHALINA_DISPLAY_NAME: ${{ vars.MICHALINA_DISPLAY_NAME }}
+      CLIENT_SHARE_URL: ${{ secrets.CLIENT_SHARE_URL }}
+      CLIENT_PROPOSAL_URL: ${{ secrets.CLIENT_PROPOSAL_URL }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Instalacja przeglądarki
+        run: npx playwright install --with-deps chromium
+
+      # KIS List wymaga 2FA przy logowaniu – w CI używamy sesji zapisanych lokalnie (.auth/<osoba>.json),
+      # przekazanych jako sekrety <OSOBA>_STORAGE_STATE (base64 z pliku JSON).
+      - name: Sesje członków zespołu
+        env:
+          PIOTR_STORAGE_STATE: ${{ secrets.PIOTR_STORAGE_STATE }}
+          ANNA_STORAGE_STATE: ${{ secrets.ANNA_STORAGE_STATE }}
+          MARCIN_STORAGE_STATE: ${{ secrets.MARCIN_STORAGE_STATE }}
+          MICHALINA_STORAGE_STATE: ${{ secrets.MICHALINA_STORAGE_STATE }}
+        run: |
+          mkdir -p .auth
+          for who in piotr anna marcin michalina; do
+            var="$(echo "$who" | tr a-z A-Z)_STORAGE_STATE"
+            if [ -n "${!var}" ]; then echo "${!var}" | base64 -d > ".auth/$who.json"; fi
+          done
+
+      - name: Testy E2E
+        env:
+          SUITE: ${{ inputs.suite }}
+        run: |
+          if [ "$SUITE" = "all" ]; then
+            npx playwright test
+          else
+            npx playwright test --grep "@$SUITE"
+          fi
+
+      - name: Raport Allure
+        if: ${{ !cancelled() }}
+        run: npx allure generate allure-results
+
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: allure-report
+          path: allure-report/
+          retention-days: 14
+
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 14

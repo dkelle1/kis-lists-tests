@@ -1,0 +1,22 @@
+name: CI
+
+# Szybkie sprawdzenie kodu frameworka przy każdym pushu i PR – bez dostępu do aplikacji i sekretów.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  static-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Typecheck, lint, format
+        run: npm run check
+      - name: Testy dają się wczytać
+        run: npx playwright test --list
