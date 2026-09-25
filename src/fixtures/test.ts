@@ -3,36 +3,38 @@ import * as allure from 'allure-js-commons';
 import { env } from '../config/env';
 import { buildClient, ClientData } from '../data/factories';
 import { displayName, storageStatePath, TeamMemberKey } from '../data/team';
-import { DashboardPage } from '../pages/DashboardPage';
-import { SharedViewPage } from '../pages/SharedViewPage';
+import { ClientViewPage } from '../pages/ClientViewPage';
+import { ListPage } from '../pages/ListPage';
 
 export { expect } from '../assertions/notifications';
 
-/** Zalogowany członek zespołu – osobny BrowserContext, sesja z projektu "setup". */
+/** Zalogowany członek zespołu – osobny BrowserContext z sesją zapisaną przez projekt "setup". */
 export interface Actor {
   key: TeamMemberKey;
   name: string;
-  dashboard: DashboardPage;
+  list: ListPage;
 }
 
 /** Niezalogowany klient z danymi z faker. */
 export interface Client {
   data: ClientData;
-  view: SharedViewPage;
+  view: ClientViewPage;
 }
 
 interface Fixtures {
   /** Zwraca (i cache'uje) zalogowanego członka zespołu. */
   actor: (key: TeamMemberKey) => Promise<Actor>;
   client: Client;
-  listName: string;
+  listId: string;
+  /** Produkt, pod którym testy dodają komentarze (KIS_ITEM_ID albo pierwszy produkt listy). */
+  itemId: string;
 }
 
 async function newActor(browser: Browser, key: TeamMemberKey, contexts: BrowserContext[]): Promise<Actor> {
   const context = await browser.newContext({ storageState: storageStatePath(key) });
   contexts.push(context);
   const page = await context.newPage();
-  return { key, name: displayName(key), dashboard: new DashboardPage(page) };
+  return { key, name: displayName(key), list: new ListPage(page) };
 }
 
 export const test = base.extend<Fixtures>({
@@ -50,12 +52,20 @@ export const test = base.extend<Fixtures>({
     const context = await browser.newContext();
     const data = buildClient();
     await allure.parameter('klient', data.name);
-    await use({ data, view: new SharedViewPage(await context.newPage()) });
+    await use({ data, view: new ClientViewPage(await context.newPage()) });
     await context.close();
   },
 
-  listName: async ({}, use) => {
-    await use(env().KIS_LIST_NAME);
+  listId: async ({}, use) => {
+    await use(env().KIS_LIST_ID);
+  },
+
+  itemId: async ({ actor, listId }, use) => {
+    const configured = env().KIS_ITEM_ID;
+    if (configured) return use(configured);
+    const { list } = await actor('piotr');
+    await list.goto(listId);
+    await use(await list.itemId(list.items.first()));
   },
 });
 

@@ -9,8 +9,11 @@ import { z } from 'zod';
 const credentials = { email: z.email(), password: z.string().min(1) };
 
 const schema = z.object({
-  BASE_URL: z.url().default('https://www.kislist.com'),
-  KIS_LIST_NAME: z.string().min(1),
+  BASE_URL: z.url().default('https://kislist.com'),
+  /** Id listy testowej z adresu /lists/<id>/edit */
+  KIS_LIST_ID: z.string().min(1),
+  /** Id produktu, pod którym dodajemy komentarze (atrybut id="item-<id>"); domyślnie pierwszy produkt listy. */
+  KIS_ITEM_ID: z.string().min(1).optional(),
   PIOTR_EMAIL: credentials.email,
   PIOTR_PASSWORD: credentials.password,
   ANNA_EMAIL: credentials.email,
@@ -43,4 +46,4 @@ export function env(): Env {
   return cached;
 }
 
-export const baseURL = process.env.BASE_URL ?? 'https://www.kislist.com';
+export const baseURL = process.env.BASE_URL ?? 'https://kislist.com';

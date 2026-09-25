@@ -20,8 +20,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     env:
-      BASE_URL: ${{ vars.BASE_URL || 'https://www.kislist.com' }}
-      KIS_LIST_NAME: ${{ secrets.KIS_LIST_NAME }}
+      BASE_URL: ${{ vars.BASE_URL || 'https://kislist.com' }}
+      KIS_LIST_ID: ${{ secrets.KIS_LIST_ID }}
+      KIS_ITEM_ID: ${{ secrets.KIS_ITEM_ID }}
       PIOTR_EMAIL: ${{ secrets.PIOTR_EMAIL }}
       PIOTR_PASSWORD: ${{ secrets.PIOTR_PASSWORD }}
       ANNA_EMAIL: ${{ secrets.ANNA_EMAIL }}
@@ -41,6 +42,21 @@ jobs:
       - run: npm ci
       - name: Instalacja przeglądarki
         run: npx playwright install --with-deps chromium
+
+      # KIS List wymaga 2FA przy logowaniu – w CI używamy sesji zapisanych lokalnie (.auth/<osoba>.json),
+      # przekazanych jako sekrety <OSOBA>_STORAGE_STATE (base64 z pliku JSON).
+      - name: Sesje członków zespołu
+        env:
+          PIOTR_STORAGE_STATE: ${{ secrets.PIOTR_STORAGE_STATE }}
+          ANNA_STORAGE_STATE: ${{ secrets.ANNA_STORAGE_STATE }}
+          MARCIN_STORAGE_STATE: ${{ secrets.MARCIN_STORAGE_STATE }}
+          MICHALINA_STORAGE_STATE: ${{ secrets.MICHALINA_STORAGE_STATE }}
+        run: |
+          mkdir -p .auth
+          for who in piotr anna marcin michalina; do
+            var="$(echo "$who" | tr a-z A-Z)_STORAGE_STATE"
+            if [ -n "${!var}" ]; then echo "${!var}" | base64 -d > ".auth/$who.json"; fi
+          done
 
       - name: Testy E2E
         env:

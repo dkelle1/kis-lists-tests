@@ -18,27 +18,27 @@ test.describe('R3: komentarz członka zespołu', { tag: ['@R3'] }, () => {
     test(
       `${id}: ${displayName(author)} komentuje element -> pozostali dostają powiadomienie`,
       { tag: ['@positive', '@regression'] },
-      async ({ actor, listName }) => {
+      async ({ actor, listId, itemId }) => {
         await scenario({ id, requirement: 'R3', story: 'Członek zespołu dodał komentarz' });
         const comment = buildComment(id);
 
         await test.step(`${displayName(author)} dodaje komentarz bez oznaczeń`, async () => {
-          const { dashboard } = await actor(author);
-          const list = await dashboard.openList(listName);
-          const thread = await list.openItemComments();
-          await thread.add(comment.text);
+          const { list } = await actor(author);
+          await list.goto(listId);
+          const comments = await list.openComments(itemId);
+          await comments.addTeamComment(comment.text);
         });
 
         for (const recipient of othersThan(author)) {
           await test.step(`${displayName(recipient)} dostaje powiadomienie`, async () => {
-            const { dashboard } = await actor(recipient);
-            await expect(dashboard.notifications).toHaveNotification(comment.marker);
+            const { list } = await actor(recipient);
+            await expect(list.notifications).toHaveNotification(comment.marker);
           });
         }
 
         await test.step(`N-01: ${displayName(author)} (autor) NIE dostaje powiadomienia`, async () => {
-          const { dashboard } = await actor(author);
-          await expect(dashboard.notifications).not.toHaveNotification(comment.marker);
+          const { list } = await actor(author);
+          await expect(list.notifications).not.toHaveNotification(comment.marker);
         });
       },
     );
@@ -47,20 +47,21 @@ test.describe('R3: komentarz członka zespołu', { tag: ['@R3'] }, () => {
   test(
     'P-07: komentarz z oznaczeniem @ jednej osoby -> powiadomieni są wszyscy pozostali, nie tylko oznaczony',
     { tag: ['@positive', '@regression'] },
-    async ({ actor, listName }) => {
+    async ({ actor, listId, itemId }) => {
       await scenario({ id: 'P-07', requirement: 'R3', story: 'Członek zespołu dodał komentarz z oznaczeniem' });
       const comment = buildComment('P-07');
 
       await test.step('Anna dodaje komentarz z oznaczeniem @Marcin', async () => {
-        const { dashboard } = await actor('anna');
-        const thread = await (await dashboard.openList(listName)).openItemComments();
-        await thread.add(comment.text, { mentions: [displayName('marcin')] });
+        const { list } = await actor('anna');
+        await list.goto(listId);
+        const comments = await list.openComments(itemId);
+        await comments.addTeamComment(comment.text, { mentions: [displayName('marcin')] });
       });
 
       for (const recipient of othersThan('anna')) {
         await test.step(`${displayName(recipient)} dostaje powiadomienie`, async () => {
-          const { dashboard } = await actor(recipient);
-          await expect(dashboard.notifications).toHaveNotification(comment.marker);
+          const { list } = await actor(recipient);
+          await expect(list.notifications).toHaveNotification(comment.marker);
         });
       }
     },
@@ -69,15 +70,16 @@ test.describe('R3: komentarz członka zespołu', { tag: ['@R3'] }, () => {
   test(
     'N-02: autor oznaczający samego siebie nie dostaje powiadomienia',
     { tag: ['@negative'] },
-    async ({ actor, listName }) => {
+    async ({ actor, listId, itemId }) => {
       await scenario({ id: 'N-02', requirement: 'R3', story: 'Brak powiadomienia dla autora', severity: 'normal' });
       const comment = buildComment('N-02');
 
-      const { dashboard } = await actor('anna');
-      const thread = await (await dashboard.openList(listName)).openItemComments();
-      await thread.add(comment.text, { mentions: [displayName('anna')] });
+      const { list } = await actor('anna');
+      await list.goto(listId);
+      const comments = await list.openComments(itemId);
+      await comments.addTeamComment(comment.text, { mentions: [displayName('anna')] });
 
-      await expect(dashboard.notifications).not.toHaveNotification(comment.marker);
+      await expect(list.notifications).not.toHaveNotification(comment.marker);
     },
   );
 });

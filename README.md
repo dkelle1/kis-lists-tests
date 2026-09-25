@@ -32,7 +32,7 @@ Zgłoszenie: _członkowie zespołu nie zawsze otrzymują powiadomienia o komenta
 
 ## 2. Środowisko i dane testowe
 
-- Aplikacja: https://www.kislist.com, przeglądarka Chrome (desktop) + Chromium w Playwright.
+- Aplikacja: https://kislist.com, przeglądarka Chrome (desktop) + Chromium w Playwright.
 - 4 konta członków zespołu z adresami „+” (np. `mail+piotr@gmail.com`, `mail+anna@gmail.com` …),
   dodane do listy testowej zgodnie z [instrukcją dodawania członka zespołu](https://pomoc.kislist.com/baza-wiedzy/team/jak-dodac-czlonka-zespolu-wspolpracownika-lub-goscia-do-listy-w-kis-list/).
 - Klient: niezalogowana sesja (okno incognito) otwierająca link udostępnienia listy / propozycji.
@@ -112,8 +112,10 @@ Macierz autor × odbiorca (P-03…P-06) pokrywa wszystkie 12 par nadawca→odbio
 Framework automatyzuje scenariusze R1–R3 z planu (P-01…P-07, N-01, N-02, N-08). Każdy odbiorca
 jest sprawdzany w osobnym `test.step`, więc raport wskazuje dokładnie, **kto** nie dostał powiadomienia.
 
-> Lokatory w Page Objectach są wstępne (oparte na rolach i etykietach) – do zweryfikowania na
-> projekcie testowym (PLAN.md, 5.11). Zmiana dotyczy wyłącznie klas w `src/pages`.
+> Page Objecty są oparte na rzeczywistym DOM aplikacji i sprawdzone na żywo w trybie tylko do odczytu
+> (otwarcie list, modala komentarzy, panelu powiadomień, podglądu propozycji, zespołu, logowania – bez wysyłania).
+> Niezweryfikowane: wybór osoby po „@” (brak innych członków zespołu na koncie), struktura pojedynczego
+> powiadomienia (konto nie miało jeszcze powiadomień) i widok udostępnionej listy.
 
 ### Architektura
 
@@ -124,12 +126,18 @@ src/
 │   ├── team.ts                   # Piotr, Anna, Marcin, Michalina – dane kont, ścieżki storageState
 │   └── factories.ts              # dane testowe z faker (komentarze z unikalnym znacznikiem, klient)
 ├── pages/                        # Page Object Model
-│   ├── LoginPage.ts  DashboardPage.ts  ListPage.ts  SharedViewPage.ts
-│   └── components/CommentThread.ts  components/NotificationCenter.ts
-├── fixtures/test.ts              # test.extend: actor(osoba), client, listName + metadane Allure
+│   ├── LoginPage.ts              # /login + TwoFactorPage (/2fa – kod z e-maila)
+│   ├── ListPage.ts               # /lists/<id>/edit – produkty, otwieranie komentarzy
+│   ├── ClientViewPage.ts         # widok klienta: propozycja / udostępniona lista
+│   ├── TeamPage.ts               # /team – członkowie i zaproszenia
+│   └── components/
+│       ├── CommentsModal.ts      # modal "Komentarze" (zakładki Prywatne / Komentarze klienta)
+│       ├── CommentForm.ts        # edytor komentarza (TipTap) – wspólny dla zespołu i klienta
+│       └── NotificationCenter.ts # dzwonek + panel powiadomień
+├── fixtures/test.ts              # test.extend: actor(osoba), client, listId, itemId + metadane Allure
 └── assertions/notifications.ts   # expect.extend: toHaveNotification / not.toHaveNotification
 tests/
-├── setup/auth.setup.ts           # logowanie 4 osób raz na przebieg (storageState w .auth/)
+├── setup/auth.setup.ts           # sesje 4 osób (storageState w .auth/), logowanie z 2FA tylko gdy sesja wygasła
 └── notifications/
     ├── client-comments.spec.ts   # R1, R2 (P-01, P-02, N-08)
     └── team-comments.spec.ts     # R3 (P-03…P-07, N-01, N-02)
@@ -137,8 +145,10 @@ tests/
 
 Zastosowane praktyki:
 
-- **Page Object Model + komponenty** – testy opisują zachowanie („Anna komentuje element”), a nie kliknięcia;
-  lokatory oparte na rolach/etykietach (`getByRole`, `getByLabel`), bez selektorów CSS.
+- **Page Object Model + komponenty** – testy opisują zachowanie („Anna komentuje element”), a nie kliknięcia.
+  Kolejność wyboru lokatorów: `data-testid` i stabilne `id` nadane przez aplikację → role i dostępne nazwy
+  (`getByRole`, `getByTitle`) → klasy komponentów (`.kis-comment-form`, `.notifications-window`) tylko tam,
+  gdzie aplikacja nie daje nic lepszego. Bez XPath, bez pozycji w DOM i bez klas stylów (Bootstrap).
 - **Fixtures** – `actor('anna')` zwraca zalogowaną osobę w osobnym `BrowserContext` (osobne cookies),
   kontekstami zarządza fixture (sprzątanie po teście).
 - **Logowanie raz** – projekt `setup` zapisuje sesje (`storageState`), testy od nich zależą (`dependencies`).
@@ -152,6 +162,34 @@ Zastosowane praktyki:
 - **Jakość** – TypeScript `strict`, ESLint (typescript-eslint + eslint-plugin-playwright), Prettier.
 - **Sekwencyjne wykonanie** – testy współdzielą konta i listę, więc `workers: 1`.
 
+### Kluczowe selektory
+
+| Element                                     | Selektor                                                                                                                                   | Źródło             |
+| ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ------------------ |
+| Login / hasło / „Zaloguj się”               | `#username`, `#password`, `#_submit`                                                                                                       | id z aplikacji     |
+| Kod 2FA (4 pola, auto-wysyłka po 4. cyfrze) | `form:has(#_auth_code) input[type=text]`                                                                                                   | id ukrytego pola   |
+| Produkt na liście                           | `#item-<itemId>`                                                                                                                           | id z aplikacji     |
+| Ikona komentarzy produktu                   | `getByTestId('item-comments-<itemId>')`                                                                                                    | data-testid        |
+| Modal komentarzy                            | `getByRole('dialog')` z `.comments-modal`                                                                                                  | rola + komponent   |
+| Zakładki modala                             | `getByRole('link', { name: /Prywatne/ })`, `getByTestId('comments-public-tab')`                                                            | rola / data-testid |
+| Edytor + wysłanie                           | `getByRole('textbox')`, `getByRole('button', { name: 'Wyślij' })`                                                                          | rola               |
+| Dzwonek / zamknięcie panelu                 | `getByTitle('Pokaż powiadomienia')`, `.slider > .slider-close`                                                                             | title / komponent  |
+| Licznik nieprzeczytanych                    | `getByTitle('Powiadomienia') .kis-pill`                                                                                                    | title              |
+| Udostępnij / członek zespołu / propozycja   | `getByTitle('Udostępnij listę')`, `getByTitle('Dodaj członka zespołu lub współpracownika')`, `getByTitle('Utwórz propozycję dla klienta')` | title              |
+| Produkt w widoku klienta                    | `.proposal-item#item_<itemId>`, `getByRole('button', { name: 'Napisz komentarz' })`                                                        | id / rola          |
+| Zaproszenie do zespołu                      | `getByRole('textbox', { name: 'Zaproś dodatkową osobę przez email' })`                                                                     | rola               |
+
+Zachowania aplikacji uwzględnione w Page Objectach:
+
+- **Ikona komentarzy** – zwykły klik myszą bywa przechwytywany przez przeciąganie wierszy (sortable);
+  `ListPage.openComments()` najeżdża na ikonę i wysyła zdarzenie `click`, ponawiając do otwarcia modala.
+- **Panel powiadomień** jest zawsze w DOM i wysuwa się (`.slider.slide-in` / `.slide-out`), więc stan
+  sprawdzany jest klasą, nie widocznością. Po przeładowaniu strony aplikacja pamięta otwarty panel
+  (zasłania wtedy dzwonek) – `open()` otwiera tylko, gdy panel jest zamknięty.
+- **Logowanie wymaga kodu 2FA z e-maila.** Projekt `setup` używa zapisanych sesji (`.auth/<osoba>.json`,
+  „Zapamiętaj mnie”) i loguje się tylko, gdy sesja wygasła – kod podaje się w zmiennej `<OSOBA>_2FA_CODE`
+  albo wpisuje do pliku `.auth/<osoba>.code`, na który test czeka do 5 minut.
+
 ### Uruchomienie lokalne
 
 Wymagania: Node.js ≥ 20.
@@ -161,7 +199,7 @@ git clone https://github.com/dkelle1/rekrutacja-kis.git
 cd rekrutacja-kis
 npm ci
 npx playwright install chromium
-cp .env.example .env               # uzupełnij loginy/hasła 4 członków zespołu, nazwę listy i linki klienta
+cp .env.example .env               # uzupełnij loginy/hasła 4 członków zespołu, id listy i linki klienta
 npm test                           # wszystkie scenariusze
 npm run test:regression            # tylko @regression (także: test:positive, test:negative)
 npx playwright test --grep @R3     # tylko wybrane wymaganie
@@ -183,6 +221,6 @@ w repozytorium nie ma żadnych haseł.
   Raporty Allure i Playwright są dostępne jako artefakty przebiegu (również gdy testy nie przejdą).
 
 Konfiguracja jednorazowa: **Settings → Secrets and variables → Actions** – dodać sekrety o nazwach z
-`.env.example`: `KIS_LIST_NAME`, `PIOTR_EMAIL`, `PIOTR_PASSWORD`, `ANNA_EMAIL`, `ANNA_PASSWORD`,
+`.env.example`: `KIS_LIST_ID`, `PIOTR_EMAIL`, `PIOTR_PASSWORD`, `ANNA_EMAIL`, `ANNA_PASSWORD`,
 `MARCIN_EMAIL`, `MARCIN_PASSWORD`, `MICHALINA_EMAIL`, `MICHALINA_PASSWORD`, `CLIENT_SHARE_URL`,
 `CLIENT_PROPOSAL_URL` (opcjonalnie zmienna `BASE_URL`).
