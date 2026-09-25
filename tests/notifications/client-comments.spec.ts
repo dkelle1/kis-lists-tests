@@ -31,15 +31,13 @@ for (const c of cases) {
 
       await test.step(`Klient (${client.data.name}) dodaje komentarz`, async () => {
         await client.view.goto(c.url());
-        const thread = await client.view.openItemComments();
-        await client.view.identifyIfAsked(client.data);
-        await thread.add(comment.text);
+        await client.view.addComment(comment.text);
       });
 
       for (const recipient of TEAM) {
         await test.step(`${displayName(recipient)} dostaje powiadomienie`, async () => {
-          const { dashboard } = await actor(recipient);
-          await expect(dashboard.notifications).toHaveNotification(comment.marker);
+          const { list } = await actor(recipient);
+          await expect(list.notifications).toHaveNotification(comment.marker);
         });
       }
     },
@@ -52,14 +50,13 @@ test(
   async ({ client, actor }) => {
     await scenario({ id: 'N-08', requirement: 'R2', story: 'Brak powiadomienia bez komentarza', severity: 'normal' });
 
-    await test.step(`Klient (${client.data.name}) tylko przegląda listę`, async () => {
+    await test.step('Klient tylko przegląda udostępnioną listę', async () => {
       await client.view.goto(env().CLIENT_SHARE_URL);
-      await client.view.identifyIfAsked(client.data);
     });
 
-    await test.step('Piotr nie dostaje powiadomienia z imieniem klienta', async () => {
-      const { dashboard } = await actor('piotr');
-      await expect(dashboard.notifications).not.toHaveNotification(client.data.name);
+    await test.step('Piotr nie dostaje nowego powiadomienia o komentarzu', async () => {
+      const { list } = await actor('piotr');
+      await expect(list.notifications).not.toHaveNotification('[e2e');
     });
   },
 );

@@ -7,11 +7,11 @@ Termin: 3 dni robocze od otrzymania zadania. Legenda: ✅ zrobione · ⬜ do zro
 | #   | Subtask                                                                                   | Kto | Zależy od | Status |
 | --- | ----------------------------------------------------------------------------------------- | --- | --------- | ------ |
 | 0.1 | Założyć konto na kislist.com (adres z formularza) – **Piotr**, właściciel                 | Ty  | –         | ✅     |
-| 0.2 | Poczekać, aż na koncie pojawi się projekt testowy                                         | Ty  | 0.1       | ⬜     |
+| 0.2 | Poczekać, aż na koncie pojawi się projekt testowy                                         | Ty  | 0.1       | ✅     |
 | 0.3 | Założyć konta z adresami „+”: **Anna**, **Marcin**, **Michalina**                         | Ty  | 0.1       | ⬜     |
 | 0.4 | Dodać Annę, Marcina i Michalinę do listy testowej jako członków zespołu                   | Ty  | 0.2, 0.3  | ⬜     |
 | 0.5 | Wygenerować linki dla klienta: udostępniona lista (podgląd na żywo) i propozycja          | Ty  | 0.2       | ⬜     |
-| 0.6 | Odblokować sieć środowiska Claude (`www.kislist.com`, `app.kislist.com`, ewentualnie API) | Ty  | –         | 🔒     |
+| 0.6 | Odblokować sieć środowiska Claude (`www.kislist.com`, `app.kislist.com`, ewentualnie API) | Ty  | –         | ✅     |
 | 0.7 | Uzupełnić lokalny `.env` na podstawie `.env.example` (bez commitowania)                   | Ty  | 0.3–0.5   | ⬜     |
 
 ## Etap 1 – Rozpoznanie aplikacji
@@ -21,7 +21,7 @@ Termin: 3 dni robocze od otrzymania zadania. Legenda: ✅ zrobione · ⬜ do zro
 | 1.1 | Przejść interfejs jako członek zespołu: lista, elementy, wątek komentarzy, oznaczenie `@`, dzwonek | 0.4       | ⬜     |
 | 1.2 | Przejść interfejs jako klient (incognito): komentarz do listy i do propozycji                      | 0.5       | ⬜     |
 | 1.3 | Sprawdzić kanały powiadomień: centrum powiadomień w aplikacji, e-mail, ustawienia powiadomień      | 1.1       | ⬜     |
-| 1.4 | Zanotować rzeczywiste etykiety i elementy UI (do poprawienia selektorów)                           | 1.1, 1.2  | ⬜     |
+| 1.4 | Zanotować rzeczywiste etykiety i elementy UI (do poprawienia selektorów)                           | 1.1, 1.2  | ✅     |
 | 1.5 | Sprawdzić ustawienia powiadomień każdego członka (czy nic nie jest wyłączone przed testami)        | 1.3       | ⬜     |
 
 ## Etap 2 – Plan testów (część 1)
@@ -55,20 +55,20 @@ Termin: 3 dni robocze od otrzymania zadania. Legenda: ✅ zrobione · ⬜ do zro
 
 ## Etap 5 – Framework testów (Playwright + TypeScript)
 
-| #    | Subtask                                                                                                                          | Zależy od | Status |
-| ---- | -------------------------------------------------------------------------------------------------------------------------------- | --------- | ------ |
-| 5.1  | Struktura projektu: `src/` (framework) + `tests/` (specyfikacje), `playwright.config.ts`, `tsconfig.json` (strict)               | –         | ✅     |
-| 5.2  | Konfiguracja z walidacją (zod): `src/config/env.ts`, `.env.example`, sekrety poza repo                                           | 5.1       | ✅     |
-| 5.3  | Page Object Model: `LoginPage`, `DashboardPage`, `ListPage`, `SharedViewPage` + komponenty `CommentThread`, `NotificationCenter` | 5.1       | ✅     |
-| 5.4  | Fixtures (`test.extend`): `actor(osoba)` – osobny kontekst na osobę, `client`, `listName`                                        | 5.3       | ✅     |
-| 5.5  | Logowanie raz na przebieg: projekt `setup` + `storageState` w `.auth/`                                                           | 5.4       | ✅     |
-| 5.6  | Dane testowe z faker (odpowiednik Bogus): fabryki komentarzy i klienta, unikalne znaczniki, opcjonalny `FAKER_SEED`              | 5.1       | ✅     |
-| 5.7  | Asercje domenowe (`expect.extend`): `toHaveNotification` / `not.toHaveNotification` z oknem czasowym                             | 5.3       | ✅     |
-| 5.8  | Raportowanie: Allure 3 (epic/feature/story/severity, `testId`, kroki, zrzuty/wideo/trace) + raport HTML Playwright               | 5.1       | ✅     |
-| 5.9  | Tagi i zestawy: `@positive`, `@negative`, `@regression`, `@R1`–`@R3` + skrypty npm                                               | 5.1       | ✅     |
-| 5.10 | Jakość kodu: ESLint (typescript-eslint, eslint-plugin-playwright), Prettier, `npm run check`                                     | 5.1       | ✅     |
-| 5.11 | Poprawić lokatory w Page Objectach na rzeczywiste                                                                                | 1.4       | ⬜     |
-| 5.12 | Uruchomić framework na żywej aplikacji i ustabilizować (okno czasowe, logowanie, zależności między testami)                      | 5.11, 0.6 | ⬜     |
+| #    | Subtask                                                                                                                                                    | Zależy od | Status |
+| ---- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- | ------ |
+| 5.1  | Struktura projektu: `src/` (framework) + `tests/` (specyfikacje), `playwright.config.ts`, `tsconfig.json` (strict)                                         | –         | ✅     |
+| 5.2  | Konfiguracja z walidacją (zod): `src/config/env.ts`, `.env.example`, sekrety poza repo                                                                     | 5.1       | ✅     |
+| 5.3  | Page Object Model: `LoginPage`/`TwoFactorPage`, `ListPage`, `ClientViewPage`, `TeamPage` + komponenty `CommentsModal`, `CommentForm`, `NotificationCenter` | 5.1       | ✅     |
+| 5.4  | Fixtures (`test.extend`): `actor(osoba)` – osobny kontekst na osobę, `client`, `listName`                                                                  | 5.3       | ✅     |
+| 5.5  | Logowanie raz na przebieg: projekt `setup` + `storageState` w `.auth/`                                                                                     | 5.4       | ✅     |
+| 5.6  | Dane testowe z faker (odpowiednik Bogus): fabryki komentarzy i klienta, unikalne znaczniki, opcjonalny `FAKER_SEED`                                        | 5.1       | ✅     |
+| 5.7  | Asercje domenowe (`expect.extend`): `toHaveNotification` / `not.toHaveNotification` z oknem czasowym                                                       | 5.3       | ✅     |
+| 5.8  | Raportowanie: Allure 3 (epic/feature/story/severity, `testId`, kroki, zrzuty/wideo/trace) + raport HTML Playwright                                         | 5.1       | ✅     |
+| 5.9  | Tagi i zestawy: `@positive`, `@negative`, `@regression`, `@R1`–`@R3` + skrypty npm                                                                         | 5.1       | ✅     |
+| 5.10 | Jakość kodu: ESLint (typescript-eslint, eslint-plugin-playwright), Prettier, `npm run check`                                                               | 5.1       | ✅     |
+| 5.11 | Lokatory na rzeczywistym DOM + smoke tylko do odczytu na żywej aplikacji (brak: „@”, wpis powiadomienia)                                                   | 1.4       | ✅     |
+| 5.12 | Uruchomić framework na żywej aplikacji i ustabilizować (okno czasowe, logowanie, zależności między testami)                                                | 5.11, 0.6 | ⬜     |
 
 ## Etap 6 – Automatyzacja scenariuszy i test regresyjny (część 2)
 

@@ -1,20 +1,54 @@
 import { expect, test as setup } from '@playwright/test';
-import { member, storageStatePath, TEAM } from '../../src/data/team';
-import { LoginPage } from '../../src/pages/LoginPage';
+import fs from 'node:fs';
+import { member, storageStatePath, TEAM, TeamMemberKey } from '../../src/data/team';
+import { LoginPage, TwoFactorPage } from '../../src/pages/LoginPage';
 
 /**
- * Logowanie raz na przebieg: sesja każdego członka zespołu trafia do .auth/<osoba>.json
- * i jest używana przez testy (storageState) – testy nie klikają formularza logowania za każdym razem.
+ * Sesje członków zespołu (.auth/<osoba>.json) używane przez testy przez storageState.
+ *
+ * KIS List wymaga przy logowaniu kodu 2FA wysłanego e-mailem, więc:
+ *  - jeśli zapisana sesja jest nadal ważna – logowanie jest pomijane;
+ *  - w przeciwnym razie test loguje się i czeka na kod: ze zmiennej <OSOBA>_2FA_CODE
+ *    albo z pliku .auth/<osoba>.code (wpisz kod do pliku, gdy przyjdzie e-mail).
  */
+const CODE_WAIT_MS = 5 * 60_000;
+
+async function waitForCode(key: TeamMemberKey): Promise<string> {
+  const fromEnv = process.env[`${key.toUpperCase()}_2FA_CODE`];
+  if (fromEnv) return fromEnv;
+  const file = `.auth/${key}.code`;
+  console.log(`[auth] ${key}: wpisz kod 2FA z e-maila do pliku ${file}`);
+  const deadline = Date.now() + CODE_WAIT_MS;
+  while (Date.now() < deadline) {
+    if (fs.existsSync(file)) {
+      const code = fs.readFileSync(file, 'utf8').trim();
+      fs.unlinkSync(file);
+      if (/^\d{4}$/.test(code)) return code;
+    }
+    await new Promise((r) => setTimeout(r, 1000));
+  }
+  throw new Error(`Brak kodu 2FA dla ${key} w ciągu ${CODE_WAIT_MS / 1000}s`);
+}
+
 for (const key of TEAM) {
-  setup(`logowanie: ${key}`, async ({ browser }) => {
-    const context = await browser.newContext();
+  setup(`sesja: ${key}`, async ({ browser }) => {
+    setup.setTimeout(CODE_WAIT_MS + 60_000);
+    const path = storageStatePath(key);
+    const context = await browser.newContext({ storageState: fs.existsSync(path) ? path : undefined });
     const page = await context.newPage();
-    const login = new LoginPage(page);
-    await login.goto();
-    await login.loginAs(member(key));
-    await expect(page, `logowanie jako ${key} nie powiodło się`).not.toHaveURL(/login/);
-    await context.storageState({ path: storageStatePath(key) });
+
+    await page.goto('/lists');
+    if (/\/(login|logowanie)/.test(page.url())) {
+      const login = new LoginPage(page);
+      await login.goto();
+      await login.submitCredentials(member(key));
+      const twoFactor = new TwoFactorPage(page);
+      if (await twoFactor.isShown()) await twoFactor.enter(await waitForCode(key));
+    }
+
+    await expect(page, `sesja ${key} nieaktywna`).not.toHaveURL(/\/(login|logowanie|2fa)/);
+    fs.mkdirSync('.auth', { recursive: true });
+    await context.storageState({ path });
     await context.close();
   });
 }

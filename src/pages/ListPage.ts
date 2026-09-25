@@ -1,20 +1,52 @@
-import { Locator } from '@playwright/test';
+import { expect, Locator } from '@playwright/test';
 import { BasePage } from './BasePage';
-import { CommentThread } from './components/CommentThread';
+import { CommentsModal } from './components/CommentsModal';
 
-/** Widok listy dla zalogowanego członka zespołu. */
+/**
+ * Lista w widoku członka zespołu: /lists/<listId>/edit
+ *
+ * Elementy listy mają stabilne identyfikatory z aplikacji:
+ *   wiersz produktu     #item-<itemId>
+ *   ikona komentarzy    [data-testid="item-comments-<itemId>"]  (renderowana 3× – po jednej na breakpoint)
+ */
 export class ListPage extends BasePage {
-  private item(name?: string): Locator {
-    return name
-      ? this.page.getByRole('listitem').filter({ hasText: name }).first()
-      : this.page.getByRole('listitem').first();
+  readonly shareButton = this.page.getByTitle('Udostępnij listę', { exact: true });
+  readonly addMemberButton = this.page.getByTitle('Dodaj członka zespołu lub współpracownika', { exact: true });
+  readonly proposalButton = this.page.getByTitle('Utwórz propozycję dla klienta', { exact: true });
+  readonly items = this.page.locator('[id^="item-"]').filter({ has: this.page.getByTestId(/^item-comments-/) });
+
+  async goto(listId: string): Promise<void> {
+    await this.page.goto(`/lists/${listId}/edit`);
+    await expect(this.items.first()).toBeVisible();
   }
 
-  /** Otwiera element listy (domyślnie pierwszy) i zwraca jego wątek komentarzy. */
-  async openItemComments(itemName?: string): Promise<CommentThread> {
-    await this.item(itemName).click();
-    const thread = new CommentThread(this.page);
-    await thread.open();
-    return thread;
+  item(itemId: string): Locator {
+    return this.page.locator(`#item-${itemId}`);
+  }
+
+  itemByName(name: string): Locator {
+    return this.items.filter({ hasText: name }).first();
+  }
+
+  /** Id produktu (z atrybutu id="item-<id>") – przydatne, gdy test wybiera produkt po nazwie. */
+  async itemId(item: Locator): Promise<string> {
+    const id = await item.getAttribute('id');
+    return id!.replace(/^item-/, '');
+  }
+
+  /**
+   * Otwiera modal komentarzy produktu.
+   * Ikona reaguje na zdarzenie click po najechaniu na wiersz; zwykły klik myszą bywa przechwytywany
+   * przez obsługę przeciągania wierszy (sortable), dlatego klik jest ponawiany jako zdarzenie DOM.
+   */
+  async openComments(itemId: string): Promise<CommentsModal> {
+    const modal = new CommentsModal(this.page);
+    const icon = this.item(itemId).getByTestId(`item-comments-${itemId}`).filter({ visible: true });
+    await expect(async () => {
+      await icon.hover();
+      await icon.dispatchEvent('click');
+      await expect(modal.root).toBeVisible({ timeout: 2_000 });
+    }).toPass({ timeout: 15_000 });
+    return modal;
   }
 }
