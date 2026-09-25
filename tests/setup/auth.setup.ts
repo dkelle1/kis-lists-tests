@@ -1,24 +1,26 @@
 /* eslint-disable playwright/no-conditional-in-test -- logowanie tylko wtedy, gdy zapisana sesja wygasła */
 import { expect, test as setup } from '@playwright/test';
 import fs from 'node:fs';
-import { member, storageStatePath, TEAM, TeamMemberKey } from '../../src/data/team';
+import { member, storageStatePath, TEAM, TeamMember } from '../../src/data/team';
 import { LoginPage } from '../../src/pages/LoginPage';
 import { TwoFactorPage } from '../../src/pages/TwoFactorPage';
+import { isTestMailbox, waitForLoginCode } from '../../src/support/mailbox';
 
 /**
  * Sesje członków zespołu (.auth/<osoba>.json) używane przez testy przez storageState.
  *
  * KIS List wymaga przy logowaniu kodu 2FA wysłanego e-mailem, więc:
- *  - jeśli zapisana sesja jest nadal ważna – logowanie jest pomijane;
- *  - w przeciwnym razie setup loguje się i czeka na kod: ze zmiennej <OSOBA>_2FA_CODE
- *    albo z pliku .auth/<osoba>.code (wpisz kod do pliku, gdy przyjdzie e-mail).
+ *  - jeśli zapisana sesja jest nadal ważna – logowanie jest pomijane (każda osoba loguje się najwyżej raz
+ *    na przebieg, więc nie ma wielu kodów naraz ani limitów wysyłki);
+ *  - w przeciwnym razie setup loguje się i pobiera kod, w kolejności:
+ *      1. zmienna <OSOBA>_2FA_CODE,
+ *      2. skrzynka Mailosaur – dla kont z adresem @<MAILOSAUR_SERVER_ID>.mailosaur.net (automatycznie, także w CI),
+ *      3. plik .auth/<osoba>.code – ręcznie, np. dla konta Piotra na Gmailu (wymóg zadania).
  */
 const CODE_WAIT_MS = 5 * 60_000;
 const LOGIN_PATH = /\/(login|logowanie)/;
 
-async function waitForCode(key: TeamMemberKey): Promise<string> {
-  const fromEnv = process.env[`${key.toUpperCase()}_2FA_CODE`];
-  if (fromEnv) return fromEnv;
+async function waitForCodeFile(key: string): Promise<string> {
   const file = `.auth/${key}.code`;
   console.log(`[auth] ${key}: wpisz kod 2FA z e-maila do pliku ${file}`);
   const deadline = Date.now() + CODE_WAIT_MS;
@@ -33,6 +35,13 @@ async function waitForCode(key: TeamMemberKey): Promise<string> {
   throw new Error(`Brak kodu 2FA dla ${key} w ciągu ${CODE_WAIT_MS / 1000} s`);
 }
 
+async function loginCode(user: TeamMember, since: Date): Promise<string> {
+  const fromEnv = process.env[`${user.key.toUpperCase()}_2FA_CODE`];
+  if (fromEnv) return fromEnv;
+  if (isTestMailbox(user.email)) return waitForLoginCode(user.email, since);
+  return waitForCodeFile(user.key);
+}
+
 for (const key of TEAM) {
   setup(`sesja: ${key}`, async ({ browser }) => {
     setup.setTimeout(CODE_WAIT_MS + 60_000);
@@ -42,11 +51,13 @@ for (const key of TEAM) {
 
     await page.goto('/lists');
     if (LOGIN_PATH.test(page.url())) {
+      const user = member(key);
       const login = new LoginPage(page);
       await login.goto();
-      await login.login(member(key));
+      const since = new Date(); // przed kliknięciem – mail z kodem może przyjść szybciej niż kolejna linia testu
+      await login.login(user);
       const twoFactor = new TwoFactorPage(page);
-      if (twoFactor.isCurrent()) await twoFactor.enterCode(await waitForCode(key));
+      if (twoFactor.isCurrent()) await twoFactor.enterCode(await loginCode(user, since));
     }
 
     await expect(page, `sesja ${key} jest aktywna`).not.toHaveURL(/\/(login|logowanie|2fa)/);

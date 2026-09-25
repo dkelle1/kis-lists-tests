@@ -33,13 +33,13 @@ Zgłoszenie: _członkowie zespołu nie zawsze otrzymują powiadomienia o komenta
 ## 2. Środowisko i dane testowe
 
 - Aplikacja: https://kislist.com, przeglądarka Chrome (desktop) + Chromium w Playwright.
-- 4 konta członków zespołu z adresami „+” (np. `mail+piotr@gmail.com`, `mail+anna@gmail.com` …),
-  dodane do listy testowej zgodnie z [instrukcją dodawania członka zespołu](https://pomoc.kislist.com/baza-wiedzy/team/jak-dodac-czlonka-zespolu-wspolpracownika-lub-goscia-do-listy-w-kis-list/).
+- 4 konta członków zespołu: Piotr – adres z formularza rekrutacyjnego (Gmail), Anna, Marcin i Michalina –
+  skrzynki testowe [Mailosaur](https://mailosaur.com) (`anna@<serverId>.mailosaur.net` …), dodane do listy testowej zgodnie z [instrukcją dodawania członka zespołu](https://pomoc.kislist.com/baza-wiedzy/team/jak-dodac-czlonka-zespolu-wspolpracownika-lub-goscia-do-listy-w-kis-list/).
 - Klient: niezalogowana sesja (okno incognito) otwierająca link udostępnienia listy / propozycji.
 - Każdy komentarz zawiera unikalny znacznik (`[e2e R3-anna] <timestamp>`), dzięki czemu
   powiadomienie da się jednoznacznie przypisać do komentarza.
 - Powiadomienia sprawdzane są w centrum powiadomień w aplikacji (ikona dzwonka) każdego odbiorcy;
-  dodatkowo, manualnie, w skrzynce e-mail (wszystkie adresy „+” trafiają do jednej skrzynki).
+  dodatkowo w skrzynkach e-mail (Mailosaur – podgląd w panelu lub przez API).
 
 ## 3. Plan testów
 
@@ -209,9 +209,16 @@ Zachowania aplikacji uwzględnione w Page Objectach:
 - **Panel powiadomień** jest zawsze w DOM i wysuwa się (`.slider.slide-in` / `.slide-out`), więc stan sprawdzany jest
   klasą. Po przeładowaniu aplikacja sama wysuwa panel (zasłania wtedy dzwonek). Strona `/lists` ma drugi, osadzony
   panel – odświeżanie powiadomień korzysta z `/team`, gdzie jest tylko panel z nagłówka.
-- **Logowanie wymaga kodu 2FA z e-maila.** Projekt `setup` używa zapisanych sesji (`.auth/<osoba>.json`,
-  „Zapamiętaj mnie”) i loguje się tylko, gdy sesja wygasła – kod podaje się w zmiennej `<OSOBA>_2FA_CODE`
-  albo wpisuje do pliku `.auth/<osoba>.code`, na który setup czeka do 5 minut.
+- **Logowanie wymaga 4-cyfrowego kodu 2FA z e-maila** (nie TOTP, więc generator kodów odpada; SMTP należy do
+  KIS List, więc lokalna skrzynka typu Mailpit też). Projekt `setup` loguje każdą osobę najwyżej raz na przebieg
+  i zapisuje sesję (`.auth/<osoba>.json`, „Zapamiętaj mnie”); przy ważnej sesji logowanie jest pomijane.
+  Kod pobierany jest w kolejności:
+  1. zmienna `<OSOBA>_2FA_CODE`;
+  2. **Mailosaur** (`src/support/mailbox.ts`) – dla kont z adresem `@<MAILOSAUR_SERVER_ID>.mailosaur.net`:
+     znacznik czasu zapisywany jest _przed_ kliknięciem „Zaloguj”, a wiadomość wyszukiwana po adresacie
+     (`sentTo`) i czasie (`receivedAfter`), więc stary kod z poprzedniego przebiegu nie zostanie użyty;
+  3. plik `.auth/<osoba>.code`, na który setup czeka do 5 minut – dla konta Piotra na Gmailu
+     (skrzynek Gmail nie automatyzujemy; alternatywa: filtr przekierowania Gmaila na adres Mailosaur).
 
 ### Uruchomienie lokalne
 
@@ -247,4 +254,5 @@ Konfiguracja jednorazowa: **Settings → Secrets and variables → Actions** –
 `.env.example`: `KIS_LIST_ID`, `PIOTR_EMAIL`, `PIOTR_PASSWORD`, `ANNA_EMAIL`, `ANNA_PASSWORD`,
 `MARCIN_EMAIL`, `MARCIN_PASSWORD`, `MICHALINA_EMAIL`, `MICHALINA_PASSWORD`, `CLIENT_SHARE_URL`,
 `CLIENT_PROPOSAL_URL`, opcjonalnie `KIS_ITEM_ID` i `<OSOBA>_DISPLAY_NAME`, oraz sesje `<OSOBA>_STORAGE_STATE`
-(base64 z plików `.auth/<osoba>.json` – logowanie wymaga 2FA). Opcjonalnie zmienna `BASE_URL`.
+(base64 z plików `.auth/<osoba>.json` – potrzebne tylko dla konta spoza Mailosaur, czyli Piotra),
+`MAILOSAUR_API_KEY` i `MAILOSAUR_SERVER_ID` (kody 2FA pozostałych osób). Opcjonalnie zmienna `BASE_URL`.

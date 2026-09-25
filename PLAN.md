@@ -4,15 +4,15 @@ Termin: 3 dni robocze od otrzymania zadania. Legenda: ✅ zrobione · ⬜ do zro
 
 ## Etap 0 – Przygotowanie środowiska
 
-| #   | Subtask                                                                                   | Kto | Zależy od | Status |
-| --- | ----------------------------------------------------------------------------------------- | --- | --------- | ------ |
-| 0.1 | Założyć konto na kislist.com (adres z formularza) – **Piotr**, właściciel                 | Ty  | –         | ✅     |
-| 0.2 | Poczekać, aż na koncie pojawi się projekt testowy                                         | Ty  | 0.1       | ✅     |
-| 0.3 | Założyć konta z adresami „+”: **Anna**, **Marcin**, **Michalina**                         | Ty  | 0.1       | ⬜     |
-| 0.4 | Dodać Annę, Marcina i Michalinę do listy testowej jako członków zespołu                   | Ty  | 0.2, 0.3  | ⬜     |
-| 0.5 | Wygenerować linki dla klienta: udostępniona lista (podgląd na żywo) i propozycja          | Ty  | 0.2       | ⬜     |
-| 0.6 | Odblokować sieć środowiska Claude (`www.kislist.com`, `app.kislist.com`, ewentualnie API) | Ty  | –         | ✅     |
-| 0.7 | Uzupełnić lokalny `.env` na podstawie `.env.example` (bez commitowania)                   | Ty  | 0.3–0.5   | ⬜     |
+| #   | Subtask                                                                                                 | Kto | Zależy od | Status |
+| --- | ------------------------------------------------------------------------------------------------------- | --- | --------- | ------ |
+| 0.1 | Założyć konto na kislist.com (adres z formularza) – **Piotr**, właściciel                               | Ty  | –         | ✅     |
+| 0.2 | Poczekać, aż na koncie pojawi się projekt testowy                                                       | Ty  | 0.1       | ✅     |
+| 0.3 | Założyć konto Mailosaur; konta **Anna**, **Marcin**, **Michalina** na `<imię>@<serverId>.mailosaur.net` | Ty  | 0.1       | ⬜     |
+| 0.4 | Dodać Annę, Marcina i Michalinę do listy testowej jako członków zespołu                                 | Ty  | 0.2, 0.3  | ⬜     |
+| 0.5 | Wygenerować linki dla klienta: udostępniona lista (podgląd na żywo) i propozycja                        | Ty  | 0.2       | ⬜     |
+| 0.6 | Odblokować sieć środowiska Claude (`www.kislist.com`, `app.kislist.com`, ewentualnie API)               | Ty  | –         | ✅     |
+| 0.7 | Uzupełnić lokalny `.env` na podstawie `.env.example` (bez commitowania)                                 | Ty  | 0.3–0.5   | ⬜     |
 
 ## Etap 1 – Rozpoznanie aplikacji
 
@@ -70,6 +70,7 @@ Termin: 3 dni robocze od otrzymania zadania. Legenda: ✅ zrobione · ⬜ do zro
 | 5.11 | Lokatory na rzeczywistym DOM + smoke tylko do odczytu na żywej aplikacji (brak: „@”, wpis powiadomienia)                                                   | 1.4       | ✅     |
 | 5.12 | Uruchomić framework na żywej aplikacji i ustabilizować (okno czasowe, logowanie, zależności między testami)                                                | 5.11, 0.6 | ⬜     |
 | 5.13 | Review testów: asercje wyłącznie w testach (ESLint), dokładnie 1 powiadomienie, treść (P-10), próby kontrolne, poprawka N-08                               | 5.11      | ✅     |
+| 5.14 | Kody 2FA z e-maila przez Mailosaur (`src/support/mailbox.ts`): `since` przed logowaniem, filtr `sentTo` + `receivedAfter`                                  | 0.3       | ✅     |
 
 ## Etap 6 – Automatyzacja scenariuszy i test regresyjny (część 2)
 
