@@ -30,7 +30,11 @@ const schema = z.object({
   ANNA_DISPLAY_NAME: z.string().min(1).optional(),
   MARCIN_DISPLAY_NAME: z.string().min(1).optional(),
   MICHALINA_DISPLAY_NAME: z.string().min(1).optional(),
-  /** Mailosaur – skrzynki testowe do odczytu kodów 2FA i zaproszeń (src/support/mailbox.ts). */
+  /** Gmail API (tylko odczyt) – kody 2FA i zaproszenia z jednej skrzynki z adresami „+” (src/support/mail/gmail.ts). */
+  GMAIL_CLIENT_ID: z.string().min(1).optional(),
+  GMAIL_CLIENT_SECRET: z.string().min(1).optional(),
+  GMAIL_REFRESH_TOKEN: z.string().min(1).optional(),
+  /** Mailosaur – alternatywne skrzynki testowe <nazwa>@<serverId>.mailosaur.net (src/support/mail/mailosaur.ts). */
   MAILOSAUR_API_KEY: z.string().min(1).optional(),
   MAILOSAUR_SERVER_ID: z.string().min(1).optional(),
   CLIENT_SHARE_URL: z.url(),

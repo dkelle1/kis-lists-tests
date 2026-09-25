@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import { member, storageStatePath, TEAM, TeamMember } from '../../src/data/team';
 import { LoginPage } from '../../src/pages/LoginPage';
 import { TwoFactorPage } from '../../src/pages/TwoFactorPage';
-import { isTestMailbox, waitForLoginCode } from '../../src/support/mailbox';
+import { mailboxFor, waitForLoginCode } from '../../src/support/mailbox';
 
 /**
  * Sesje członków zespołu (.auth/<osoba>.json) używane przez testy przez storageState.
@@ -14,8 +14,8 @@ import { isTestMailbox, waitForLoginCode } from '../../src/support/mailbox';
  *    na przebieg, więc nie ma wielu kodów naraz ani limitów wysyłki);
  *  - w przeciwnym razie setup loguje się i pobiera kod, w kolejności:
  *      1. zmienna <OSOBA>_2FA_CODE,
- *      2. skrzynka Mailosaur – dla kont z adresem @<MAILOSAUR_SERVER_ID>.mailosaur.net (automatycznie, także w CI),
- *      3. plik .auth/<osoba>.code – ręcznie, np. dla konta Piotra na Gmailu (wymóg zadania).
+ *      2. skrzynka e-mail (src/support/mailbox.ts) – Gmail z adresami „+” albo Mailosaur; automatycznie, także w CI,
+ *      3. plik .auth/<osoba>.code – ręcznie, gdy żadna skrzynka nie jest skonfigurowana.
  */
 const CODE_WAIT_MS = 5 * 60_000;
 const LOGIN_PATH = /\/(login|logowanie)/;
@@ -38,7 +38,7 @@ async function waitForCodeFile(key: string): Promise<string> {
 async function loginCode(user: TeamMember, since: Date): Promise<string> {
   const fromEnv = process.env[`${user.key.toUpperCase()}_2FA_CODE`];
   if (fromEnv) return fromEnv;
-  if (isTestMailbox(user.email)) return waitForLoginCode(user.email, since);
+  if (await mailboxFor(user.email)) return waitForLoginCode(user.email, since);
   return waitForCodeFile(user.key);
 }
 

@@ -35,6 +35,9 @@ jobs:
       ANNA_DISPLAY_NAME: ${{ vars.ANNA_DISPLAY_NAME }}
       MARCIN_DISPLAY_NAME: ${{ vars.MARCIN_DISPLAY_NAME }}
       MICHALINA_DISPLAY_NAME: ${{ vars.MICHALINA_DISPLAY_NAME }}
+      GMAIL_CLIENT_ID: ${{ secrets.GMAIL_CLIENT_ID }}
+      GMAIL_CLIENT_SECRET: ${{ secrets.GMAIL_CLIENT_SECRET }}
+      GMAIL_REFRESH_TOKEN: ${{ secrets.GMAIL_REFRESH_TOKEN }}
       MAILOSAUR_API_KEY: ${{ secrets.MAILOSAUR_API_KEY }}
       MAILOSAUR_SERVER_ID: ${{ secrets.MAILOSAUR_SERVER_ID }}
       CLIENT_SHARE_URL: ${{ secrets.CLIENT_SHARE_URL }}
@@ -49,8 +52,8 @@ jobs:
       - name: Instalacja przeglądarki
         run: npx playwright install --with-deps chromium
 
-      # KIS List wymaga 2FA przy logowaniu. Konta na skrzynkach Mailosaur logują się same (kod z API);
-      # dla pozostałych (Piotr – Gmail) używamy sesji zapisanych lokalnie, przekazanych jako sekrety
+      # KIS List wymaga 2FA przy logowaniu. Przy skonfigurowanej skrzynce (Gmail API / Mailosaur) konta logują się
+      # same; w przeciwnym razie używamy sesji zapisanych lokalnie, przekazanych jako sekrety
       # <OSOBA>_STORAGE_STATE (base64 z pliku .auth/<osoba>.json).
       - name: Sesje członków zespołu
         env:

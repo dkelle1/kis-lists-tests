@@ -33,13 +33,13 @@ Zgłoszenie: _członkowie zespołu nie zawsze otrzymują powiadomienia o komenta
 ## 2. Środowisko i dane testowe
 
 - Aplikacja: https://kislist.com, przeglądarka Chrome (desktop) + Chromium w Playwright.
-- 4 konta członków zespołu: Piotr – adres z formularza rekrutacyjnego (Gmail), Anna, Marcin i Michalina –
-  skrzynki testowe [Mailosaur](https://mailosaur.com) (`anna@<serverId>.mailosaur.net` …), dodane do listy testowej zgodnie z [instrukcją dodawania członka zespołu](https://pomoc.kislist.com/baza-wiedzy/team/jak-dodac-czlonka-zespolu-wspolpracownika-lub-goscia-do-listy-w-kis-list/).
+- 4 konta członków zespołu na jednej skrzynce Gmail z adresami „+” (`<login>@gmail.com` – Piotr,
+  `<login>+anna@gmail.com`, `<login>+marcin@gmail.com`, `<login>+michalina@gmail.com`), dodane do listy testowej zgodnie z [instrukcją dodawania członka zespołu](https://pomoc.kislist.com/baza-wiedzy/team/jak-dodac-czlonka-zespolu-wspolpracownika-lub-goscia-do-listy-w-kis-list/).
 - Klient: niezalogowana sesja (okno incognito) otwierająca link udostępnienia listy / propozycji.
 - Każdy komentarz zawiera unikalny znacznik (`[e2e R3-anna] <timestamp>`), dzięki czemu
   powiadomienie da się jednoznacznie przypisać do komentarza.
 - Powiadomienia sprawdzane są w centrum powiadomień w aplikacji (ikona dzwonka) każdego odbiorcy;
-  dodatkowo w skrzynkach e-mail (Mailosaur – podgląd w panelu lub przez API).
+  dodatkowo w skrzynce e-mail (adresy „+” trafiają do jednej skrzynki).
 
 ## 3. Plan testów
 
@@ -214,11 +214,27 @@ Zachowania aplikacji uwzględnione w Page Objectach:
   i zapisuje sesję (`.auth/<osoba>.json`, „Zapamiętaj mnie”); przy ważnej sesji logowanie jest pomijane.
   Kod pobierany jest w kolejności:
   1. zmienna `<OSOBA>_2FA_CODE`;
-  2. **Mailosaur** (`src/support/mailbox.ts`) – dla kont z adresem `@<MAILOSAUR_SERVER_ID>.mailosaur.net`:
-     znacznik czasu zapisywany jest _przed_ kliknięciem „Zaloguj”, a wiadomość wyszukiwana po adresacie
-     (`sentTo`) i czasie (`receivedAfter`), więc stary kod z poprzedniego przebiegu nie zostanie użyty;
-  3. plik `.auth/<osoba>.code`, na który setup czeka do 5 minut – dla konta Piotra na Gmailu
-     (skrzynek Gmail nie automatyzujemy; alternatywa: filtr przekierowania Gmaila na adres Mailosaur).
+  2. **skrzynka e-mail** (`src/support/mailbox.ts`), automatycznie, także w CI:
+     - **Gmail API** (`src/support/mail/gmail.ts`, zakres tylko do odczytu) – jedna skrzynka dla wszystkich kont;
+       wiadomość wybierana po adresacie „+” (nagłówki `To`/`Delivered-To`) i czasie otrzymania,
+     - albo **Mailosaur** (`src/support/mail/mailosaur.ts`) – dla adresów `@<serverId>.mailosaur.net`.
+
+     Znacznik czasu zapisywany jest _przed_ kliknięciem „Zaloguj”, więc kod z poprzedniego przebiegu nie
+     zostanie użyty. IMAP nie jest używany – Gmail API działa po HTTPS, także za proxy;
+
+  3. plik `.auth/<osoba>.code`, na który setup czeka do 5 minut (gdy skrzynka nie jest skonfigurowana).
+
+#### Dostęp do Gmaila (jednorazowo)
+
+1. [Google Cloud Console](https://console.cloud.google.com/): nowy projekt → włączyć **Gmail API** →
+   ekran zgody OAuth (typ _External_, adres skrzynki testowej jako _Test user_) → dane logowania
+   **OAuth client ID** typu **Desktop app**.
+2. `GMAIL_CLIENT_ID` i `GMAIL_CLIENT_SECRET` wpisać do `.env`, uruchomić `npm run gmail:token`, otworzyć link,
+   zalogować się na skrzynkę testową i zatwierdzić dostęp. Wypisany `GMAIL_REFRESH_TOKEN` wpisać do `.env`
+   i do sekretów repozytorium.
+3. Aplikacja w trybie _Testing_ dostaje token ważny 7 dni – po wygaśnięciu wystarczy powtórzyć krok 2.
+
+Zalecana jest osobna skrzynka tylko do testów: token pozwala czytać całą skrzynkę (bez wysyłania i zmian).
 
 ### Uruchomienie lokalne
 
@@ -254,5 +270,6 @@ Konfiguracja jednorazowa: **Settings → Secrets and variables → Actions** –
 `.env.example`: `KIS_LIST_ID`, `PIOTR_EMAIL`, `PIOTR_PASSWORD`, `ANNA_EMAIL`, `ANNA_PASSWORD`,
 `MARCIN_EMAIL`, `MARCIN_PASSWORD`, `MICHALINA_EMAIL`, `MICHALINA_PASSWORD`, `CLIENT_SHARE_URL`,
 `CLIENT_PROPOSAL_URL`, opcjonalnie `KIS_ITEM_ID` i `<OSOBA>_DISPLAY_NAME`, oraz sesje `<OSOBA>_STORAGE_STATE`
-(base64 z plików `.auth/<osoba>.json` – potrzebne tylko dla konta spoza Mailosaur, czyli Piotra),
-`MAILOSAUR_API_KEY` i `MAILOSAUR_SERVER_ID` (kody 2FA pozostałych osób). Opcjonalnie zmienna `BASE_URL`.
+(base64 z plików `.auth/<osoba>.json` – tylko gdy skrzynka nie jest skonfigurowana), `GMAIL_CLIENT_ID`,
+`GMAIL_CLIENT_SECRET`, `GMAIL_REFRESH_TOKEN` (albo `MAILOSAUR_API_KEY` i `MAILOSAUR_SERVER_ID`) – kody 2FA.
+Opcjonalnie zmienna `BASE_URL`.

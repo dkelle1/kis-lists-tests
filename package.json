@@ -14,6 +14,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "typecheck": "tsc",
+    "gmail:token": "node scripts/gmail-token.ts",
     "check": "npm run typecheck && npm run lint && npm run format:check"
   },
   "repository": {
