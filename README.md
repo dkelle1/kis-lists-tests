@@ -211,7 +211,10 @@ Asercje per odbiorca są **miękkie** (`expect.soft`): przy macierzy nadawca →
 każdej osoby (kto dostał, kto nie), a nie tylko pierwszą rozbieżność.
 
 Powiadomienia powstają asynchronicznie, więc asercje odpytują centrum powiadomień (odświeżenie co 3 s)
-w oknie `NOTIFICATION_WINDOW_MS` (domyślnie 20 s) liczonym **od wysłania komentarza**.
+w oknie `NOTIFICATION_WINDOW_MS` (domyślnie 20 s) liczonym **od wysłania komentarza**. Zmierzony czas dostarczenia
+to 2–9 s. Żeby wykluczyć, że „brak powiadomienia” to w rzeczywistości duże opóźnienie, okno można wydłużyć
+(`NOTIFICATION_WINDOW_MS=300000 npm test` albo opcja „Czas czekania na powiadomienie” w GitHub Actions) – limit czasu
+testu rośnie razem z oknem, a odświeżeń jest najwyżej ~20 na okno.
 
 ### Architektura
 
@@ -350,6 +353,7 @@ npm run test:regression            # tylko @regression (także: test:positive, t
 npx playwright test --grep @R3     # tylko wybrane wymaganie
 npm run test:headed                # z widoczną przeglądarką
 VIDEO=on npm test                  # wideo z całego testu dla każdego testu (domyślnie tylko przy błędzie)
+NOTIFICATION_WINDOW_MS=300000 npm test   # czekanie na powiadomienie 5 min zamiast 20 s (wykluczenie opóźnień)
 npm run report:allure              # raport Allure (bez Javy – Allure 3)
 npm run report:html                # raport HTML Playwright
 npm run check                      # typecheck + lint + format
@@ -391,7 +395,8 @@ z kodami 2FA). Bez nich:
 - **Docker** (`.github/workflows/docker.yml`) – przy zmianie `Dockerfile`, `.dockerignore` lub zależności: budowanie obrazu
   oraz typecheck, lint, format i wczytanie testów w kontenerze.
 - **E2E** (`.github/workflows/e2e.yml`) – uruchamiane ręcznie: zakładka **Actions → E2E – powiadomienia
-  o komentarzach → Run workflow**, z wyborem zestawu (`all`, `positive`, `negative`, `regression`, `R1`–`R3`).
+  o komentarzach → Run workflow**, z wyborem zestawu (`all`, `positive`, `negative`, `regression`, `R1`–`R3`),
+  czasu czekania na powiadomienie (20 s – 10 min) i opcjonalnego wideo z każdego testu.
   Buduje obraz z `Dockerfile` (warstwy cache'owane między przebiegami) i uruchamia w nim testy oraz generowanie raportu
   Allure; sekrety trafiają do kontenera jako zmienne środowiskowe (`-e NAZWA`), a wyniki – przez zamontowane katalogi.
   Na starcie sprawdza, czy są wszystkie wymagane sekrety; na końcu dodaje podsumowanie (liczby testów) do strony przebiegu.

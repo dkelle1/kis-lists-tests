@@ -4,6 +4,8 @@ import { bugUrl, TEST_PLAN_URL } from './src/allure/metadata';
 import { baseURL } from './src/config/env';
 
 const isCI = !!process.env.CI;
+/** Okno czekania na powiadomienie (NOTIFICATION_WINDOW_MS, domyślnie 20 s) – od niego zależy limit czasu testu. */
+const notificationWindowMs = Number(process.env.NOTIFICATION_WINDOW_MS ?? 20_000);
 
 export default defineConfig({
   testDir: './tests',
@@ -15,7 +17,8 @@ export default defineConfig({
   // Bez ponowień: zgłoszony błąd jest przerywany ("nie zawsze dostają powiadomienia"), więc ponowienie mogłoby go
   // ukryć, a testy regresyjne znanych błędów i tak nie przechodzą – ponowienie tylko wydłużało przebieg i raport.
   retries: 0,
-  timeout: 3 * 60_000,
+  // Każdy test czeka najwyżej jedno okno liczone od wysłania komentarza (reszta to logowanie i akcje w UI).
+  timeout: 3 * 60_000 + notificationWindowMs,
   expect: { timeout: 15_000 },
   reporter: [
     ['list'],
@@ -36,7 +39,7 @@ export default defineConfig({
         environmentInfo: {
           BASE_URL: baseURL,
           PRZEGLĄDARKA: 'Chromium (Desktop Chrome)',
-          OKNO_NA_POWIADOMIENIE_MS: process.env.NOTIFICATION_WINDOW_MS ?? '20000',
+          OKNO_NA_POWIADOMIENIE_S: String(notificationWindowMs / 1000),
           NODE: process.version,
           CI: String(isCI),
         },

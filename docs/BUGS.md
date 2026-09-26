@@ -46,6 +46,8 @@ o komentarzach” → zestaw `regression`.
 - To samo dla komentarzy Administratora i Współpracownika oraz dla zakładki „Komentarze klienta” (P-12).
 - Po oznaczeniu `@Osoba` powiadomienie „`<autor>` oznaczył/a Ciebie w komentarzu” dostaje **wyłącznie** oznaczona
   osoba (P-06 ✅), pozostali członkowie – nie (P-07 ❌). Oznaczenie zawęża odbiorców zamiast być dodatkiem.
+- **To nie opóźnienie:** test P-05 z wydłużonym oknem (`NOTIFICATION_WINDOW_MS=120000`) nadal nie znajduje powiadomień
+  po 2 minutach; zmierzony czas dostarczenia powiadomień, które działają, to 2–9 s.
 - **Odpowiedź w wątku** (P-09): powiadomienie „Marcin odpowiedział/a na Twój komentarz” dostaje tylko autor komentarza
   nadrzędnego; pozostali członkowie zespołu – nie.
 - Na koncie Administratora jest starsza grupa „Piotr dodał/a komentarz” (×2) z dnia przygotowania kont – tamtej

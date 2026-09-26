@@ -14,7 +14,8 @@ import type { NotificationCenter } from '../pages/components/NotificationCenter'
  *       liczba wpisów nie zmienia się do końca okna
  *
  * Powiadomienia powstają asynchronicznie po stronie serwera, więc asercje odpytują centrum powiadomień
- * (odświeżenie aplikacji co TIMEOUTS.notificationPoll). Okno (NOTIFICATION_WINDOW_MS) liczymy od `since`
+ * (odświeżenie co TIMEOUTS.notificationPoll, a przy długim oknie rzadziej – najwyżej ~20 odświeżeń na okno,
+ * bo każde odświeżenie to krok raportu ze zrzutem). Okno (NOTIFICATION_WINDOW_MS) liczymy od `since`
  * – momentu wysłania komentarza – a nie od wywołania asercji, żeby kolejne sprawdzenia w tym samym teście
  * nie wydłużały go bez potrzeby.
  */
@@ -25,14 +26,17 @@ export interface NotificationWindow {
 
 const sleep = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, Math.max(0, ms)));
 
+const MAX_PROBES_PER_WINDOW = 20;
+
 async function pollUntil(
   probe: () => Promise<number>,
   isSettled: (value: number) => boolean,
   deadline: number,
 ): Promise<number> {
+  const interval = Math.max(TIMEOUTS.notificationPoll, env().NOTIFICATION_WINDOW_MS / MAX_PROBES_PER_WINDOW);
   let value = await probe();
   while (!isSettled(value) && Date.now() < deadline) {
-    await sleep(Math.min(TIMEOUTS.notificationPoll, deadline - Date.now()));
+    await sleep(Math.min(interval, deadline - Date.now()));
     value = await probe();
   }
   return value;

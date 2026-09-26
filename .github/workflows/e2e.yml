@@ -9,6 +9,11 @@ on:
         type: choice
         default: all
         options: [all, positive, negative, regression, R1, R2, R3]
+      notification_wait:
+        description: Czas czekania na powiadomienie w sekundach (dłuższy wyklucza, że „brak” to duże opóźnienie)
+        type: choice
+        default: '20'
+        options: ['20', '60', '120', '300', '600']
       video:
         description: Wideo z całego testu dla każdego testu (domyślnie tylko przy błędzie)
         type: boolean
@@ -78,10 +83,12 @@ jobs:
         env:
           SUITE: ${{ inputs.suite }}
           VIDEO: ${{ inputs.video && 'on' || '' }}
+          NOTIFICATION_WAIT_S: ${{ inputs.notification_wait }}
         run: |
+          export NOTIFICATION_WINDOW_MS=$(( NOTIFICATION_WAIT_S * 1000 ))
           # Zmienne przekazywane jako `-e NAZWA` (wartość z env tego kroku) – sekrety nie trafiają do wiersza poleceń.
           env_args=()
-          for name in BASE_URL KIS_LIST_ID KIS_ITEM_ID CLIENT_SHARE_URL CLIENT_PROPOSAL_URL VIDEO \
+          for name in BASE_URL KIS_LIST_ID KIS_ITEM_ID CLIENT_SHARE_URL CLIENT_PROPOSAL_URL VIDEO NOTIFICATION_WINDOW_MS \
             ADMIN_EMAIL ADMIN_PASSWORD ADMIN_DEVICE_ID PIOTR_EMAIL PIOTR_PASSWORD PIOTR_DEVICE_ID \
             MARCIN_EMAIL MARCIN_PASSWORD MARCIN_DEVICE_ID GUEST_EMAIL GUEST_PASSWORD GUEST_DEVICE_ID \
             GMAIL_CLIENT_ID GMAIL_CLIENT_SECRET GMAIL_REFRESH_TOKEN; do
@@ -114,13 +121,14 @@ jobs:
             const { stats, status, duration } = JSON.parse(fs.readFileSync(file, "utf8"));
             const rows = Object.entries(stats).map(([k, v]) => `| ${k} | ${v} |`).join("\n");
             fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY,
-              `## E2E – powiadomienia o komentarzach (${process.env.SUITE})\n\n` +
+              `## E2E – powiadomienia o komentarzach (${process.env.SUITE}, czekanie ${process.env.WAIT} s)\n\n` +
               `Status: **${status}**, czas: ${Math.round(duration / 1000)} s\n\n| wynik | liczba |\n| --- | --- |\n${rows}\n\n` +
               "Raport: artefakt **allure-report** → `index.html` (otwiera się bez serwera).\n" +
               "Testy `@regression` odtwarzają znane błędy (BUG-01…03) i są czerwone do czasu poprawki.\n");
           '
         env:
           SUITE: ${{ inputs.suite }}
+          WAIT: ${{ inputs.notification_wait }}
 
       # Raport Allure: jeden plik – zrzuty JPEG z każdego kroku, wideo błędów (albo wszystkich testów przy opcji „video”).
       - name: Artefakt – raport Allure
