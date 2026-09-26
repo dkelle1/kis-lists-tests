@@ -89,6 +89,7 @@ BUG-01: zespół jest powiadamiany **tylko przez „@”**. Wyjątek do wyjaśni
 - **Google blokuje logowanie z automatycznej przeglądarki** („This browser or app may not be secure”) → konfiguracji OAuth/Cloud Console nie da się zrobić automatem; robi ją człowiek.
 - `sleep` w pierwszym planie jest blokowany – do czekania na długi proces: `run_in_background` + pętla `until grep …`.
 - Skrypty z `| grep` buforują wyjście – przy długich przebiegach zapisuj log do pliku i czytaj plik.
+- **GitHub Actions:** artefakty repozytoriów prywatnych liczą się do limitu miejsca konta (Free 500 MB) – przy przekroczeniu `upload-artifact` zwraca „Artifact storage quota has been hit”; publiczne repozytorium nie ma limitu. Akcje w wersji v4 działają na wycofywanym Node 20 → używamy v5.
 - `--reporter=list` w CLI **wyłącza Allure** (nadpisuje reportery z konfiguracji) – do sprawdzenia raportu uruchamiaj bez tej flagi.
 - Konfiguracja w `.local/` zapisuje `allure-results` względem katalogu roboczego (nie katalogu configu).
 

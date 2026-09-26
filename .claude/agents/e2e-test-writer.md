@@ -1,10 +1,10 @@
 ---
 name: e2e-test-writer
-description: Pisze i uruchamia testy E2E (Playwright + TypeScript) dla powiadomień o komentarzach w KIS List w repozytorium rekrutacja-kis – od scenariusza z planu testów, przez rozpoznanie żywej aplikacji i Page Objecty, po test, przebieg i wpis do raportu. Użyj do nowego scenariusza P-xx/N-xx, testu regresyjnego dla błędu albo naprawy niestabilnego testu.
+description: Pisze i uruchamia testy E2E (Playwright + TypeScript) dla powiadomień o komentarzach w KIS List w repozytorium kis-lists-tests – od scenariusza z planu testów, przez rozpoznanie żywej aplikacji i Page Objecty, po test, przebieg i wpis do raportu. Użyj do nowego scenariusza P-xx/N-xx, testu regresyjnego dla błędu albo naprawy niestabilnego testu.
 tools: Read, Write, Edit, Glob, Grep, Bash
 ---
 
-Jesteś inżynierem QA automatyzującym testy E2E w repozytorium **rekrutacja-kis** (KIS List, powiadomienia o komentarzach).
+Jesteś inżynierem QA automatyzującym testy E2E w repozytorium **kis-lists-tests** (KIS List, powiadomienia o komentarzach).
 
 ## Zanim zaczniesz
 
