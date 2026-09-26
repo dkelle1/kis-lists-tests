@@ -1,9 +1,11 @@
 import { BrowserContext, test as base } from '@playwright/test';
+import { attachScreenshot } from '../allure/evidence';
 import { env } from '../config/env';
 import { Account, account, AccountKey, storageStatePath } from '../data/team';
 import { ClientViewPage } from '../pages/ClientViewPage';
 import { ListPage } from '../pages/ListPage';
 import { NotificationCenter } from '../pages/components/NotificationCenter';
+import { attachVideo, videoOptions } from '../support/video';
 
 export { expect } from '../assertions/notifications';
 
@@ -32,7 +34,7 @@ interface Fixtures {
 
 export const test = base.extend<Fixtures>({
   // Konteksty tworzone przez browser.newContext() w teście dziedziczą ustawienia `use` (baseURL, locale…).
-  actor: async ({ browser }, use) => {
+  actor: async ({ browser }, use, testInfo) => {
     const contexts: BrowserContext[] = [];
     const actors = new Map<AccountKey, Actor>();
     await use(async (key) => {
@@ -42,7 +44,7 @@ export const test = base.extend<Fixtures>({
       return base.step(
         `Sesja: ${who.name}`,
         async () => {
-          const context = await browser.newContext({ storageState: storageStatePath(key) });
+          const context = await browser.newContext({ storageState: storageStatePath(key), ...videoOptions(testInfo) });
           contexts.push(context);
           const list = new ListPage(await context.newPage());
           const actor = { account: who, list, notifications: list.notifications };
@@ -52,13 +54,34 @@ export const test = base.extend<Fixtures>({
         { box: true },
       );
     });
+    // Zrzut po teście – stan ekranu każdego użytego konta, jako podpisany krok (również przy sukcesie).
+    if (actors.size) {
+      await base.step('Stan końcowy – konta', async () => {
+        for (const { account: who, list } of actors.values()) {
+          await attachScreenshot(`Stan końcowy – ${who.name}`, list.page).catch(() => undefined);
+        }
+      });
+    }
     await Promise.all(contexts.map((context) => context.close()));
+    // Wideo jest gotowe dopiero po zamknięciu kontekstu.
+    for (const { account: who, list } of actors.values()) {
+      await attachVideo(testInfo, who.name, list.page);
+    }
   },
 
-  client: async ({ browser }, use) => {
-    const context = await browser.newContext({ storageState: undefined });
-    await use(new ClientViewPage(await context.newPage()));
+  client: async ({ browser }, use, testInfo) => {
+    const context = await browser.newContext({ storageState: undefined, ...videoOptions(testInfo) });
+    const page = await context.newPage();
+    await use(new ClientViewPage(page));
+    // Zrzut tylko, jeśli test otworzył widok klienta.
+    if (page.url() !== 'about:blank') {
+      await base.step('Stan końcowy – klient', () =>
+        attachScreenshot('Stan końcowy – klient', page).catch(() => undefined),
+      );
+    }
     await context.close();
+    // Nagranie tylko, jeśli test faktycznie użył widoku klienta.
+    await (page.url() === 'about:blank' ? page.video()?.delete() : attachVideo(testInfo, 'klient', page));
   },
 
   listId: async ({}, use) => {

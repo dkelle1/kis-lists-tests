@@ -9,6 +9,10 @@ on:
         type: choice
         default: all
         options: [all, positive, negative, regression, R1, R2, R3]
+      video:
+        description: Wideo z całego testu dla każdego testu (domyślnie tylko przy błędzie)
+        type: boolean
+        default: false
       playwright_report:
         description: Dołącz też raport Playwright (większy artefakt)
         type: boolean
@@ -81,6 +85,7 @@ jobs:
       - name: Testy E2E
         env:
           SUITE: ${{ inputs.suite }}
+          VIDEO: ${{ inputs.video && 'on' || '' }}
         run: |
           if [ "$SUITE" = "all" ]; then
             npx playwright test

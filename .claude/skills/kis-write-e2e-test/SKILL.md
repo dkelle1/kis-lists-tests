@@ -59,7 +59,8 @@ test(
 7. **Tytuły bez `env()`** – `personaName(key)` zamiast `account(key).name` (`playwright test --list` działa bez sekretów).
 8. **Znany błąd:** test pozostaje czerwony (bez `test.fail()`), tag `@regression`, `bug: 'BUG-0x'` w `allureMeta`, opis błędu w README (sekcja 4) i numer testu w polu „Test regresyjny”.
 9. **Lokatory:** role / testid / title / id aplikacji; `playwright/no-raw-locators` w testach wymusza Page Objecty.
-10. Nowa akcja w Page Objecie = metoda z `@step('Opis {0}')` (argumenty tekstowe – obiekt wyrenderuje się jako `[object Object]`).
+10. Zrzut ekranu robi się sam na końcu każdego kroku `@step` (ze strony `this.page`); dla kroków z danymi konta/kodem albo wywoływanych w pętli użyj `@step('…', { screenshot: false })`. W krokach testu dołączaj dowód przez `attachScreenshot` (`src/allure/evidence.ts`).
+11. Nowa akcja w Page Objecie = metoda z `@step('Opis {0}')` (argumenty tekstowe – obiekt wyrenderuje się jako `[object Object]`).
 
 ## Zakończenie
 
