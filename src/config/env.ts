@@ -37,7 +37,10 @@ const schema = z.object({
   CLIENT_SHARE_URL: z.url(),
   /** Link klienta do propozycji (R1). */
   CLIENT_PROPOSAL_URL: z.url(),
-  /** Okno (ms), w którym czekamy na powiadomienie – i po którym uznajemy jego brak w testach negatywnych. */
+  /**
+   * Okno (ms), w którym czekamy na powiadomienie – i po którym uznajemy jego brak. Wydłuż (np. 300000), żeby wykluczyć,
+   * że „brak” to w rzeczywistości duże opóźnienie; w GitHub Actions: opcja „Czas czekania na powiadomienie”.
+   */
   NOTIFICATION_WINDOW_MS: z.coerce.number().int().positive().default(20_000),
   /** Seed dla faker – ten sam seed = te same dane testowe (odtwarzalność błędów). */
   FAKER_SEED: z.coerce.number().int().optional(),
