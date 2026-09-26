@@ -4,21 +4,12 @@ Raport testerski oraz test E2E (Playwright + TypeScript) do zadania rekrutacyjne
 
 > Plan realizacji z podziałem na subtaski: [PLAN.md](PLAN.md).
 >
-> **Status:** plan testów i automatyzacja są gotowe. Sekcja „Wyniki” jest do uzupełnienia
-> po wykonaniu testów na projekcie testowym – wpisane są tylko wyniki faktycznie zaobserwowane.
+> **Status:** testy wykonane 2026-09-26 na https://kislist.com (ręcznie i automatycznie).
+> Znalezione błędy: [BUG-01](#bug-01), [BUG-02](#bug-02), [BUG-03](#bug-03) – każdy odtwarza test regresyjny.
 
 ---
 
 ## 1. Kontekst
-
-Zespół biura projektowego (4 osoby), wszyscy powiązani z listą testową:
-
-| Osoba     | Rola                         |
-| --------- | ---------------------------- |
-| Piotr     | założyciel, właściciel konta |
-| Anna      | zarządza projektem           |
-| Marcin    | tworzy kosztorys             |
-| Michalina | praca w terenie              |
 
 Zgłoszenie: _członkowie zespołu nie zawsze otrzymują powiadomienia o komentarzach na listach_.
 
@@ -32,100 +23,166 @@ Zgłoszenie: _członkowie zespołu nie zawsze otrzymują powiadomienia o komenta
 
 ## 2. Środowisko i dane testowe
 
-- Aplikacja: https://kislist.com, przeglądarka Chrome (desktop) + Chromium w Playwright.
-- 4 konta członków zespołu na jednej skrzynce Gmail z adresami „+” (`<login>@gmail.com` – Piotr,
-  `<login>+anna@gmail.com`, `<login>+marcin@gmail.com`, `<login>+michalina@gmail.com`), dodane do listy testowej zgodnie z [instrukcją dodawania członka zespołu](https://pomoc.kislist.com/baza-wiedzy/team/jak-dodac-czlonka-zespolu-wspolpracownika-lub-goscia-do-listy-w-kis-list/).
-- Klient: niezalogowana sesja (okno incognito) otwierająca link udostępnienia listy / propozycji.
-- Każdy komentarz zawiera unikalny znacznik (`[e2e R3-anna] <timestamp>`), dzięki czemu
-  powiadomienie da się jednoznacznie przypisać do komentarza.
-- Powiadomienia sprawdzane są w centrum powiadomień w aplikacji (ikona dzwonka) każdego odbiorcy;
-  dodatkowo w skrzynce e-mail (adresy „+” trafiają do jednej skrzynki).
+- Aplikacja: https://kislist.com (plan EXPERT – wersja próbna), Chrome/Chromium desktop, język polski.
+- Lista testowa „PROJEKT REKRUTACJA / KOSZTORYS”; komentarze dodawane pod produktem „Narożnik rozkładany Botse…”.
+- Konta powiązane z listą – role nadane w oknie „Zaproś do współpracy”:
+
+  | Konto w teście          | Rola w KIS List | Adres                                   | Członek zespołu listy¹ |
+  | ----------------------- | --------------- | --------------------------------------- | :--------------------: |
+  | Damian Keller („admin”) | Administrator   | adres z formularza (prywatna skrzynka)  |           ✔            |
+  | Piotr                   | Współpracownik  | adres „+” skrzynki testowej             |           ✔            |
+  | Marcin                  | Członek zespołu | adres „+” skrzynki testowej             |           ✔            |
+  | Klient1 („gość”)        | Gość            | adres „+” skrzynki testowej             |    – (tylko wgląd)     |
+  | Klient (link)           | –               | link udostępnienia listy, bez logowania |           –            |
+
+  ¹ Za „członków zespołu powiązanych z listą” uznaję konta z prawem edycji listy (administrator, współpracownik,
+  członek zespołu). Gość ma listę tylko do wglądu (bez komentowania) – służy jako kontrola negatywna: czat zespołu
+  jest prywatny, więc gość nie powinien dostawać o nim powiadomień.
+
+- Każdy komentarz zawiera unikalny znacznik (`[e2e P-03 1a2b3c4d]`), dzięki czemu powiadomienie da się
+  jednoznacznie przypisać do komentarza.
+- Powiadomienia sprawdzane są w centrum powiadomień w aplikacji (dzwonek / strona `/inbox`) każdego odbiorcy.
+  W trakcie testów na adresy „+” nie przyszedł żaden e-mail o komentarzu, a w ustawieniach konta nie ma opcji
+  powiadomień, które mogłyby je wyłączać.
 
 ## 3. Plan testów
 
-Zasady wspólne: przed każdym przypadkiem wszyscy odbiorcy mają przeczytane powiadomienia;
-dla przypadków negatywnych odczekujemy pełne okno czasowe (≥ 20 s + odświeżenie), zanim uznamy brak powiadomienia.
+Zasady wspólne: każdy komentarz ma unikalny znacznik; powiadomienie sprawdzane jest u **każdego** odbiorcy
+osobno; dla przypadków negatywnych odczekujemy pełne okno czasowe (20 s od wysłania komentarza, z odświeżaniem
+co 3 s), zanim uznamy brak powiadomienia. Wyniki automatyczne potwierdzono ręcznie po kilkunastu minutach.
 
 ### 3.1 Scenariusze pozytywne
 
-| ID   | Wym.  | Scenariusz                                                                   | Oczekiwany rezultat                                                                          |
-| ---- | ----- | ---------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| P-01 | R1    | Klient dodaje komentarz do propozycji                                        | Piotr, Anna, Marcin, Michalina dostają powiadomienie                                         |
-| P-02 | R2    | Klient dodaje komentarz do udostępnionej listy (podgląd na żywo)             | Piotr, Anna, Marcin, Michalina dostają powiadomienie                                         |
-| P-03 | R3    | Piotr (właściciel) komentuje element listy                                   | Anna, Marcin, Michalina dostają powiadomienie                                                |
-| P-04 | R3    | Anna komentuje element listy                                                 | Piotr, Marcin, Michalina dostają powiadomienie                                               |
-| P-05 | R3    | Marcin komentuje element listy                                               | Piotr, Anna, Michalina dostają powiadomienie                                                 |
-| P-06 | R3    | Michalina komentuje element listy                                            | Piotr, Anna, Marcin dostają powiadomienie                                                    |
-| P-07 | R3    | Anna komentuje z oznaczeniem `@Marcin`                                       | Marcin **oraz** Piotr i Michalina dostają powiadomienie (oznaczenie nie zawęża odbiorców)    |
-| P-08 | R3    | Anna komentuje z oznaczeniem kilku osób (`@Marcin @Michalina`)               | Piotr, Marcin, Michalina – po jednym powiadomieniu (bez duplikatów)                          |
-| P-09 | R3    | Odpowiedź w istniejącym wątku komentarzy (drugi komentarz w tym samym wątku) | Pozostali członkowie dostają powiadomienie również o odpowiedzi                              |
-| P-10 | R1–R3 | Treść powiadomienia                                                          | Zawiera autora, nazwę listy/elementu, fragment komentarza; kliknięcie prowadzi do komentarza |
-| P-11 | R3    | Członek dodany do listy później (nowy członek zespołu)                       | Po dodaniu do listy otrzymuje powiadomienia o nowych komentarzach                            |
+| ID   | Wym.  | Scenariusz                                                       | Oczekiwany rezultat                                                           |
+| ---- | ----- | ---------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| P-01 | R1    | Klient dodaje komentarz do propozycji                            | Damian, Piotr, Marcin dostają powiadomienie                                   |
+| P-02 | R2    | Klient dodaje komentarz do udostępnionej listy (podgląd na żywo) | Damian, Piotr, Marcin dostają powiadomienie                                   |
+| P-03 | R3    | Administrator (Damian) komentuje produkt w czacie zespołu        | Piotr, Marcin dostają powiadomienie                                           |
+| P-04 | R3    | Współpracownik (Piotr) komentuje produkt                         | Damian, Marcin dostają powiadomienie                                          |
+| P-05 | R3    | Członek zespołu (Marcin) komentuje produkt                       | Damian, Piotr dostają powiadomienie                                           |
+| P-06 | R3    | Komentarz z oznaczeniem `@Piotr`                                 | Piotr dostaje powiadomienie „oznaczył/a Ciebie w komentarzu”                  |
+| P-07 | R3    | Administrator komentuje z oznaczeniem `@Marcin`                  | Marcin **oraz** Piotr dostają powiadomienie (oznaczenie nie zawęża odbiorców) |
+| P-08 | R3    | Oznaczenie kilku osób (`@Marcin @Piotr`)                         | Każda z osób – dokładnie jedno powiadomienie (bez duplikatów)                 |
+| P-09 | R3    | Odpowiedź w istniejącym wątku komentarzy                         | Pozostali członkowie dostają powiadomienie również o odpowiedzi               |
+| P-10 | R1–R3 | Treść powiadomienia                                              | Zawiera autora, rodzaj zdarzenia, treść komentarza, projekt                   |
+| P-11 | R3    | Członek dodany do listy później                                  | Po dodaniu do listy otrzymuje powiadomienia o nowych komentarzach             |
+| P-12 | R3    | Komentarz członka zespołu w zakładce „Komentarze klienta”        | Pozostali członkowie dostają powiadomienie                                    |
 
 ### 3.2 Scenariusze negatywne
 
-| ID   | Wym.  | Scenariusz                                                   | Oczekiwany rezultat                                                                |
-| ---- | ----- | ------------------------------------------------------------ | ---------------------------------------------------------------------------------- |
-| N-01 | R3    | Autor komentarza (dowolny członek zespołu)                   | Autor **nie** dostaje powiadomienia o własnym komentarzu                           |
-| N-02 | R3    | Autor oznacza samego siebie (`@Anna` w komentarzu Anny)      | Anna nie dostaje powiadomienia                                                     |
-| N-03 | R1–R3 | Członek zespołu konta, który **nie** jest powiązany z listą  | Nie dostaje powiadomienia                                                          |
-| N-04 | R1–R3 | Członek usunięty z listy                                     | Po usunięciu nie dostaje powiadomień                                               |
-| N-05 | R1–R3 | Komentarz na innej liście (bez wspólnych członków)           | Brak powiadomienia dla zespołu listy testowej                                      |
-| N-06 | R1–R3 | Pusty komentarz / same spacje                                | Komentarz nie zostaje dodany, brak powiadomienia                                   |
-| N-07 | R1–R3 | Edycja / usunięcie komentarza                                | Nie generuje nowego powiadomienia „dodał komentarz” (do potwierdzenia z produktem) |
-| N-08 | R2    | Klient otwiera link udostępnienia, ale nie dodaje komentarza | Brak powiadomienia                                                                 |
+| ID   | Wym.  | Scenariusz                                                    | Oczekiwany rezultat                                                                |
+| ---- | ----- | ------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| N-01 | R3    | Autor komentarza (każda rola)                                 | Autor **nie** dostaje powiadomienia o własnym komentarzu                           |
+| N-02 | R3    | Autor oznacza samego siebie                                   | Autor nie dostaje powiadomienia                                                    |
+| N-03 | R3    | Gość (lista tylko do wglądu) przy komentarzu w czacie zespołu | Nie dostaje powiadomienia (czat zespołu jest prywatny)                             |
+| N-04 | R1–R3 | Członek usunięty z listy                                      | Po usunięciu nie dostaje powiadomień                                               |
+| N-05 | R1–R3 | Komentarz na innej liście (bez wspólnych członków)            | Brak powiadomienia dla zespołu listy testowej                                      |
+| N-06 | R1–R3 | Pusty komentarz / same spacje                                 | Komentarz nie zostaje dodany, brak powiadomienia                                   |
+| N-07 | R1–R3 | Edycja / usunięcie komentarza                                 | Nie generuje nowego powiadomienia „dodał komentarz” (do potwierdzenia z produktem) |
+| N-08 | R2    | Klient otwiera link udostępnienia, ale nie dodaje komentarza  | Brak powiadomienia                                                                 |
 
 ### 3.3 Priorytety
 
-Najwyższy priorytet mają P-03…P-07 i N-01 – zgłoszenie dotyczy komentarzy na listach
-i „nie zawsze” sugeruje zależność od **autora** (np. właściciel vs. współpracownik)
-albo od **oznaczenia @** (np. powiadamiane są tylko osoby oznaczone lub tylko właściciel listy).
-Macierz autor × odbiorca (P-03…P-06) pokrywa wszystkie 12 par nadawca→odbiorca.
+Najwyższy priorytet mają P-02…P-07 i N-01: zgłoszenie „nie zawsze” sugeruje zależność od **roli**
+(autora albo odbiorcy) lub od **oznaczenia @**. Dlatego macierz autor × odbiorca obejmuje wszystkie trzy role
+z prawem edycji, a warianty z `@` sprawdzają, czy oznaczenie nie zawęża odbiorców.
 
 ## 4. Wyniki
 
-> Do uzupełnienia po wykonaniu testów. Legenda: ✅ zgodnie z wymaganiem, ❌ błąd, ⏳ nie wykonano.
+Legenda: ✅ zgodnie z wymaganiem · ❌ błąd · „autor” – autor komentarza · ⏳ nie wykonano.
+Wyniki automatyczne (Playwright) zgodne z wykonaniem ręcznym.
 
-| ID        | Piotr | Anna  | Marcin | Michalina | Wynik | Uwagi |
-| --------- | :---: | :---: | :----: | :-------: | :---: | ----- |
-| P-01      |  ⏳   |  ⏳   |   ⏳   |    ⏳     |  ⏳   |       |
-| P-02      |  ⏳   |  ⏳   |   ⏳   |    ⏳     |  ⏳   |       |
-| P-03      | autor |  ⏳   |   ⏳   |    ⏳     |  ⏳   |       |
-| P-04      |  ⏳   | autor |   ⏳   |    ⏳     |  ⏳   |       |
-| P-05      |  ⏳   |  ⏳   | autor  |    ⏳     |  ⏳   |       |
-| P-06      |  ⏳   |  ⏳   |   ⏳   |   autor   |  ⏳   |       |
-| P-07      |  ⏳   | autor |   ⏳   |    ⏳     |  ⏳   |       |
-| P-08…P-11 |       |       |        |           |  ⏳   |       |
-| N-01…N-08 |       |       |        |           |  ⏳   |       |
+| ID                    | Damian (admin) | Piotr (współpr.) | Marcin (członek) | Klient1 (gość) | Wynik | Uwagi                                                                              |
+| --------------------- | :------------: | :--------------: | :--------------: | :------------: | :---: | ---------------------------------------------------------------------------------- |
+| P-01                  |       ⏳       |        ⏳        |        ⏳        |       –        |  ⏳   | brak propozycji na liście testowej – test automatyczny pomijany bez linku          |
+| P-02                  |       ✅       |        ✅        |      **❌**      |    – (brak)    |  ❌   | [BUG-02](#bug-02) – członek zespołu nie dostaje powiadomienia o komentarzu klienta |
+| P-03 + N-01           |    autor ✅    |      **❌**      |      **❌**      |   ✅ (brak)    |  ❌   | [BUG-01](#bug-01)                                                                  |
+| P-04 + N-01           |     **❌**     |     autor ✅     |      **❌**      |   ✅ (brak)    |  ❌   | [BUG-01](#bug-01)                                                                  |
+| P-05 + N-01           |     **❌**     |      **❌**      |     autor ✅     |   ✅ (brak)    |  ❌   | [BUG-01](#bug-01)                                                                  |
+| P-06                  |       –        |        ✅        |      autor       |       –        |  ✅   | oznaczony dostaje „Marcin oznaczył/a Ciebie w komentarzu”                          |
+| P-07                  |    autor ✅    |      **❌**      |        ✅        |       –        |  ❌   | [BUG-01](#bug-01) – powiadomiony tylko oznaczony                                   |
+| P-08                  |     autor      |        ✅        |        ✅        |       –        |  ✅   | po jednym powiadomieniu, bez duplikatów                                            |
+| P-10                  |       ✅       |        ✅        |        ✅        |       –        |  ✅   | autor, rodzaj zdarzenia, treść, projekt; **brak nazwy produktu** (uwaga U-01)      |
+| P-12                  |     **❌**     |      **❌**      |      **❌**      |       –        |  ❌   | ręcznie: komentarze Marcina i Piotra w „Komentarze klienta” – brak powiadomień     |
+| N-02                  | **❌** (jest)  |        –         |   ✅ (kontr.)    |       –        |  ❌   | [BUG-03](#bug-03) – autor oznaczający siebie dostaje powiadomienie                 |
+| N-03                  |       –        |        –         |        –         |   ✅ (brak)    |  ✅   | sprawdzane w P-03…P-05                                                             |
+| N-08                  |       ✅       |        ✅        |        ✅        |       –        |  ✅   | liczba powiadomień bez zmian                                                       |
+| P-09, P-11, N-04…N-07 |                |                  |                  |                |  ⏳   | poza zakresem tego przebiegu (patrz PLAN.md)                                       |
 
-### Zgłoszenie błędu (szablon)
+### Zgłoszone błędy
 
-- **Tytuł:**
+#### BUG-01
+
+- **Tytuł:** Komentarz członka zespołu na liście nie wysyła powiadomień pozostałym członkom zespołu – powiadamiane są tylko osoby oznaczone `@`.
+- **Priorytet:** wysoki (narusza R3 – główna przyczyna zgłoszenia „nie zawsze dostają powiadomienia”).
 - **Kroki:**
-- **Oczekiwany rezultat:**
-- **Rzeczywisty rezultat:**
-- **Częstotliwość / środowisko:**
-- **Test regresyjny:** `tests/notifications/<plik>.spec.ts` – `<ID i nazwa testu>`
+  1. Zaloguj się jako członek zespołu listy (np. Marcin – „Członek zespołu”).
+  2. Na liście kliknij ikonę komentarzy produktu, zakładka „Prywatne”, wpisz komentarz **bez** oznaczeń, „Wyślij”.
+  3. Zaloguj się jako pozostali członkowie (Administrator, Współpracownik) i otwórz powiadomienia (dzwonek / `/inbox`).
+- **Oczekiwany rezultat:** każdy z pozostałych członków zespołu dostaje powiadomienie „Marcin dodał/a komentarz”.
+- **Rzeczywisty rezultat:** nikt nie dostaje powiadomienia (sprawdzone także po 15 minutach). To samo dla komentarzy
+  administratora i współpracownika oraz dla zakładki „Komentarze klienta”. Po oznaczeniu `@Osoba` powiadomienie
+  („oznaczył/a Ciebie w komentarzu”) dostaje wyłącznie oznaczona osoba – pozostali nie.
+- **Częstotliwość / środowisko:** zawsze (wszystkie role autora), kislist.com, Chrome, 2026-09-26.
+- **Uwaga:** na koncie administratora jest starsza grupa powiadomień „Piotr dodał/a komentarz” (×2, z dnia
+  przygotowania kont). Tamtej sytuacji nie udało się odtworzyć – żaden z kilkunastu komentarzy bez oznaczeń
+  w trakcie testów nie wygenerował powiadomienia. To pasuje do zgłoszenia „nie zawsze”: warto sprawdzić
+  po stronie serwera, od czego zależy wybór odbiorców.
+- **Testy regresyjne:** `tests/notifications/team-comments.spec.ts` – P-03, P-04, P-05, P-07.
+
+#### BUG-02
+
+- **Tytuł:** Członek zespołu (rola „Członek zespołu”) nie dostaje powiadomienia o komentarzu klienta na udostępnionej liście.
+- **Priorytet:** wysoki (narusza R2).
+- **Kroki:** klient otwiera link „Udostępnij listę”, pod produktem „Napisz komentarz”, wysyła komentarz;
+  sprawdzamy powiadomienia Administratora, Współpracownika i Członka zespołu.
+- **Oczekiwany rezultat:** wszyscy trzej dostają „Klient/ka dodał/a komentarz”.
+- **Rzeczywisty rezultat:** Administrator i Współpracownik – tak; **Członek zespołu (Marcin) – nie**.
+- **Częstotliwość / środowisko:** zawsze, kislist.com, Chrome, 2026-09-26.
+- **Test regresyjny:** `tests/notifications/client-comments.spec.ts` – P-02.
+
+#### BUG-03
+
+- **Tytuł:** Autor, który oznaczy w komentarzu samego siebie, dostaje powiadomienie o własnym komentarzu.
+- **Priorytet:** niski.
+- **Kroki:** Administrator dodaje komentarz z oznaczeniem `@Damian Keller @Marcin`.
+- **Oczekiwany rezultat:** Marcin dostaje powiadomienie, autor – nie (R3: „pozostali”).
+- **Rzeczywisty rezultat:** Marcin – tak; autor również dostaje „oznaczył/a Ciebie w komentarzu”.
+- **Test regresyjny:** `tests/notifications/team-comments.spec.ts` – N-02.
+
+#### Uwagi (nie-błędy)
+
+- **U-01:** powiadomienie nie zawiera nazwy produktu ani listy – tylko projekt, autora i treść; przy wielu
+  produktach trudno ustalić, czego dotyczy komentarz.
+- **U-02:** komentarz klienta z linku jest podpisany „Klient/ka”, a nagłówek powiadomienia pokazuje adresy wszystkich
+  klientów projektu – nie wiadomo, który klient napisał.
+- **U-03:** w edytorze po oznaczeniu kilku osób drugie oznaczenie dostaje atrybuty pierwszego
+  (`data-email`/`data-name` = poprzednia osoba, `data-id` = właściwa) – powiadomienia trafiają do właściwych osób,
+  ale warto to poprawić.
+- **U-04:** strona `/team` zwraca 403 dla ról innych niż administrator, a lista „@” ładuje się z opóźnieniem
+  (pierwsze „@” po otwarciu okna pokazuje „Nic nie znaleziono.”).
 
 ## 5. Test automatyczny (Playwright + TypeScript)
 
-Framework automatyzuje scenariusze R1–R3 z planu: P-01…P-08, P-10 (treść powiadomienia) oraz N-01, N-02, N-08.
+Framework automatyzuje scenariusze R1–R3: P-01…P-08, P-10 (treść powiadomienia) oraz N-01, N-02, N-03, N-08.
+Testy odtwarzające błędy (**@regression**): P-02 (BUG-02), P-03…P-05 i P-07 (BUG-01), N-02 (BUG-03) –
+**obecnie czerwone** i zmienią się na zielone po poprawce. P-06, P-08 i N-08 przechodzą (widoczność powiadomień).
 
-> Page Objecty są oparte na rzeczywistym DOM aplikacji i sprawdzone na żywo w trybie tylko do odczytu
-> (lista, modal komentarzy, panel powiadomień, podgląd propozycji, zespół, logowanie – bez wysyłania).
-> Niezweryfikowane: wybór osoby po „@” (brak innych członków zespołu na koncie), struktura pojedynczego
-> powiadomienia i wpisu w wątku komentarzy (konto nie miało jeszcze ani jednego) oraz widok udostępnionej listy.
+Ostatni przebieg (2026-09-26): 7 ✅ (4 × setup, P-06, P-08, N-08), 6 ❌ (błędy powyżej), 1 pominięty (P-01).
 
 ### Co dokładnie weryfikują testy
 
-| Sprawdzenie                                              | Jak                                                                                                                      | Po co                                                                           |
-| -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------- |
-| Komentarz został zapisany                                | modal dotyczy właściwego produktu, komentarz widoczny w wątku, edytor wyczyszczony, (P-07/N-02) oznaczenie `@` wstawione | brak powiadomienia nie jest mylony z niewysłanym komentarzem                    |
-| Każdy odbiorca dostaje **dokładnie jedno** powiadomienie | `toHaveNotification` – osobny krok na osobę; 2 wpisy = błąd (duplikat, P-08)                                             | raport wskazuje, **kto** nie dostał powiadomienia                               |
-| Autor **nie** dostaje powiadomienia                      | `not.toHaveNotification` do końca okna liczonego od wysłania komentarza                                                  | „pozostali” w R3 wyklucza autora (N-01, N-02)                                   |
-| Treść powiadomienia                                      | asercje miękkie: nazwa produktu i autor (P-10)                                                                           | wszystkie rozbieżności w treści widoczne w jednym przebiegu                     |
-| Samo przeglądanie listy nie generuje powiadomień         | liczba wpisów u każdego członka bez zmian (N-08)                                                                         | zamiast szukać znanego tekstu – odporne na wcześniejsze przebiegi               |
-| Próby kontrolne w testach negatywnych                    | N-02: Piotr musi dostać powiadomienie; N-08: panel pokazuje wpisy albo komunikat „pusto”                                 | test „braku” nie przechodzi przy zepsutym lokatorze czy niedziałającym systemie |
+| Sprawdzenie                                              | Jak                                                                                                  | Po co                                                                            |
+| -------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| Komentarz został zapisany                                | modal dotyczy właściwego produktu, komentarz widoczny w wątku, edytor wyczyszczony, oznaczenia `@`   | brak powiadomienia nie jest mylony z niewysłanym komentarzem                     |
+| Każdy odbiorca dostaje **dokładnie jedno** powiadomienie | `toHaveNotification` – osobny krok na osobę; 2 wpisy = błąd (duplikat, P-08)                         | raport wskazuje, **kto** nie dostał powiadomienia                                |
+| Autor i gość **nie** dostają powiadomienia               | `not.toHaveNotification` do końca okna liczonego od wysłania komentarza                              | „pozostali” w R3 wyklucza autora (N-01, N-02); czat zespołu jest prywatny (N-03) |
+| Treść powiadomienia                                      | autor (`.notification-context .user`) i rodzaj zdarzenia („dodał/a komentarz” / „oznaczył/a Ciebie”) | P-10                                                                             |
+| Samo przeglądanie listy nie generuje powiadomień         | liczba wpisów u każdego członka bez zmian (N-08)                                                     | zamiast szukać znanego tekstu – odporne na wcześniejsze przebiegi                |
+| Próby kontrolne w testach negatywnych                    | N-02: oznaczony Marcin musi dostać powiadomienie; N-08: widać wpisy albo komunikat „pusto”           | test „braku” nie przechodzi przy zepsutym lokatorze czy niedziałającym systemie  |
+
+Asercje per odbiorca są **miękkie** (`expect.soft`): przy macierzy nadawca → odbiorcy raport pokazuje wynik dla
+każdej osoby (kto dostał, kto nie), a nie tylko pierwszą rozbieżność.
 
 Powiadomienia powstają asynchronicznie, więc asercje odpytują centrum powiadomień (odświeżenie co 3 s)
 w oknie `NOTIFICATION_WINDOW_MS` (domyślnie 20 s) liczonym **od wysłania komentarza**.
@@ -142,14 +199,14 @@ src/
 │   ├── LoginPage.ts  TwoFactorPage.ts  ListPage.ts  ClientViewPage.ts  TeamPage.ts
 │   └── components/               # CommentsModal, CommentForm (TipTap), NotificationCenter
 ├── support/                      # @step (metoda Page Objectu = krok raportu), retryUntil (synchronizacja)
-├── fixtures/test.ts              # teamMember(osoba), client, listId, testItem
+├── fixtures/test.ts              # actor(konto), client, listId, testItem
 ├── assertions/notifications.ts   # asercje domenowe: toHaveNotification, toKeepNotificationCount
 └── allure/                       # metadane (adnotacje) i dowody (zrzuty) do raportu
 tests/
-├── setup/auth.setup.ts           # sesje 4 osób (.auth/), logowanie z 2FA tylko gdy sesja wygasła
+├── setup/auth.setup.ts           # sesje 4 kont (.auth/); logowanie tylko, gdy sesja wygasła (zaufane urządzenie / kod z Gmaila)
 └── notifications/
     ├── steps.ts                  # kroki testów z asercjami: postTeamComment, expectNotified, expectNotNotified
-    ├── team-comments.spec.ts     # R3: P-03…P-08, N-01, N-02
+    ├── team-comments.spec.ts     # R3: P-03…P-08, N-01…N-03
     └── client-comments.spec.ts   # R1/R2: P-01, P-02, N-08
 ```
 
@@ -161,15 +218,16 @@ tests/
 - **Układ testu: akcja z warunkami wstępnymi → weryfikacja per osoba**, każdy etap jako nazwany `test.step`.
 - **Asercje web-first i domenowe** – `toBeVisible`, `toHaveText`, `toContainText` oraz własne
   `toHaveNotification` / `toKeepNotificationCount` z czytelnym komunikatem błędu (osoba, znacznik, okno).
-- **Asercje miękkie** (`expect.soft`) tylko dla niezależnych cech jednego obiektu (treść powiadomienia).
+- **Asercje miękkie** (`expect.soft`) dla niezależnych sprawdzeń: wynik per odbiorca i treść powiadomienia.
 - **Izolacja danych** – unikalny znacznik w każdym komentarzu; testy nie zależą od kolejności ani od
   wcześniejszych przebiegów (N-08 porównuje liczby „przed/po” zamiast szukać znanego tekstu).
 - **Bez sztywnych czekań** – jedyne odczekiwanie to okno w testach negatywnych („brak” wymaga czasu),
   zaszyte w asercji domenowej i opisane.
 - **Ponowienia nie ukrywają błędu** – zgłoszony problem jest przerywany („nie zawsze”), więc w CI
   `retries: 1` + `failOnFlakyTests: true`: test, który przejdzie dopiero za drugim razem, i tak kończy przebieg błędem.
-- **Fixtures** – `teamMember('anna')` zwraca zalogowaną osobę w osobnym `BrowserContext`; `testItem`
-  ustala produkt (`KIS_ITEM_ID` lub pierwszy na liście) i odczytuje jego nazwę do weryfikacji treści.
+- **Fixtures** – `actor('marcin')` zwraca zalogowane konto w osobnym `BrowserContext`; `testItem`
+  ustala produkt (`KIS_ITEM_ID` lub pierwszy wiersz z ikoną komentarzy) i odczytuje jego nazwę.
+- **Znane błędy w raporcie** – testy odtwarzające błąd mają link „Błąd: BUG-0x” (Allure `issue`) do sekcji 4.
 - **Jakość** – TypeScript `strict`, ESLint (typescript-eslint + eslint-plugin-playwright), Prettier; CI na każdym PR.
 
 ### Raport Allure
@@ -178,7 +236,7 @@ tests/
 - **Metadane przy deklaracji testu** (adnotacje `allure.label.*`), więc są w raporcie także wtedy, gdy test
   upadnie w fixture. Każdy test ma link **„Plan testów: P-xx”** do sekcji 3 i ważność (severity).
 - **Kroki biznesowe:** metody Page Objectów oznaczone `@step` („Otwórz komentarze produktu…”, „Wyślij komentarz…”)
-  oraz kroki testu („Anna dostaje dokładnie jedno powiadomienie”). Wywołania API są w nich zagnieżdżone,
+  oraz kroki testu („Marcin (członek zespołu) dostaje dokładnie jedno powiadomienie”). Wywołania API są w nich zagnieżdżone,
   a asercje widoczne jako osobne kroki (`detail: true`).
 - **Dowody także przy sukcesie:** zrzut dodanego komentarza i zrzut powiadomienia każdego odbiorcy;
   przy błędzie dodatkowo zrzut ekranu, wideo i trace Playwrighta.
@@ -195,8 +253,8 @@ tests/
 | Modal komentarzy                            | `getByRole('dialog')` z `.comments-modal`                                                                                                  | rola + komponent   |
 | Zakładki modala                             | `getByRole('link', { name: /Prywatne/ })`, `getByTestId('comments-public-tab')`                                                            | rola / data-testid |
 | Edytor + wysłanie                           | `getByRole('textbox')`, `getByRole('button', { name: 'Wyślij' })`                                                                          | rola               |
-| Dzwonek / zamknięcie panelu                 | `getByTitle('Pokaż powiadomienia')`, `.slider > .slider-close`                                                                             | title / komponent  |
-| Licznik nieprzeczytanych                    | `getByTitle('Powiadomienia') .kis-pill`                                                                                                    | title              |
+| Centrum powiadomień                         | strona `/inbox`; wpis `.notification[data-key]`, autor `.notification-context .user`, treść `.notification-details`                        | komponent          |
+| Wybór osoby po „@”                          | `.tippy-box .mention-item` (przycisk z nazwą konta)                                                                                        | komponent TipTap   |
 | Udostępnij / członek zespołu / propozycja   | `getByTitle('Udostępnij listę')`, `getByTitle('Dodaj członka zespołu lub współpracownika')`, `getByTitle('Utwórz propozycję dla klienta')` | title              |
 | Produkt w widoku klienta                    | `.proposal-item#item_<itemId>`, `getByRole('button', { name: 'Napisz komentarz' })`                                                        | id / rola          |
 | Zaproszenie do zespołu                      | `getByRole('textbox', { name: 'Zaproś dodatkową osobę przez email' })`                                                                     | rola               |
@@ -206,14 +264,22 @@ Zachowania aplikacji uwzględnione w Page Objectach:
 - **Ikona komentarzy** – pierwsze kliknięcie po wczytaniu listy nie otwiera okna (komponent ładuje się dopiero wtedy),
   kolejne po ok. 1 s – tak; zwykły klik bywa też przechwytywany przez przeciąganie wierszy. `openComments()` wysyła
   zdarzenie `click` i ponawia do skutku, sprawdzając stan bez rzucania błędu (ponowienia nie są „czerwone” w raporcie).
-- **Panel powiadomień** jest zawsze w DOM i wysuwa się (`.slider.slide-in` / `.slide-out`), więc stan sprawdzany jest
-  klasą. Po przeładowaniu aplikacja sama wysuwa panel (zasłania wtedy dzwonek). Strona `/lists` ma drugi, osadzony
-  panel – odświeżanie powiadomień korzysta z `/team`, gdzie jest tylko panel z nagłówka.
+- **Centrum powiadomień** jest czytane ze strony `/inbox`: ta sama lista co panel pod dzwonkiem, ale bez animacji
+  wysuwania, bez drugiego, osadzonego panelu ze strony `/lists` i dostępna dla każdej roli (`/team` – tylko administrator).
+- **Wybór osoby po „@”** – lista ładuje się asynchronicznie; jeśli pierwsze „@” pokaże „Nic nie znaleziono.”,
+  `mention()` usuwa znak i wpisuje go ponownie.
+- **Pierwszy element `#item-…` na liście bywa notatką sekcji** (bez ikony komentarzy) – `ListPage.items` to wiersze
+  z ikoną komentarzy, a test sprawdza, że okno komentarzy dotyczy właściwego produktu.
 - **Logowanie wymaga 4-cyfrowego kodu 2FA z e-maila** (nie TOTP, więc generator kodów odpada; SMTP należy do
-  KIS List, więc lokalna skrzynka typu Mailpit też). Projekt `setup` loguje każdą osobę najwyżej raz na przebieg
-  i zapisuje sesję (`.auth/<osoba>.json`, „Zapamiętaj mnie”); przy ważnej sesji logowanie jest pomijane.
-  Kod pobierany jest w kolejności:
-  1. zmienna `<OSOBA>_2FA_CODE`;
+  KIS List, więc lokalna skrzynka typu Mailpit też). Projekt `setup` loguje każde konto najwyżej raz na przebieg
+  i zapisuje sesję (`.auth/<konto>.json`, „Zapamiętaj mnie”); przy ważnej sesji logowanie jest pomijane.
+  - **Zaufane urządzenie:** po pierwszym logowaniu z kodem aplikacja ustawia cookie `devid` (ważne rok) i kolejne
+    logowania z tej przeglądarki nie wymagają kodu. Setup zapisuje jego wartość do `.auth/<konto>.device`;
+    podana jako `<KONTO>_DEVICE_ID` (np. sekret w CI) pozwala logować się bez kodu – tak działa konto administratora
+    z prywatną skrzynką, której testy nie czytają. Wartość można też skopiować z własnej przeglądarki
+    (DevTools → Application → Cookies → `kislist.com` → `devid`).
+  - Gdy aplikacja poprosi o kod, jest on pobierany w kolejności:
+  1. zmienna `<KONTO>_2FA_CODE`;
   2. **skrzynka e-mail** (`src/support/mailbox.ts`), automatycznie, także w CI:
      - **Gmail API** (`src/support/mail/gmail.ts`, zakres tylko do odczytu) – jedna skrzynka dla wszystkich kont;
        wiadomość wybierana po adresacie „+” (nagłówki `To`/`Delivered-To`) i czasie otrzymania,
@@ -222,7 +288,7 @@ Zachowania aplikacji uwzględnione w Page Objectach:
      Znacznik czasu zapisywany jest _przed_ kliknięciem „Zaloguj”, więc kod z poprzedniego przebiegu nie
      zostanie użyty. IMAP nie jest używany – Gmail API działa po HTTPS, także za proxy;
 
-  3. plik `.auth/<osoba>.code`, na który setup czeka do 5 minut (gdy skrzynka nie jest skonfigurowana).
+  3. plik `.auth/<konto>.code`, na który setup czeka do 5 minut (gdy skrzynka nie jest czytana).
 
 #### Dostęp do Gmaila (jednorazowo)
 
@@ -245,7 +311,7 @@ git clone https://github.com/dkelle1/rekrutacja-kis.git
 cd rekrutacja-kis
 npm ci
 npx playwright install chromium
-cp .env.example .env               # loginy/hasła i nazwy kont 4 członków zespołu, id listy, linki klienta
+cp .env.example .env               # konta (admin, piotr, marcin, guest), id listy, link klienta, dostęp do Gmaila
 npm test                           # wszystkie scenariusze
 npm run test:regression            # tylko @regression (także: test:positive, test:negative)
 npx playwright test --grep @R3     # tylko wybrane wymaganie
@@ -266,10 +332,17 @@ w repozytorium nie ma żadnych haseł.
   o komentarzach → Run workflow**, z wyborem zestawu (`all`, `positive`, `negative`, `regression`, `R1`–`R3`).
   Raporty Allure i Playwright są dostępne jako artefakty przebiegu (również gdy testy nie przejdą).
 
-Konfiguracja jednorazowa: **Settings → Secrets and variables → Actions** – dodać sekrety o nazwach z
-`.env.example`: `KIS_LIST_ID`, `PIOTR_EMAIL`, `PIOTR_PASSWORD`, `ANNA_EMAIL`, `ANNA_PASSWORD`,
-`MARCIN_EMAIL`, `MARCIN_PASSWORD`, `MICHALINA_EMAIL`, `MICHALINA_PASSWORD`, `CLIENT_SHARE_URL`,
-`CLIENT_PROPOSAL_URL`, opcjonalnie `KIS_ITEM_ID` i `<OSOBA>_DISPLAY_NAME`, oraz sesje `<OSOBA>_STORAGE_STATE`
-(base64 z plików `.auth/<osoba>.json` – tylko gdy skrzynka nie jest skonfigurowana), `GMAIL_CLIENT_ID`,
-`GMAIL_CLIENT_SECRET`, `GMAIL_REFRESH_TOKEN` (albo `MAILOSAUR_API_KEY` i `MAILOSAUR_SERVER_ID`) – kody 2FA.
-Opcjonalnie zmienna `BASE_URL`.
+Konfiguracja jednorazowa: **Settings → Secrets and variables → Actions** – sekrety o nazwach z `.env.example`:
+
+| Sekret                                                          | Wymagany | Opis                                                         |
+| --------------------------------------------------------------- | :------: | ------------------------------------------------------------ |
+| `KIS_LIST_ID`, `CLIENT_SHARE_URL`                               |    ✔     | lista testowa i jej link udostępnienia                       |
+| `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `ADMIN_DEVICE_ID`              |    ✔     | administrator; `devid` zaufanego urządzenia zamiast kodu 2FA |
+| `PIOTR_*`, `MARCIN_*`, `GUEST_*` (`_EMAIL`, `_PASSWORD`)        |    ✔     | pozostałe konta (adresy „+” skrzynki Gmail)                  |
+| `GMAIL_CLIENT_ID`, `GMAIL_CLIENT_SECRET`, `GMAIL_REFRESH_TOKEN` |    ✔     | odczyt kodów 2FA z Gmaila (tylko do odczytu)                 |
+| `KIS_ITEM_ID`, `CLIENT_PROPOSAL_URL`, `<KONTO>_DEVICE_ID`       |          | produkt do komentarzy, propozycja (P-01), logowanie bez kodu |
+
+Opcjonalnie zmienne (Variables): `BASE_URL`, `<KONTO>_DISPLAY_NAME`. Sekrety nie trafiają do logów ani do przebiegów
+z forków, a workflow E2E uruchamia się tylko ręcznie.
+
+Testy dodają prawdziwe komentarze na liście testowej (z unikalnym znacznikiem `[e2e …]`) – lista służy wyłącznie testom.

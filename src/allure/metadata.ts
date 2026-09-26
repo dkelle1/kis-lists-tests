@@ -4,6 +4,7 @@ export type Requirement = 'R1' | 'R2' | 'R3';
 export type Severity = 'blocker' | 'critical' | 'normal' | 'minor' | 'trivial';
 
 export const TEST_PLAN_URL = 'https://github.com/dkelle1/rekrutacja-kis/blob/main/README.md#3-plan-testów';
+export const BUGS_URL = 'https://github.com/dkelle1/rekrutacja-kis/blob/main/README.md#zgłoszone-błędy';
 
 const FEATURES: Record<Requirement, string> = {
   R1: 'R1: klient komentuje propozycję',
@@ -21,6 +22,8 @@ export function allureMeta(options: {
   story: string;
   scenarios: readonly string[];
   severity?: Severity;
+  /** Znany błąd, który test odtwarza (link „issue” w Allure) – np. 'BUG-01'. */
+  bug?: string;
 }): TestDetailsAnnotation[] {
   return [
     { type: 'allure.label.epic', description: 'Powiadomienia o komentarzach' },
@@ -28,5 +31,6 @@ export function allureMeta(options: {
     { type: 'allure.label.story', description: options.story },
     { type: 'allure.label.severity', description: options.severity ?? 'critical' },
     ...options.scenarios.map((id) => ({ type: 'tms', description: id })),
+    ...(options.bug ? [{ type: 'issue', description: options.bug }] : []),
   ];
 }

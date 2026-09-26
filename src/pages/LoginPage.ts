@@ -1,8 +1,8 @@
 import { Locator, Page } from '@playwright/test';
-import { TeamMember } from '../data/team';
+import { Account } from '../data/team';
 import { step } from '../support/step';
 
-/** Formularz logowania /login (id pól nadane przez aplikację). */
+/** Formularz logowania /logowanie (id pól nadane przez aplikację). */
 export class LoginPage {
   readonly email: Locator;
   readonly password: Locator;
@@ -18,12 +18,15 @@ export class LoginPage {
 
   @step('Otwórz stronę logowania')
   async goto(): Promise<void> {
-    await this.page.goto('/login');
+    await this.page.goto('/logowanie');
   }
 
-  /** Po poprawnych danych aplikacja przechodzi na /2fa (kod z e-maila) – patrz TwoFactorPage. */
+  /**
+   * Po poprawnych danych aplikacja przechodzi na /2fa (kod z e-maila) – patrz TwoFactorPage –
+   * chyba że przeglądarka ma cookie `devid` zaufanego urządzenia; wtedy od razu na listy.
+   */
   @step('Zaloguj się loginem i hasłem')
-  async login(user: TeamMember): Promise<void> {
+  async login(user: Account): Promise<void> {
     await this.email.fill(user.email);
     await this.password.fill(user.password);
     await this.rememberMe.check();

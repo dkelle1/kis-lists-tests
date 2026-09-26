@@ -1,21 +1,25 @@
 /* eslint-disable playwright/no-conditional-in-test -- logowanie tylko wtedy, gdy zapisana sesja wygasła */
 import { expect, test as setup } from '@playwright/test';
 import fs from 'node:fs';
-import { member, storageStatePath, TEAM, TeamMember } from '../../src/data/team';
+import { baseURL } from '../../src/config/env';
+import { Account, account, ACCOUNTS, storageStatePath } from '../../src/data/team';
 import { LoginPage } from '../../src/pages/LoginPage';
 import { TwoFactorPage } from '../../src/pages/TwoFactorPage';
 import { mailboxFor, waitForLoginCode } from '../../src/support/mailbox';
 
 /**
- * Sesje członków zespołu (.auth/<osoba>.json) używane przez testy przez storageState.
+ * Sesje kont (.auth/<konto>.json) używane przez testy przez storageState.
  *
- * KIS List wymaga przy logowaniu kodu 2FA wysłanego e-mailem, więc:
- *  - jeśli zapisana sesja jest nadal ważna – logowanie jest pomijane (każda osoba loguje się najwyżej raz
- *    na przebieg, więc nie ma wielu kodów naraz ani limitów wysyłki);
- *  - w przeciwnym razie setup loguje się i pobiera kod, w kolejności:
- *      1. zmienna <OSOBA>_2FA_CODE,
+ * KIS List wymaga przy logowaniu kodu 2FA wysłanego e-mailem, chyba że przeglądarka ma cookie `devid`
+ * („zaufane urządzenie”, ważne rok – aplikacja ustawia je po pierwszym logowaniu z kodem). Dlatego:
+ *  - jeśli zapisana sesja jest nadal ważna – logowanie jest pomijane;
+ *  - w przeciwnym razie setup loguje się w kontekście z poprzednią sesją albo z `<KONTO>_DEVICE_ID`,
+ *    więc zaufane urządzenie zwykle pomija kod 2FA;
+ *  - gdy aplikacja jednak poprosi o kod, jest on pobierany w kolejności:
+ *      1. zmienna <KONTO>_2FA_CODE,
  *      2. skrzynka e-mail (src/support/mailbox.ts) – Gmail z adresami „+” albo Mailosaur; automatycznie, także w CI,
- *      3. plik .auth/<osoba>.code – ręcznie, gdy żadna skrzynka nie jest skonfigurowana.
+ *      3. plik .auth/<konto>.code – ręcznie, dla adresu, którego skrzynki testy nie czytają (np. prywatny).
+ *    Po takim logowaniu setup zapisuje wartość `devid` do .auth/<konto>.device (do sekretu <KONTO>_DEVICE_ID).
  */
 const CODE_WAIT_MS = 5 * 60_000;
 const LOGIN_PATH = /\/(login|logowanie)/;
@@ -35,33 +39,43 @@ async function waitForCodeFile(key: string): Promise<string> {
   throw new Error(`Brak kodu 2FA dla ${key} w ciągu ${CODE_WAIT_MS / 1000} s`);
 }
 
-async function loginCode(user: TeamMember, since: Date): Promise<string> {
+async function loginCode(user: Account, since: Date): Promise<string> {
   const fromEnv = process.env[`${user.key.toUpperCase()}_2FA_CODE`];
   if (fromEnv) return fromEnv;
   if (await mailboxFor(user.email)) return waitForLoginCode(user.email, since);
   return waitForCodeFile(user.key);
 }
 
-for (const key of TEAM) {
+for (const key of ACCOUNTS) {
   setup(`sesja: ${key}`, async ({ browser }) => {
     setup.setTimeout(CODE_WAIT_MS + 60_000);
+    const user = account(key);
     const path = storageStatePath(key);
     const context = await browser.newContext({ storageState: fs.existsSync(path) ? path : undefined });
+    if (user.deviceId) {
+      await context.addCookies([{ name: 'devid', value: user.deviceId, url: baseURL }]);
+    }
     const page = await context.newPage();
 
     await page.goto('/lists');
+    fs.mkdirSync('.auth', { recursive: true });
     if (LOGIN_PATH.test(page.url())) {
-      const user = member(key);
       const login = new LoginPage(page);
       await login.goto();
       const since = new Date(); // przed kliknięciem – mail z kodem może przyjść szybciej niż kolejna linia testu
       await login.login(user);
       const twoFactor = new TwoFactorPage(page);
-      if (twoFactor.isCurrent()) await twoFactor.enterCode(await loginCode(user, since));
+      await page.waitForURL((url) => !LOGIN_PATH.test(url.pathname));
+      if (twoFactor.isCurrent()) {
+        await twoFactor.enterCode(await loginCode(user, since));
+        // Wartości nie wypisujemy (logi CI są publiczne) – trafia do ignorowanego pliku obok sesji.
+        const devid = (await context.cookies()).find((cookie) => cookie.name === 'devid');
+        if (devid) fs.writeFileSync(`.auth/${key}.device`, devid.value);
+        console.log(`[auth] ${key}: urządzenie zaufane – wartość ${key.toUpperCase()}_DEVICE_ID w .auth/${key}.device`);
+      }
     }
 
     await expect(page, `sesja ${key} jest aktywna`).not.toHaveURL(/\/(login|logowanie|2fa)/);
-    fs.mkdirSync('.auth', { recursive: true });
     await context.storageState({ path });
     await context.close();
   });
