@@ -1,4 +1,6 @@
-import { Page, test } from '@playwright/test';
+import { Locator, Page, test } from '@playwright/test';
+import { SCREENSHOT } from '../allure/evidence';
+import { privateTextOn } from './privacy';
 
 const MAX_ARG_LENGTH = 60;
 
@@ -9,12 +11,12 @@ function formatTitle(title: string, args: readonly unknown[]): string {
   });
 }
 
-export interface StepOptions {
-  /**
-   * Zrzut ekranu na końcu kroku (także przy błędzie), dołączony POD tym krokiem. Domyślnie tak.
-   * Wyłączone m.in. dla logowania (dane konta, kod 2FA) i odświeżania w pętli odpytywania (dziesiątki identycznych zrzutów).
-   */
-  screenshot?: boolean;
+/**
+ * Page Object z danymi, których nie może być widać na zrzutach (raport i artefakty są publiczne),
+ * np. adres e-mail, hasło, kod 2FA – te elementy są zamazywane.
+ */
+export interface HasSensitiveData {
+  readonly sensitive: readonly Locator[];
 }
 
 function pageOf(target: unknown): Page | undefined {
@@ -25,17 +27,18 @@ function pageOf(target: unknown): Page | undefined {
 async function attachStepScreenshot(target: unknown, title: string): Promise<void> {
   const page = pageOf(target);
   if (!page || page.isClosed()) return;
-  const body = await page.screenshot({ timeout: 5_000 }).catch(() => undefined);
-  if (body) await test.info().attach(`Ekran: ${title}`, { body, contentType: 'image/png' });
+  const mask = [privateTextOn(page), ...((target as Partial<HasSensitiveData>).sensitive ?? [])];
+  const body = await page.screenshot({ ...SCREENSHOT, mask, timeout: 5_000 }).catch(() => undefined);
+  if (body) await test.info().attach(`Ekran: ${title}`, { body, contentType: 'image/jpeg' });
 }
 
 /**
- * Zamienia metodę Page Objectu w krok raportu (Playwright HTML + Allure) ze zrzutem ekranu na końcu kroku.
+ * Zamienia metodę Page Objectu w krok raportu (Playwright HTML + Allure) ze zrzutem ekranu (`this.page`)
+ * na końcu kroku – także przy błędzie – dołączonym POD tym krokiem. Zamazane: adresy e-mail i dane z `sensitive`.
  * `{0}`, `{1}`… w tytule są zastępowane argumentami wywołania.
  * `box: true` – błąd wewnątrz kroku jest raportowany w linii testu, który wywołał metodę.
- * Zrzut robi się ze strony `this.page` Page Objectu.
  */
-export function step(title: string, { screenshot = true }: StepOptions = {}) {
+export function step(title: string) {
   return function <This, Args extends unknown[], Result>(method: (this: This, ...args: Args) => Promise<Result>) {
     return function (this: This, ...args: Args): Promise<Result> {
       const stepTitle = formatTitle(title, args);
@@ -45,7 +48,7 @@ export function step(title: string, { screenshot = true }: StepOptions = {}) {
           try {
             return await method.call(this, ...args);
           } finally {
-            if (screenshot) await attachStepScreenshot(this, stepTitle);
+            await attachStepScreenshot(this, stepTitle);
           }
         },
         { box: true },

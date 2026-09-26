@@ -74,20 +74,20 @@ co 3 s), zanim uznamy brak powiadomienia. Wyniki automatyczne potwierdzono ręcz
 
 ### 3.1 Scenariusze pozytywne
 
-| ID   | Wym.  | Scenariusz                                                       | Oczekiwany rezultat                                                           |
-| ---- | ----- | ---------------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| P-01 | ✅    | ✅                                                               | **❌**                                                                        | – (brak) | ❌  | [BUG-02](#bug-02) – członek zespołu nie dostaje powiadomienia o komentarzu do propozycji |
-| P-02 | R2    | Klient dodaje komentarz do udostępnionej listy (podgląd na żywo) | Damian, Piotr, Marcin dostają powiadomienie                                   |
-| P-03 | R3    | Administrator (Damian) komentuje produkt w czacie zespołu        | Piotr, Marcin dostają powiadomienie                                           |
-| P-04 | R3    | Współpracownik (Piotr) komentuje produkt                         | Damian, Marcin dostają powiadomienie                                          |
-| P-05 | R3    | Członek zespołu (Marcin) komentuje produkt                       | Damian, Piotr dostają powiadomienie                                           |
-| P-06 | R3    | Komentarz z oznaczeniem `@Piotr`                                 | Piotr dostaje powiadomienie „oznaczył/a Ciebie w komentarzu”                  |
-| P-07 | R3    | Administrator komentuje z oznaczeniem `@Marcin`                  | Marcin **oraz** Piotr dostają powiadomienie (oznaczenie nie zawęża odbiorców) |
-| P-08 | R3    | Oznaczenie kilku osób (`@Marcin @Piotr`)                         | Każda z osób – dokładnie jedno powiadomienie (bez duplikatów)                 |
-| P-09 | R3    | Odpowiedź w istniejącym wątku komentarzy                         | Pozostali członkowie dostają powiadomienie również o odpowiedzi               |
-| P-10 | R1–R3 | Treść powiadomienia                                              | Zawiera autora, rodzaj zdarzenia, treść komentarza, projekt                   |
-| P-11 | R3    | Członek dodany do listy później                                  | Po dodaniu do listy otrzymuje powiadomienia o nowych komentarzach             |
-| P-12 | R3    | Komentarz członka zespołu w zakładce „Komentarze klienta”        | Pozostali członkowie dostają powiadomienie                                    |
+| ID   | Wym. | Scenariusz                                                       | Oczekiwany rezultat                                                           |
+| ---- | ---- | ---------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| P-01 | ✅   | ✅                                                               | **❌**                                                                        | – (brak) | ❌  | [BUG-02](#bug-02) – członek zespołu nie dostaje powiadomienia o komentarzu do propozycji |
+| P-02 | R2   | Klient dodaje komentarz do udostępnionej listy (podgląd na żywo) | Damian, Piotr, Marcin dostają powiadomienie                                   |
+| P-03 | R3   | Administrator (Damian) komentuje produkt w czacie zespołu        | Piotr, Marcin dostają powiadomienie                                           |
+| P-04 | R3   | Współpracownik (Piotr) komentuje produkt                         | Damian, Marcin dostają powiadomienie                                          |
+| P-05 | R3   | Członek zespołu (Marcin) komentuje produkt                       | Damian, Piotr dostają powiadomienie                                           |
+| P-06 | R3   | Komentarz z oznaczeniem `@Piotr`                                 | Piotr dostaje powiadomienie „oznaczył/a Ciebie w komentarzu”                  |
+| P-07 | R3   | Administrator komentuje z oznaczeniem `@Marcin`                  | Marcin **oraz** Piotr dostają powiadomienie (oznaczenie nie zawęża odbiorców) |
+| P-08 | R3   | Oznaczenie kilku osób (`@Marcin @Piotr`)                         | Każda z osób – dokładnie jedno powiadomienie (bez duplikatów)                 |
+| P-09 | R3   | Odpowiedź w istniejącym wątku komentarzy                         | Pozostali członkowie dostają powiadomienie również o odpowiedzi               |
+| P-10 | ✅   | ✅                                                               | ✅                                                                            | –        | ✅  | autor, rodzaj zdarzenia, sekcja i produkt, treść komentarza, projekt                     |
+| P-11 | R3   | Członek dodany do listy później                                  | Po dodaniu do listy otrzymuje powiadomienia o nowych komentarzach             |
+| P-12 | R3   | Komentarz członka zespołu w zakładce „Komentarze klienta”        | Pozostali członkowie dostają powiadomienie                                    |
 
 ### 3.2 Scenariusze negatywne
 
@@ -177,14 +177,12 @@ Pełne zgłoszenia (środowisko, kroki, obserwacje): [docs/BUGS.md](docs/BUGS.md
 
 #### Uwagi (nie-błędy)
 
-- **U-01:** powiadomienie nie zawiera nazwy produktu ani listy – tylko projekt, autora i treść; przy wielu
-  produktach trudno ustalić, czego dotyczy komentarz.
-- **U-02:** komentarz klienta z linku jest podpisany „Klient/ka”, a nagłówek powiadomienia pokazuje adresy wszystkich
+- **U-01:** komentarz klienta z linku jest podpisany „Klient/ka”, a nagłówek powiadomienia pokazuje adresy wszystkich
   klientów projektu – nie wiadomo, który klient napisał.
-- **U-03:** w edytorze po oznaczeniu kilku osób drugie oznaczenie dostaje atrybuty pierwszego
+- **U-02:** w edytorze po oznaczeniu kilku osób drugie oznaczenie dostaje atrybuty pierwszego
   (`data-email`/`data-name` = poprzednia osoba, `data-id` = właściwa) – powiadomienia trafiają do właściwych osób,
   ale warto to poprawić.
-- **U-04:** strona `/team` zwraca 403 dla ról innych niż administrator, a lista „@” ładuje się z opóźnieniem
+- **U-03:** strona `/team` zwraca 403 dla ról innych niż administrator, a lista „@” ładuje się z opóźnieniem
   (pierwsze „@” po otwarciu okna pokazuje „Nic nie znaleziono.”).
 
 ## 5. Test automatyczny (Playwright + TypeScript)
@@ -251,8 +249,8 @@ tests/
   wcześniejszych przebiegów (N-08 porównuje liczby „przed/po” zamiast szukać znanego tekstu).
 - **Bez sztywnych czekań** – jedyne odczekiwanie to okno w testach negatywnych („brak” wymaga czasu),
   zaszyte w asercji domenowej i opisane.
-- **Ponowienia nie ukrywają błędu** – zgłoszony problem jest przerywany („nie zawsze”), więc w CI
-  `retries: 1` + `failOnFlakyTests: true`: test, który przejdzie dopiero za drugim razem, i tak kończy przebieg błędem.
+- **Bez ponowień** (`retries: 0`) – zgłoszony problem jest przerywany („nie zawsze”), więc ponowienie mogłoby go ukryć,
+  a testy regresyjne znanych błędów i tak nie przechodzą.
 - **Fixtures** – `actor('marcin')` zwraca zalogowane konto w osobnym `BrowserContext`; `testItem`
   ustala produkt (`KIS_ITEM_ID` lub pierwszy wiersz z ikoną komentarzy) i odczytuje jego nazwę.
 - **Znane błędy w raporcie** – testy odtwarzające błąd mają link „Błąd: BUG-0x” (Allure `issue`) do sekcji 4.
@@ -266,11 +264,14 @@ tests/
 - **Kroki biznesowe:** metody Page Objectów oznaczone `@step` („Otwórz komentarze produktu…”, „Wyślij komentarz…”)
   oraz kroki testu („Marcin (członek zespołu) dostaje dokładnie jedno powiadomienie”). Wywołania API są w nich zagnieżdżone,
   a asercje widoczne jako osobne kroki (`detail: true`).
-- **Zrzut ekranu w każdym kroku**, pod tym krokiem (także przy sukcesie i przy błędzie): każda akcja Page Objectu
-  (`@step`), centrum powiadomień każdej sprawdzanej osoby oraz „Stan końcowy” każdego konta po teście.
-  Bez zrzutów: logowanie i kod 2FA (dane konta – raport jest publiczny) oraz odświeżanie w pętli odpytywania.
+- **Zrzut ekranu (JPEG) w każdym kroku**, pod tym krokiem (także przy sukcesie i przy błędzie): każda akcja Page Objectu
+  (`@step`, łącznie z logowaniem i odświeżaniem centrum powiadomień), centrum powiadomień każdej sprawdzanej osoby,
+  „Stan końcowy” każdego konta po teście oraz kroki przygotowania sesji („Sprawdź zapisaną sesję”, „Sesja aktywna”).
+- **Zamazane dane:** na każdym zrzucie adresy e-mail, a na krokach logowania także hasło i kod 2FA (raport jest publiczny).
 - **Wideo całego testu** – osobne nagranie dla każdego konta i klienta: domyślnie tylko przy błędzie, dla wszystkich
-  testów po ustawieniu `VIDEO=on` (w Actions: opcja „Wideo z całego testu”). Przy błędzie także trace Playwrighta.
+  testów po ustawieniu `VIDEO=on` (w Actions: opcja „Wideo z całego testu”).
+- **Trace Playwrighta tylko w raporcie HTML Playwrighta** (artefakt `playwright-report`) – raport Allure go nie zawiera
+  (`src/allure/reporter.ts`), dzięki czemu jest kilkukrotnie mniejszy.
 - **Tylko scenariusze:** przygotowanie sesji kont (projekt `setup`) jest ukryte w raporcie, dopóki przechodzi
   (`allurerc.mjs` → `filter`); nieudane logowanie pozostaje widoczne jako przyczyna pominiętych testów.
 - Interfejs raportu po polsku (`reportLanguage: 'pl'`), informacje o środowisku (URL, przeglądarka, okno czasowe).
@@ -376,8 +377,8 @@ z kodami 2FA). Bez nich:
   Na starcie sprawdza, czy są wszystkie wymagane sekrety; na końcu dodaje podsumowanie (liczby testów) do strony przebiegu.
   Artefakty (również gdy testy nie przejdą):
   - **`allure-report`** (7 dni) – raport Allure jako **jeden plik `index.html`** (otwiera się bez serwera, po polsku,
-    ze zrzutami, wideo i trace przy błędach),
-  - `playwright-report` (3 dni) – tylko przy błędach i po zaznaczeniu opcji „Dołącz też raport Playwright”.
+    ze zrzutami JPEG z każdego kroku i wideo przy błędach),
+  - `playwright-report` (7 dni, tylko przy błędach) – raport HTML Playwrighta z **trace** (`npx playwright show-report <katalog>`).
 
   Artefakty repozytoriów **prywatnych** liczą się do limitu miejsca konta GitHub (plan Free: 500 MB). Po jego
   przekroczeniu wysyłka kończy się błędem „Artifact storage quota has been hit” – pomaga usunięcie starych artefaktów

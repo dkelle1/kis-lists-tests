@@ -1,6 +1,7 @@
 /* eslint-disable playwright/no-conditional-in-test -- logowanie tylko wtedy, gdy zapisana sesja wygasła */
 import { expect, test as setup } from '@playwright/test';
 import fs from 'node:fs';
+import { attachScreenshot } from '../../src/allure/evidence';
 import { baseURL } from '../../src/config/env';
 import { Account, account, ACCOUNTS, storageStatePath } from '../../src/data/team';
 import { LoginPage } from '../../src/pages/LoginPage';
@@ -57,7 +58,11 @@ for (const key of ACCOUNTS) {
     }
     const page = await context.newPage();
 
-    await page.goto('/lists');
+    await setup.step('Sprawdź zapisaną sesję', async () => {
+      await page.goto('/lists');
+      await attachScreenshot('Ekran: Sprawdź zapisaną sesję', page);
+    });
+
     fs.mkdirSync('.auth', { recursive: true });
     if (LOGIN_PATH.test(page.url())) {
       const login = new LoginPage(page);
@@ -75,7 +80,11 @@ for (const key of ACCOUNTS) {
       }
     }
 
-    await expect(page, `sesja ${key} jest aktywna`).not.toHaveURL(/\/(login|logowanie|2fa)/);
+    await setup.step(`Sesja aktywna – ${key}`, async () => {
+      await expect(page, `sesja ${key} jest aktywna`).not.toHaveURL(/\/(login|logowanie|2fa)/);
+      await attachScreenshot(`Ekran: Sesja aktywna – ${key}`, page);
+    });
+
     await context.storageState({ path });
     await context.close();
   });
