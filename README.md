@@ -360,6 +360,23 @@ npm run check                      # typecheck + lint + format
 Dane logowania są czytane wyłącznie ze zmiennych środowiskowych (`.env` jest w `.gitignore`) –
 w repozytorium nie ma żadnych haseł.
 
+### Uruchomienie w Dockerze
+
+Obraz z `Dockerfile` (oficjalny obraz Playwrighta w tej samej wersji co `@playwright/test`, z przeglądarkami) – bez
+instalowania Node i przeglądarek; ten sam obraz uruchamia testy w GitHub Actions.
+
+```bash
+npm run docker:build                               # docker build -t kis-lists-tests .
+npm run docker:test                                # wszystkie testy; wyniki w allure-results/, playwright-report/, test-results/
+docker run --rm --env-file .env kis-lists-tests npx playwright test --grep @R3    # wybrany zestaw
+docker run --rm -v "$PWD/allure-results:/app/allure-results" -v "$PWD/allure-report:/app/allure-report" \
+  kis-lists-tests npx allure generate allure-results                             # raport Allure (jeden plik)
+```
+
+- `.env` jest przekazywany przy uruchomieniu (`--env-file`) i **nie trafia do obrazu** (`.dockerignore`: `.env`, `.auth/`, `.local/`).
+  Plik musi mieć wartości bez cudzysłowów i bez komentarzy w tej samej linii (tak jak `.env.example`).
+- Za proxy z własnym certyfikatem: `docker build --secret id=ca,src=<plik.crt> …` (certyfikat nie trafia do warstw obrazu).
+
 **Dla recenzenta:** testy działają na prawdziwych kontach KIS List, więc potrzebują danych w `.env` (konta z rolami
 Administrator / Współpracownik / Członek zespołu / Gość powiązane z listą, link udostępnienia listy, dostęp do skrzynki
 z kodami 2FA). Bez nich:
@@ -373,8 +390,12 @@ z kodami 2FA). Bez nich:
 
 - **CI** (`.github/workflows/ci.yml`) – przy każdym pushu i PR: typecheck, lint, format i wczytanie testów.
   Nie wymaga dostępu do aplikacji.
+- **Docker** (`.github/workflows/docker.yml`) – przy zmianie `Dockerfile`, `.dockerignore` lub zależności: budowanie obrazu
+  oraz typecheck, lint, format i wczytanie testów w kontenerze.
 - **E2E** (`.github/workflows/e2e.yml`) – uruchamiane ręcznie: zakładka **Actions → E2E – powiadomienia
   o komentarzach → Run workflow**, z wyborem zestawu (`all`, `positive`, `negative`, `regression`, `R1`–`R3`).
+  Buduje obraz z `Dockerfile` (warstwy cache'owane między przebiegami) i uruchamia w nim testy oraz generowanie raportu
+  Allure; sekrety trafiają do kontenera jako zmienne środowiskowe (`-e NAZWA`), a wyniki – przez zamontowane katalogi.
   Na starcie sprawdza, czy są wszystkie wymagane sekrety; na końcu dodaje podsumowanie (liczby testów) do strony przebiegu.
   Artefakty (również gdy testy nie przejdą):
   - **`allure-report`** (7 dni) – raport Allure jako **jeden plik `index.html`** (otwiera się bez serwera, po polsku,

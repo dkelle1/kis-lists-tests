@@ -1,6 +1,6 @@
 # Plan realizacji zadania
 
-Termin: 3 dni robocze od otrzymania zadania. Legenda: ✅ zrobione · ⬜ do zrobienia · 🔒 zablokowane.
+Termin: 3 dni robocze od otrzymania zadania. Legenda: ✅ zrobione · 🟡 częściowo · ⬜ do zrobienia · 🔒 zablokowane.
 
 ## Etap 0 – Przygotowanie środowiska
 
@@ -29,21 +29,21 @@ Termin: 3 dni robocze od otrzymania zadania. Legenda: ✅ zrobione · ⬜ do zro
 | #   | Subtask                                                                                             | Zależy od | Status |
 | --- | --------------------------------------------------------------------------------------------------- | --------- | ------ |
 | 2.1 | Spisać wymagania R1–R3 i macierz autor × odbiorca                                                   | –         | ✅     |
-| 2.2 | Scenariusze pozytywne P-01…P-11                                                                     | 2.1       | ✅     |
+| 2.2 | Scenariusze pozytywne P-01…P-12                                                                     | 2.1       | ✅     |
 | 2.3 | Scenariusze negatywne N-01…N-08                                                                     | 2.1       | ✅     |
 | 2.4 | Zweryfikować plan po rozpoznaniu UI (dodać/usunąć scenariusze, np. wątki, role gość/współpracownik) | 1.1–1.3   | ✅     |
 
 ## Etap 3 – Wykonanie testów manualnych
 
-| #   | Subtask                                                                  | Zależy od | Status |
-| --- | ------------------------------------------------------------------------ | --------- | ------ |
-| 3.1 | P-01, P-02 – komentarze klienta (propozycja, udostępniona lista)         | 2.4       | ✅     |
-| 3.2 | P-03…P-05 – komentarz każdej z 3 ról, sprawdzenie pozostałych + gościa   | 2.4       | ✅     |
-| 3.3 | P-07, P-08 – komentarze z oznaczeniami `@`                               | 2.4       | ✅     |
-| 3.4 | P-09 (odpowiedź w wątku), P-10 (treść); P-11 – nie wykonano              | 2.4       | 🟡     |
-| 3.5 | N-01…N-03, N-06, N-08; N-04, N-05, N-07 – nie wykonano                   | 2.4       | 🟡     |
-| 3.6 | Powtórzyć przypadki z błędem 2–3 razy (czy to stały, czy losowy problem) | 3.1–3.5   | ✅     |
-| 3.7 | Zebrać dowody: zrzuty ekranu i nagrania, godzina, autor, odbiorca        | 3.1–3.5   | ✅     |
+| #   | Subtask                                                                                                                            | Zależy od | Status |
+| --- | ---------------------------------------------------------------------------------------------------------------------------------- | --------- | ------ |
+| 3.1 | P-01, P-02 – komentarze klienta (propozycja, udostępniona lista)                                                                   | 2.4       | ✅     |
+| 3.2 | P-03…P-05 – komentarz każdej z 3 ról, sprawdzenie pozostałych + gościa                                                             | 2.4       | ✅     |
+| 3.3 | P-07, P-08 – komentarze z oznaczeniami `@`                                                                                         | 2.4       | ✅     |
+| 3.4 | P-09 (odpowiedź w wątku), P-10 (treść); P-11 (członek dodany później) – nie wykonano: brak wolnego konta (rejestracja z reCAPTCHA) | 2.4       | 🟡     |
+| 3.5 | N-01…N-03, N-06, N-08; N-04, N-05, N-07 – nie wykonano (poza zakresem wymagań R1–R3, opisane w TEST_CASES.md)                      | 2.4       | 🟡     |
+| 3.6 | Powtórzyć przypadki z błędem 2–3 razy (czy to stały, czy losowy problem)                                                           | 3.1–3.5   | ✅     |
+| 3.7 | Zebrać dowody: zrzuty ekranu i nagrania, godzina, autor, odbiorca                                                                  | 3.1–3.5   | ✅     |
 
 ## Etap 4 – Raport
 
@@ -60,7 +60,7 @@ Termin: 3 dni robocze od otrzymania zadania. Legenda: ✅ zrobione · ⬜ do zro
 | 5.1  | Struktura projektu: `src/` (framework) + `tests/` (specyfikacje), `playwright.config.ts`, `tsconfig.json` (strict)                                         | –         | ✅     |
 | 5.2  | Konfiguracja z walidacją (zod): `src/config/env.ts`, `.env.example`, sekrety poza repo                                                                     | 5.1       | ✅     |
 | 5.3  | Page Object Model: `LoginPage`/`TwoFactorPage`, `ListPage`, `ClientViewPage`, `TeamPage` + komponenty `CommentsModal`, `CommentForm`, `NotificationCenter` | 5.1       | ✅     |
-| 5.4  | Fixtures (`test.extend`): `teamMember(osoba)` – osobny kontekst na osobę, `client`, `listId`, `testItem`                                                   | 5.3       | ✅     |
+| 5.4  | Fixtures (`test.extend`): `actor(konto)` – osobny kontekst na konto, `client`, `listId`, `testItem`                                                        | 5.3       | ✅     |
 | 5.5  | Logowanie w kroku „Sesja: <konto>” testu (fixture `actor`) + `storageState` w `.auth/` – kod 2FA najwyżej raz na przebieg                                  | 5.4       | ✅     |
 | 5.6  | Dane testowe z faker (odpowiednik Bogus): komentarze z unikalnym znacznikiem, opcjonalny `FAKER_SEED`                                                      | 5.1       | ✅     |
 | 5.7  | Asercje domenowe (`expect.extend`): dokładnie 1 powiadomienie / brak do końca okna od wysłania / liczba wpisów bez zmian                                   | 5.3       | ✅     |
@@ -74,33 +74,35 @@ Termin: 3 dni robocze od otrzymania zadania. Legenda: ✅ zrobione · ⬜ do zro
 
 ## Etap 6 – Automatyzacja scenariuszy i test regresyjny (część 2)
 
-| #   | Subtask                                                                                          | Zależy od | Status |
-| --- | ------------------------------------------------------------------------------------------------ | --------- | ------ |
-| 6.1 | Scenariusze R1/R2 (klient) – P-01, P-02, N-08                                                    | 5.x       | ✅     |
-| 6.2 | Scenariusze R3 (zespół) – P-03…P-08, P-10, N-01…N-03; wynik per odbiorca (asercje miękkie)       | 5.x       | ✅     |
-| 6.3 | Testy regresyjne: BUG-01 (P-03…P-05, P-07), BUG-02 (P-02), BUG-03 (N-02) – link „Błąd” w Allure  | 4.2, 5.12 | ✅     |
-| 6.4 | Dopisać do README, który test odtwarza błąd i jaki jest jego oczekiwany wynik (obecnie czerwony) | 6.3       | ✅     |
+| #   | Subtask                                                                                                     | Zależy od | Status |
+| --- | ----------------------------------------------------------------------------------------------------------- | --------- | ------ |
+| 6.1 | Scenariusze R1/R2 (klient) – P-01, P-02, N-08                                                               | 5.x       | ✅     |
+| 6.2 | Scenariusze R3 (zespół) – P-03…P-10, N-01…N-03, N-06; wynik per odbiorca (asercje miękkie)                  | 5.x       | ✅     |
+| 6.3 | Testy regresyjne: BUG-01 (P-03…P-05, P-07, P-09), BUG-02 (P-01, P-02), BUG-03 (N-02) – link „Błąd” w Allure | 4.2, 5.12 | ✅     |
+| 6.4 | Dopisać do README, który test odtwarza błąd i jaki jest jego oczekiwany wynik (obecnie czerwony)            | 6.3       | ✅     |
 
 ## Etap 7 – Uruchamianie z GitHub Actions
 
-| #   | Subtask                                                                                                        | Zależy od | Status |
-| --- | -------------------------------------------------------------------------------------------------------------- | --------- | ------ |
-| 7.1 | Workflow `ci.yml`: typecheck, lint, format, `playwright test --list` przy każdym pushu i PR                    | 5.10      | ✅     |
-| 7.2 | Workflow `e2e.yml`: ręczne uruchomienie (Actions → Run workflow) z wyborem zestawu (all/positive/negative/R1…) | 5.9       | ✅     |
-| 7.3 | Raporty jako artefakty przebiegu: Allure i HTML Playwright (również przy czerwonym wyniku)                     | 5.8, 7.2  | ✅     |
-| 7.4 | `concurrency` – jeden przebieg naraz, bo testy współdzielą konta i listę                                       | 7.2       | ✅     |
-| 7.5 | Dodać sekrety repozytorium (Settings → Secrets and variables → Actions) – te same nazwy co w `.env.example`    | 0.3–0.5   | ⬜     |
-| 7.6 | Pierwsze uruchomienie w Actions i sprawdzenie raportu Allure z artefaktu                                       | 7.5, 5.12 | ⬜     |
-| 7.7 | (opcjonalnie) Publikacja raportu Allure na GitHub Pages / uruchamianie według harmonogramu (`schedule`)        | 7.6       | ⬜     |
+| #   | Subtask                                                                                                                                                                                                         | Zależy od | Status |
+| --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- | ------ |
+| 7.1 | Workflow `ci.yml`: typecheck, lint, format, `playwright test --list` przy każdym pushu i PR                                                                                                                     | 5.10      | ✅     |
+| 7.2 | Workflow `e2e.yml`: ręczne uruchomienie (Actions → Run workflow) z wyborem zestawu (all/positive/negative/R1…)                                                                                                  | 5.9       | ✅     |
+| 7.3 | Raporty jako artefakty przebiegu: Allure i HTML Playwright (również przy czerwonym wyniku)                                                                                                                      | 5.8, 7.2  | ✅     |
+| 7.4 | `concurrency` – jeden przebieg naraz, bo testy współdzielą konta i listę                                                                                                                                        | 7.2       | ✅     |
+| 7.5 | Sekrety repozytorium (Settings → Secrets and variables → Actions) – te same nazwy co w `.env.example`                                                                                                           | 0.3–0.5   | ✅     |
+| 7.6 | Uruchomienie w Actions i raport Allure z artefaktu (przebiegi #1–#3; artefakt działa od upublicznienia repo)                                                                                                    | 7.5, 5.12 | ✅     |
+| 7.7 | (opcjonalnie) Publikacja raportu Allure na GitHub Pages / uruchamianie według harmonogramu (`schedule`)                                                                                                         | 7.6       | ⬜     |
+| 7.8 | `Dockerfile` (obraz Playwrighta w wersji z `package.json`) + `.dockerignore`; `npm run docker:build` / `docker:test`                                                                                            | 5.x       | ✅     |
+| 7.9 | Workflow `e2e.yml` uruchamia testy i raport Allure w obrazie z `Dockerfile` (cache warstw); `docker.yml` sprawdza obraz przy zmianach – sprawdzone lokalnie w Dockerze, pierwszy przebieg w Actions po scaleniu | 7.8       | 🟡     |
 
 ## Etap 8 – Oddanie
 
-| #   | Subtask                                                                                        | Zależy od | Status |
-| --- | ---------------------------------------------------------------------------------------------- | --------- | ------ |
-| 8.1 | Sprawdzić uruchomienie od zera: `git clone` → `npm ci` → `npx playwright install` → `npm test` | 6.x       | ⬜     |
-| 8.2 | Upewnić się, że w repozytorium nie ma haseł ani `.env`; zmienić hasło podane w czacie          | –         | ⬜     |
-| 8.3 | Zmergować PR do `main` i ustawić repozytorium jako publiczne                                   | 8.1, 8.2  | ⬜     |
-| 8.4 | Wysłać link do repozytorium rekruterowi                                                        | 8.3       | ⬜     |
+| #   | Subtask                                                                                                                         | Zależy od | Status |
+| --- | ------------------------------------------------------------------------------------------------------------------------------- | --------- | ------ |
+| 8.1 | Uruchomienie od zera: `git clone` → `npm ci` → `npm run check` → test na żywo (sprawdzone na świeżym klonie; także w Dockerze)  | 6.x       | ✅     |
+| 8.2 | Brak haseł, tokenów i `.env` w repozytorium (sprawdzona cała historia ✅); zmienić hasła i dane OAuth podane w czacie (⬜ – Ty) | –         | 🟡     |
+| 8.3 | Zmergować PR do `main` i ustawić repozytorium jako publiczne                                                                    | 8.1, 8.2  | ✅     |
+| 8.4 | Wysłać link do repozytorium rekruterowi                                                                                         | 8.3       | ⬜     |
 
 ## Harmonogram
 

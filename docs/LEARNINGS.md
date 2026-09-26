@@ -113,6 +113,11 @@ BUG-01: zespół jest powiadamiany **tylko przez „@”**. Wyjątek do wyjaśni
 - **Trace w Allure:** allure-playwright zawsze dołącza trace (kilka–kilkanaście MB na test); nie ma opcji, więc `src/allure/reporter.ts` odfiltrowuje go w `onTestEnd` – trace zostaje w raporcie HTML Playwrighta. Ścieżka reportera musi być bezwzględna (`path.join(__dirname, …)`), bo względną Playwright liczy od pliku konfiguracji.
 - **Zrzuty:** JPEG (`quality: 70`) i `mask` dla adresów e-mail (`page.getByText(/…@…/)`) oraz pól logowania; zrzut po kliknięciu „Zaloguj” wymaga czekania na nową stronę (`waitForURL`), inaczej pokazuje pół-wyrenderowaną stronę.
 - **Logowanie w teście zamiast projektu „setup”:** projekt `setup` Playwrighta jest raportowany jak testy (zawyża statystyki), a jego kroki są „obok” scenariuszy. Logowanie jest więc w fixture `actor` (krok „Sesja: <konto>”), a sesja w `.auth/` sprawia, że kod 2FA potrzebny jest tylko w pierwszym teście konta.
+- **Docker:** obraz `mcr.microsoft.com/playwright:v<wersja>-noble` musi mieć tę samą wersję co `@playwright/test` (inaczej brak
+  przeglądarek). `docker run --env-file` nie obsługuje komentarzy w linii ani cudzysłowów (wartość zawierałaby komentarz),
+  a `source .env` w bashu psuje wartości z `&` (link propozycji) – do lokalnych skryptów wczytuj `.env` linia po linii.
+  W chmurze Claude demon Dockera trzeba uruchomić ręcznie (`dockerd &`), a `npm ci` w obrazie wymaga certyfikatu proxy
+  (`--secret id=ca,src=/root/.ccr/ca-bundle.crt`) i sieci hosta z proxy przy `docker run`.
 - `--reporter=list` w CLI **wyłącza Allure** (nadpisuje reportery z konfiguracji) – do sprawdzenia raportu uruchamiaj bez tej flagi.
 - Konfiguracja w `.local/` zapisuje `allure-results` względem katalogu roboczego (nie katalogu configu).
 
