@@ -335,11 +335,14 @@ w repozytorium nie ma żadnych haseł.
 - **E2E** (`.github/workflows/e2e.yml`) – uruchamiane ręcznie: zakładka **Actions → E2E – powiadomienia
   o komentarzach → Run workflow**, z wyborem zestawu (`all`, `positive`, `negative`, `regression`, `R1`–`R3`).
   Na starcie sprawdza, czy są wszystkie wymagane sekrety; na końcu dodaje podsumowanie (liczby testów) do strony przebiegu.
-  Artefakty (30 dni, również gdy testy nie przejdą):
-  - **`allure-report`** – raport Allure jako **jeden plik `index.html`** (otwiera się bez serwera, po polsku,
+  Artefakty (również gdy testy nie przejdą):
+  - **`allure-report`** (7 dni) – raport Allure jako **jeden plik `index.html`** (otwiera się bez serwera, po polsku,
     ze zrzutami, wideo i trace przy błędach),
-  - `allure-results` – surowe wyniki (np. `npx allure generate allure-results` lokalnie),
-  - `playwright-report` – raport HTML Playwrighta (`npx playwright show-report <katalog>`).
+  - `playwright-report` (3 dni) – tylko przy błędach i po zaznaczeniu opcji „Dołącz też raport Playwright”.
+
+  Artefakty repozytoriów **prywatnych** liczą się do limitu miejsca konta GitHub (plan Free: 500 MB). Po jego
+  przekroczeniu wysyłka kończy się błędem „Artifact storage quota has been hit” – pomaga usunięcie starych artefaktów
+  (Actions → przebieg → Artifacts) albo ustawienie repozytorium jako publicznego (bez limitu); limit przeliczany jest co 6–12 h.
 
 Konfiguracja jednorazowa: **Settings → Secrets and variables → Actions** – sekrety o nazwach z `.env.example`:
 
