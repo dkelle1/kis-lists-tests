@@ -7,7 +7,7 @@ description: Konta testowe KIS List, logowanie z 2FA (kod z e-maila) i sekrety �
 
 Szczegóły i uzasadnienia: [docs/LEARNINGS.md](../../../docs/LEARNINGS.md), sekcje 1.1, 1.2 i 3.
 
-## Jak loguje się setup (`tests/setup/auth.setup.ts`)
+## Jak loguje się konto (`src/support/session.ts`, krok „Sesja: <konto>” w każdym teście)
 
 1. Ważna sesja `.auth/<konto>.json` → bez logowania.
 2. Logowanie w kontekście z poprzednią sesją lub z `<KONTO>_DEVICE_ID` → cookie `devid` pomija kod 2FA.
@@ -19,8 +19,8 @@ Szczegóły i uzasadnienia: [docs/LEARNINGS.md](../../../docs/LEARNINGS.md), sek
 
 | Objaw                                        | Przyczyna / rozwiązanie                                                                                                                                  |
 | -------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Sesja z `.auth` nagle nieważna               | zmiana hasła unieważnia `REMEMBERME`; setup zaloguje się ponownie, `devid` zwykle pomija kod                                                             |
-| Setup czeka na `.auth/admin.code`            | skrzynki administratora nie czytamy – poproś użytkownika o kod **albo** o `ADMIN_DEVICE_ID` (DevTools → Application → Cookies → `kislist.com` → `devid`) |
+| Sesja z `.auth` nagle nieważna               | zmiana hasła unieważnia `REMEMBERME`; pierwszy test zaloguje się ponownie, `devid` zwykle pomija kod                                                     |
+| Test czeka na `.auth/admin.code`             | skrzynki administratora nie czytamy – poproś użytkownika o kod **albo** o `ADMIN_DEVICE_ID` (DevTools → Application → Cookies → `kislist.com` → `devid`) |
 | `Gmail: odświeżenie tokenu nie powiodło się` | refresh token wygasł (tryb Testing = 7 dni) lub został cofnięty → użytkownik uruchamia `npm run gmail:token`                                             |
 | `403 access_denied` przy `gmail:token`       | konto skrzynki nie jest „Test user” w Google Auth Platform → Audience                                                                                    |
 | Kod z poprzedniego przebiegu                 | `since` musi być zapisany **przed** kliknięciem „Zaloguj” (tak robi setup)                                                                               |

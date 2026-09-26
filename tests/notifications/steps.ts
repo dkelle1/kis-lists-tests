@@ -14,6 +14,8 @@ export interface ExpectedNotification {
   action: string | RegExp;
   /** Nazwa autora w aplikacji; komentarz klienta z linku jest podpisany „Klient/ka”. */
   author: string;
+  /** Nazwa produktu, którego dotyczy komentarz (wpis pokazuje „<sekcja> / <produkt>”). */
+  product: string;
 }
 
 export const COMMENT_ADDED = 'dodał/a komentarz';
@@ -112,6 +114,7 @@ export async function expectNotified(
     if ((await entry.count()) !== 1) return;
     await expect.soft(notifications.author(entry), 'P-10: powiadomienie wskazuje autora').toHaveText(expected.author);
     await expect.soft(notifications.context(entry), 'P-10: rodzaj zdarzenia').toContainText(expected.action);
+    await expect.soft(entry, 'P-10: powiadomienie wskazuje produkt').toContainText(expected.product);
   });
 }
 

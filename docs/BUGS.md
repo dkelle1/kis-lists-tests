@@ -115,8 +115,7 @@ Obserwacje, które nie naruszają wymagań R1–R3, ale warto je przekazać zesp
 
 | ID   | Obserwacja                                                                                                                                                                        |
 | ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| U-01 | Powiadomienie nie zawiera nazwy produktu ani listy – tylko projekt, autora i treść; przy wielu produktach trudno ustalić, czego dotyczy komentarz.                                |
-| U-02 | Komentarz klienta z linku jest podpisany „Klient/ka”, a nagłówek powiadomienia pokazuje adresy wszystkich klientów projektu – nie wiadomo, który klient napisał.                  |
-| U-03 | W edytorze po oznaczeniu kilku osób drugie oznaczenie dostaje atrybuty pierwszego (`data-email`/`data-name`); powiadomienia trafiają do właściwych osób.                          |
-| U-04 | Lista „@” ładuje się z opóźnieniem – pierwsze „@” po otwarciu okna pokazuje „Nic nie znaleziono.” i nie odświeża się; strona `/team` zwraca 403 dla ról innych niż administrator. |
-| U-05 | Powiadomienia jednego rodzaju są grupowane (licznik przy wpisie, widoczna tylko najnowsza treść) – starsze komentarze znikają z listy powiadomień.                                |
+| U-01 | Komentarz klienta z linku jest podpisany „Klient/ka”, a nagłówek powiadomienia pokazuje adresy wszystkich klientów projektu – nie wiadomo, który klient napisał.                  |
+| U-02 | W edytorze po oznaczeniu kilku osób drugie oznaczenie dostaje atrybuty pierwszego (`data-email`/`data-name`); powiadomienia trafiają do właściwych osób.                          |
+| U-03 | Lista „@” ładuje się z opóźnieniem – pierwsze „@” po otwarciu okna pokazuje „Nic nie znaleziono.” i nie odświeża się; strona `/team` zwraca 403 dla ról innych niż administrator. |
+| U-04 | Powiadomienia jednego rodzaju są grupowane (licznik przy wpisie, widoczna tylko najnowsza treść) – starsze komentarze znikają z listy powiadomień.                                |

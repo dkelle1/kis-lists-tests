@@ -1,15 +1,16 @@
 import { BrowserContext, test as base } from '@playwright/test';
 import { attachScreenshot } from '../allure/evidence';
 import { env } from '../config/env';
-import { Account, account, AccountKey, storageStatePath } from '../data/team';
+import { Account, account, AccountKey } from '../data/team';
 import { ClientViewPage } from '../pages/ClientViewPage';
 import { ListPage } from '../pages/ListPage';
 import { NotificationCenter } from '../pages/components/NotificationCenter';
+import { ensureSignedIn, sessionOptions, trustDevice } from '../support/session';
 import { attachVideo, videoOptions } from '../support/video';
 
 export { expect } from '../assertions/notifications';
 
-/** Zalogowane konto – osobny BrowserContext z sesją zapisaną przez projekt "setup". */
+/** Zalogowane konto – osobny BrowserContext; sesja sprawdzana (i w razie potrzeby odnawiana) w kroku „Sesja: …”. */
 export interface Actor {
   account: Account;
   list: ListPage;
@@ -41,18 +42,17 @@ export const test = base.extend<Fixtures>({
       const cached = actors.get(key);
       if (cached) return cached;
       const who = account(key);
-      return base.step(
-        `Sesja: ${who.name}`,
-        async () => {
-          const context = await browser.newContext({ storageState: storageStatePath(key), ...videoOptions(testInfo) });
-          contexts.push(context);
-          const list = new ListPage(await context.newPage());
-          const actor = { account: who, list, notifications: list.notifications };
-          actors.set(key, actor);
-          return actor;
-        },
-        { box: true },
-      );
+      // Krok widoczny w raporcie testu: sprawdzenie sesji, w razie potrzeby logowanie z 2FA, „Sesja aktywna”.
+      return base.step(`Sesja: ${who.name}`, async () => {
+        const context = await browser.newContext({ ...sessionOptions(who), ...videoOptions(testInfo) });
+        contexts.push(context);
+        await trustDevice(context, who);
+        const list = new ListPage(await context.newPage());
+        await ensureSignedIn(list.page, who);
+        const actor = { account: who, list, notifications: list.notifications };
+        actors.set(key, actor);
+        return actor;
+      });
     });
     // Zrzut po teście – stan ekranu każdego użytego konta, jako podpisany krok (również przy sukcesie).
     if (actors.size) {

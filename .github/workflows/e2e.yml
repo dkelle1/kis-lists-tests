@@ -13,10 +13,6 @@ on:
         description: Wideo z całego testu dla każdego testu (domyślnie tylko przy błędzie)
         type: boolean
         default: false
-      playwright_report:
-        description: Dołącz też raport Playwright (większy artefakt)
-        type: boolean
-        default: false
 
 concurrency:
   # Testy współdzielą konta i listę testową – nie uruchamiamy dwóch przebiegów naraz.
@@ -116,8 +112,7 @@ jobs:
         env:
           SUITE: ${{ inputs.suite }}
 
-      # Artefakty liczą się do limitu miejsca konta GitHub (dla repozytoriów prywatnych), więc wysyłamy tylko
-      # raport Allure (jeden plik – zawiera zrzuty, wideo i trace błędów) i krótko go przechowujemy.
+      # Raport Allure: jeden plik – zrzuty JPEG z każdego kroku, wideo błędów (albo wszystkich testów przy opcji „video”).
       - name: Artefakt – raport Allure
         uses: actions/upload-artifact@v6
         if: ${{ !cancelled() }}
@@ -126,10 +121,11 @@ jobs:
           path: allure-report/
           retention-days: 7
 
-      - name: Artefakt – raport Playwright (tylko przy błędach)
+      # Trace Playwrighta (kroki, DOM, sieć) jest tylko tutaj – raport Allure go nie zawiera.
+      - name: Artefakt – raport Playwright z trace (tylko przy błędach)
         uses: actions/upload-artifact@v6
-        if: ${{ failure() && inputs.playwright_report }}
+        if: ${{ failure() }}
         with:
           name: playwright-report
           path: playwright-report/
-          retention-days: 3
+          retention-days: 7

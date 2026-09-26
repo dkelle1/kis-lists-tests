@@ -12,7 +12,7 @@ export async function launch() {
   });
 }
 
-/** Kontekst zalogowanego konta z sesji zapisanej przez projekt setup (.auth/<konto>.json). */
+/** Kontekst zalogowanego konta z sesji zapisanej przez testy (.auth/<konto>.json). */
 export function contextFor(browser, key) {
   return browser.newContext({
     locale: 'pl-PL',
@@ -66,6 +66,8 @@ export async function dumpNotifications(browser, key) {
   const page = await context.newPage();
   await page.goto('https://kislist.com/inbox');
   await page.locator('.notification[data-key]').first().or(page.getByText('Wszystko przeczytane')).waitFor();
+  // Lista rysuje najpierw nagłówki grup – czekamy, aż każdy wpis ma opis zdarzenia (inaczej fałszywe „brak”).
+  await page.locator('.notification[data-key]:not(:has(.notification-context))').first().waitFor({ state: 'detached' });
   const rows = await page
     .locator('.notification[data-key]')
     .evaluateAll((els) =>

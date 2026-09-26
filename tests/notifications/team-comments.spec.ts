@@ -49,7 +49,7 @@ test.describe('R3: komentarz członka zespołu', { tag: '@R3' }, () => {
           await expectNotified(await actor(recipientKey), {
             comment,
             sentAt,
-            expected: { author: author.account.appName, action: COMMENT_ADDED },
+            expected: { product: testItem.name, author: author.account.appName, action: COMMENT_ADDED },
           });
         }
         await expectNotNotified(author, { comment, sentAt, reason: 'autor komentarza' });
@@ -73,7 +73,7 @@ test.describe('R3: komentarz członka zespołu', { tag: '@R3' }, () => {
       await expectNotified(await actor('piotr'), {
         comment,
         sentAt,
-        expected: { author: marcin.account.appName, action: MENTIONED },
+        expected: { product: testItem.name, author: marcin.account.appName, action: MENTIONED },
       });
       await expectNotNotified(marcin, { comment, sentAt, reason: 'autor komentarza' });
     },
@@ -99,12 +99,12 @@ test.describe('R3: komentarz członka zespołu', { tag: '@R3' }, () => {
       await expectNotified(await actor('marcin'), {
         comment,
         sentAt,
-        expected: { author: admin.account.appName, action: MENTIONED },
+        expected: { product: testItem.name, author: admin.account.appName, action: MENTIONED },
       });
       await expectNotified(await actor('piotr'), {
         comment,
         sentAt,
-        expected: { author: admin.account.appName, action: COMMENT_ADDED },
+        expected: { product: testItem.name, author: admin.account.appName, action: COMMENT_ADDED },
       });
       await expectNotNotified(admin, { comment, sentAt, reason: 'autor komentarza' });
     },
@@ -127,7 +127,7 @@ test.describe('R3: komentarz członka zespołu', { tag: '@R3' }, () => {
         await expectNotified(await actor(mentioned.key), {
           comment,
           sentAt,
-          expected: { author: admin.account.appName, action: MENTIONED },
+          expected: { product: testItem.name, author: admin.account.appName, action: MENTIONED },
         });
       }
     },
@@ -160,7 +160,7 @@ test.describe('R3: komentarz członka zespołu', { tag: '@R3' }, () => {
       await expectNotified(await actor('marcin'), {
         comment,
         sentAt,
-        expected: { author: admin.account.appName, action: MENTIONED },
+        expected: { product: testItem.name, author: admin.account.appName, action: MENTIONED },
       });
       await expectNotNotified(admin, { comment, sentAt, reason: 'oznaczył samego siebie' });
     },
@@ -184,13 +184,13 @@ test.describe('R3: komentarz członka zespołu', { tag: '@R3' }, () => {
       await expectNotified(piotr, {
         comment: reply,
         sentAt,
-        expected: { author: marcin.account.appName, action: REPLIED },
+        expected: { product: testItem.name, author: marcin.account.appName, action: REPLIED },
       });
       // R3: „pozostali członkowie” – także osoby spoza wątku; rodzaj zdarzenia nie jest określony wymaganiem.
       await expectNotified(await actor('admin'), {
         comment: reply,
         sentAt,
-        expected: { author: marcin.account.appName, action: ANY_COMMENT_EVENT },
+        expected: { product: testItem.name, author: marcin.account.appName, action: ANY_COMMENT_EVENT },
       });
       await expectNotNotified(marcin, { comment: reply, sentAt, reason: 'autor odpowiedzi' });
     },
