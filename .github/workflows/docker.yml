@@ -1,0 +1,30 @@
+name: Docker – obraz testów
+
+# Sprawdza, że obraz z Dockerfile się buduje i że w nim przechodzą sprawdzenia statyczne oraz wczytanie testów.
+# Tylko przy zmianach, które wpływają na obraz – pełne pobranie obrazu Playwrighta trwa kilka minut.
+on:
+  push:
+    branches: [main]
+    paths: [Dockerfile, .dockerignore, package.json, package-lock.json, .github/workflows/docker.yml]
+  pull_request:
+    paths: [Dockerfile, .dockerignore, package.json, package-lock.json, .github/workflows/docker.yml]
+  workflow_dispatch:
+
+jobs:
+  image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: docker/setup-buildx-action@v3
+      - name: Budowanie obrazu
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          load: true
+          tags: kis-lists-tests
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Typecheck, lint, format w kontenerze
+        run: docker run --rm kis-lists-tests npm run check
+      - name: Wczytanie testów w kontenerze
+        run: docker run --rm kis-lists-tests npx playwright test --list

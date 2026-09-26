@@ -53,13 +53,18 @@ jobs:
       CLIENT_PROPOSAL_URL: ${{ secrets.CLIENT_PROPOSAL_URL }}
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
+
+      # Testy działają w obrazie z Dockerfile (Playwright + przeglądarki + zależności) – to samo środowisko co lokalnie
+      # (`docker run --env-file .env kis-lists-tests`). Warstwy obrazu są cache'owane między przebiegami.
+      - uses: docker/setup-buildx-action@v3
+      - name: Obraz testów (Dockerfile)
+        uses: docker/build-push-action@v6
         with:
-          node-version: 22
-          cache: npm
-      - run: npm ci
-      - name: Instalacja przeglądarki
-        run: npx playwright install --with-deps chromium
+          context: .
+          load: true
+          tags: kis-lists-tests
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       # Czytelny błąd na starcie zamiast nieudanego logowania po kilku minutach.
       - name: Kontrola sekretów
@@ -78,21 +83,35 @@ jobs:
           fi
           [ -n "$ADMIN_DEVICE_ID" ] || echo "::warning::Brak ADMIN_DEVICE_ID – logowanie administratora może wymagać kodu 2FA"
 
-      - name: Testy E2E
+      - name: Testy E2E (w kontenerze)
         env:
           SUITE: ${{ inputs.suite }}
           VIDEO: ${{ inputs.video && 'on' || '' }}
         run: |
-          if [ "$SUITE" = "all" ]; then
-            npx playwright test
-          else
-            npx playwright test --grep "@$SUITE"
-          fi
+          # Zmienne przekazywane jako `-e NAZWA` (wartość z env tego kroku) – sekrety nie trafiają do wiersza poleceń.
+          env_args=()
+          for name in BASE_URL KIS_LIST_ID KIS_ITEM_ID CLIENT_SHARE_URL CLIENT_PROPOSAL_URL VIDEO \
+            ADMIN_EMAIL ADMIN_PASSWORD ADMIN_DEVICE_ID ADMIN_DISPLAY_NAME PIOTR_EMAIL PIOTR_PASSWORD PIOTR_DEVICE_ID PIOTR_DISPLAY_NAME \
+            MARCIN_EMAIL MARCIN_PASSWORD MARCIN_DEVICE_ID MARCIN_DISPLAY_NAME GUEST_EMAIL GUEST_PASSWORD GUEST_DEVICE_ID GUEST_DISPLAY_NAME \
+            GMAIL_CLIENT_ID GMAIL_CLIENT_SECRET GMAIL_REFRESH_TOKEN MAILOSAUR_API_KEY MAILOSAUR_SERVER_ID; do
+            env_args+=(-e "$name")
+          done
+          grep_args=()
+          if [ "$SUITE" != "all" ]; then grep_args=(--grep "@$SUITE"); fi
+          mkdir -p allure-results playwright-report test-results
+          docker run --rm "${env_args[@]}" \
+            -v "$PWD/allure-results:/app/allure-results" \
+            -v "$PWD/playwright-report:/app/playwright-report" \
+            -v "$PWD/test-results:/app/test-results" \
+            kis-lists-tests npx playwright test "${grep_args[@]}"
 
       # Raport jako jeden plik HTML (allurerc.mjs: singleFile) – po pobraniu artefaktu wystarczy otworzyć index.html.
-      - name: Raport Allure
+      - name: Raport Allure (w kontenerze)
         if: ${{ !cancelled() }}
-        run: npx allure generate allure-results
+        run: |
+          mkdir -p allure-report
+          docker run --rm -v "$PWD/allure-results:/app/allure-results" -v "$PWD/allure-report:/app/allure-report" \
+            kis-lists-tests npx allure generate allure-results
 
       - name: Podsumowanie przebiegu
         if: ${{ !cancelled() }}

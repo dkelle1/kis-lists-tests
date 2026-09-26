@@ -1,0 +1,12 @@
+# Sekrety i sesje kont nigdy nie trafiają do obrazu – przekazywane są przy `docker run`.
+.env
+.auth/
+.local/
+
+node_modules/
+test-results/
+playwright-report/
+blob-report/
+allure-results/
+allure-report/
+.git/
