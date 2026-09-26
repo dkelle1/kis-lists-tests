@@ -13,7 +13,7 @@ export class CommentForm {
   readonly submit: Locator;
 
   constructor(
-    private readonly page: Page,
+    readonly page: Page,
     readonly root: Locator,
   ) {
     this.editor = root.getByRole('textbox');

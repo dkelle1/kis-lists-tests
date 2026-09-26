@@ -17,7 +17,7 @@ export class NotificationCenter {
   readonly entries: Locator;
   readonly emptyState: Locator;
 
-  constructor(private readonly page: Page) {
+  constructor(readonly page: Page) {
     this.entries = page.locator('.notification[data-key]');
     this.emptyState = page.getByText('Wszystko przeczytane, wszystko ogarnięte.');
   }
@@ -43,7 +43,8 @@ export class NotificationCenter {
    * Wczytuje centrum powiadomień od nowa – powiadomienia powstają w tle, po stronie serwera.
    * Czeka, aż lista się wyrenderuje (wpisy albo komunikat o braku), żeby liczenie nie trafiło w pusty DOM.
    */
-  @step('Odśwież centrum powiadomień')
+  // Bez zrzutu: wywoływane w pętli odpytywania; stan centrum dokumentuje krok weryfikacji w teście.
+  @step('Odśwież centrum powiadomień', { screenshot: false })
   async refresh(): Promise<void> {
     await this.page.goto('/inbox');
     await this.entries.first().or(this.emptyState).waitFor();

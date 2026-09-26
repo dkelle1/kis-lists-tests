@@ -13,7 +13,7 @@ import { CommentForm } from './components/CommentForm';
 export class ClientViewPage {
   readonly items: Locator;
 
-  constructor(private readonly page: Page) {
+  constructor(readonly page: Page) {
     this.items = page.locator('.proposal-item');
   }
 

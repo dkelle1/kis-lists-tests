@@ -90,6 +90,8 @@ BUG-01: zespół jest powiadamiany **tylko przez „@”**. Wyjątek do wyjaśni
 - `sleep` w pierwszym planie jest blokowany – do czekania na długi proces: `run_in_background` + pętla `until grep …`.
 - Skrypty z `| grep` buforują wyjście – przy długich przebiegach zapisuj log do pliku i czytaj plik.
 - **GitHub Actions:** artefakty repozytoriów prywatnych liczą się do limitu miejsca konta (Free 500 MB) – przy przekroczeniu `upload-artifact` zwraca „Artifact storage quota has been hit”; publiczne repozytorium nie ma limitu. Akcje w wersji v4 działają na wycofywanym Node 20 → używamy v5.
+- **Wideo dla `browser.newContext()`:** `use.video` nagrywa tylko wbudowany kontekst Playwrighta – konteksty kont z fixture'ów trzeba nagrywać przez `recordVideo` i dołączać po `context.close()` (`src/support/video.ts`). Trace działa dla wszystkich kontekstów.
+- **Zrzuty w Allure:** `testInfo.attach()` wywołane wewnątrz `test.step` trafia pod ten krok; automatyczne `screenshot: 'only-on-failure'` ląduje na poziomie testu bez podpisu (po jednym na kontekst) – dlatego zrzuty robi dekorator `@step` i kroki testów.
 - `--reporter=list` w CLI **wyłącza Allure** (nadpisuje reportery z konfiguracji) – do sprawdzenia raportu uruchamiaj bez tej flagi.
 - Konfiguracja w `.local/` zapisuje `allure-results` względem katalogu roboczego (nie katalogu configu).
 
