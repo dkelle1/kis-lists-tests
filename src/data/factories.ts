@@ -21,9 +21,12 @@ export interface CommentData {
  * Komentarz z unikalnym znacznikiem, np. "[e2e P-03 k3j9x0qa] Ut enim ad minima…".
  * Znacznik pozwala odróżnić powiadomienia z bieżącego przebiegu od wcześniejszych
  * i wykryć duplikaty (to samo powiadomienie dwa razy).
+ *
+ * `body` pozwala podmienić domyślny tekst faker – np. na ładunek XSS (N-09) albo bardzo długą treść (N-12);
+ * znacznik zawsze zostaje na początku, więc test i tak znajdzie "swój" wpis.
  */
-export function buildComment(scenarioId: string): CommentData {
+export function buildComment(scenarioId: string, body?: string): CommentData {
   ensureSeed();
   const marker = `[e2e ${scenarioId} ${faker.string.alphanumeric({ length: 8, casing: 'lower' })}]`;
-  return { marker, text: `${marker} ${faker.lorem.sentence({ min: 4, max: 10 })}` };
+  return { marker, text: `${marker} ${body ?? faker.lorem.sentence({ min: 4, max: 10 })}` };
 }

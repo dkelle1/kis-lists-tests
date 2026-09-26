@@ -31,6 +31,13 @@ Dla zadania „dopisz test” zacznij od [WORKFLOW.md](WORKFLOW.md) i skilli w `
 
 - Plan próbny EXPERT: 5 stanowisk („Wykorzystano 3 z 5 miejsc”).
 - Projekt może mieć też **klientów projektu** (adresy widoczne w nagłówku powiadomienia o komentarzu klienta).
+- **Zespół jest globalny dla konta, nie dla listy** – `/team` (nie `/lists/<id>/team`, tego adresu nie ma – 404):
+  „Członkowie zespołu mogą udostępniać i edytować **wszystkie** listy i ulubione”. Nie ma więc osobnego kroku
+  „dodaj tę osobę do tej listy” – dodanie kogoś do zespołu daje mu dostęp do wszystkich list na koncie.
+- **Przycisk „ZAPROŚ” w `/team` bywa wyłączony** po wyczerpaniu miejsc planu (u nas 3 z 5 zajęte, a mimo to przycisk
+  jest `disabled` – limit dotyczy najwyraźniej też liczby zaproszeń, nie tylko aktywnych kont). P-11/N-04
+  (dodanie/usunięcie członka) wymagają więc albo wolnego miejsca, albo zmiany planu – **nie da się tego wywołać
+  samym UI bez ingerencji w konto/plan**.
 
 ### 1.3 Lista i komentarze (widok zespołu)
 
@@ -84,6 +91,14 @@ Dla zadania „dopisz test” zacznij od [WORKFLOW.md](WORKFLOW.md) i skilli w `
   tylko „`<autor>` dodał/a komentarz” – produkt jest w osobnym elemencie wpisu, więc sprawdzaj cały wpis.
 - W trakcie testów **nie przyszły e-maile o komentarzach**; w ustawieniach konta (Profil → Ustawienia aplikacji) **nie ma opcji powiadomień**.
 - Powiadomienia pojawiają się w ciągu kilku sekund (okno 20 s wystarcza); brak powiadomienia potwierdzono ręcznie po ~15 min.
+- **Wpis w `/inbox` nie jest klikalny** (U-05, `docs/BUGS.md`): `innerHTML` wpisu nie ma ani jednego `<a>`/`href` –
+  tylko dwa przyciski akcji („Oznacz jako przeczytane”, „Wyczyść”). Kliknięcie w treść nie nawiguje nigdzie.
+- **Bezpieczeństwo treści (N-09):** edytor TipTap i wątek komentarzy nie interpretują wpisanego (nie wklejonego)
+  tekstu jako HTML – ładunek typu `<img src=x onerror=alert(1)>` wpisany znak po znaku (`pressSequentially`)
+  zostaje pokazany jako zwykły tekst, bez wykonania. Nie sprawdzono wklejania (`paste`) ani Markdown-podobnych
+  skrótów edytora.
+- **Brak limitu długości komentarza** zaobserwowanego przy ~800 znakach (P-13) – zapisuje się w całości bez błędu.
+- **Seria kilku komentarzy pod rząd (P-14)** – wszystkie zapisują się poprawnie i są widoczne, żaden nie ginie.
 
 ### 1.6 Zachowanie powiadomień (wyniki z 2026-09-26)
 
