@@ -4,14 +4,13 @@ import { CommentForm } from './CommentForm';
 
 /**
  * Modal "Komentarze: <produkt>" otwierany ikoną chmurki na liście (widok członka zespołu).
- * Zakładki: "Prywatne" (czat zespołu) i "Komentarze klienta" (data-testid=comments-public-tab).
+ * Zakładki: "Prywatne" (czat zespołu) i "Komentarze klienta"; testy komentują w zakładce "Prywatne".
  */
 export class CommentsModal {
   readonly root: Locator;
   /** Nazwa produktu w nagłówku modala. */
   readonly productName: Locator;
   readonly privateTab: Locator;
-  readonly clientTab: Locator;
   readonly thread: Locator;
   /** Wpisy w wątku (`.kis-comment`) – głównym albo w widoku odpowiedzi „Wątek: <autor>”. */
   readonly comments: Locator;
@@ -20,13 +19,11 @@ export class CommentsModal {
   /** Nagłówek widoku odpowiedzi, np. „Wątek: Damian Keller”. */
   readonly replyThreadTitle: Locator;
   readonly form: CommentForm;
-  readonly closeButton: Locator;
 
   constructor(readonly page: Page) {
     this.root = page.getByRole('dialog').filter({ has: page.locator('.comments-modal') });
     this.productName = this.root.locator('.modal-subtitle');
     this.privateTab = this.root.getByRole('link', { name: /Prywatne/ });
-    this.clientTab = this.root.getByTestId('comments-public-tab');
     this.thread = this.root.locator('.kis-comments');
     this.comments = this.thread.locator('.kis-comment');
     this.emptyComments = this.comments.filter({
@@ -34,7 +31,6 @@ export class CommentsModal {
     });
     this.replyThreadTitle = this.root.getByText(/^Wątek:/);
     this.form = new CommentForm(page, this.root.locator('.kis-comment-form.active'));
-    this.closeButton = this.root.locator('.kis-dialog-head-cta').getByRole('button');
   }
 
   /**
@@ -70,11 +66,5 @@ export class CommentsModal {
     await this.replyButton(parentText).click();
     await this.replyThreadTitle.waitFor();
     await this.form.send(text);
-  }
-
-  @step('Zamknij komentarze')
-  async close(): Promise<void> {
-    await this.closeButton.click();
-    await this.root.waitFor({ state: 'hidden' });
   }
 }

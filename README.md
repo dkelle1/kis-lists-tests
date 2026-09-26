@@ -2,7 +2,7 @@
 
 Raport testerski oraz test E2E (Playwright + TypeScript) do zadania rekrutacyjnego KIS List.
 
-> Plan realizacji z podziałem na subtaski: [PLAN.md](PLAN.md). Wiedza o aplikacji i pułapkach: [docs/LEARNINGS.md](docs/LEARNINGS.md);
+> Wiedza o aplikacji i pułapkach: [docs/LEARNINGS.md](docs/LEARNINGS.md);
 > proces dopisywania testów: [docs/WORKFLOW.md](docs/WORKFLOW.md) (skille i agent Claude Code w `.claude/`).
 >
 > **Status:** testy wykonane 2026-09-26 na https://kislist.com (ręcznie i automatycznie, także w GitHub Actions).
@@ -76,7 +76,7 @@ co 3 s), zanim uznamy brak powiadomienia. Wyniki automatyczne potwierdzono ręcz
 
 | ID   | Wym. | Scenariusz                                                       | Oczekiwany rezultat                                                           |
 | ---- | ---- | ---------------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| P-01 | ✅   | ✅                                                               | **❌**                                                                        | – (brak) | ❌  | [BUG-02](#bug-02) – członek zespołu nie dostaje powiadomienia o komentarzu do propozycji |
+| P-01 | R1   | Klient dodaje komentarz do propozycji                            | Damian, Piotr, Marcin dostają powiadomienie                                   |
 | P-02 | R2   | Klient dodaje komentarz do udostępnionej listy (podgląd na żywo) | Damian, Piotr, Marcin dostają powiadomienie                                   |
 | P-03 | R3   | Administrator (Damian) komentuje produkt w czacie zespołu        | Piotr, Marcin dostają powiadomienie                                           |
 | P-04 | R3   | Współpracownik (Piotr) komentuje produkt                         | Damian, Marcin dostają powiadomienie                                          |
@@ -85,7 +85,7 @@ co 3 s), zanim uznamy brak powiadomienia. Wyniki automatyczne potwierdzono ręcz
 | P-07 | R3   | Administrator komentuje z oznaczeniem `@Marcin`                  | Marcin **oraz** Piotr dostają powiadomienie (oznaczenie nie zawęża odbiorców) |
 | P-08 | R3   | Oznaczenie kilku osób (`@Marcin @Piotr`)                         | Każda z osób – dokładnie jedno powiadomienie (bez duplikatów)                 |
 | P-09 | R3   | Odpowiedź w istniejącym wątku komentarzy                         | Pozostali członkowie dostają powiadomienie również o odpowiedzi               |
-| P-10 | ✅   | ✅                                                               | ✅                                                                            | –        | ✅  | autor, rodzaj zdarzenia, sekcja i produkt, treść komentarza, projekt                     |
+| P-10 | ✅   | ✅                                                               | ✅                                                                            | –   | ✅  | autor, rodzaj zdarzenia, sekcja i produkt, treść komentarza, projekt |
 | P-11 | R3   | Członek dodany do listy później                                  | Po dodaniu do listy otrzymuje powiadomienia o nowych komentarzach             |
 | P-12 | R3   | Komentarz członka zespołu w zakładce „Komentarze klienta”        | Pozostali członkowie dostają powiadomienie                                    |
 
@@ -113,24 +113,24 @@ z prawem edycji, a warianty z `@` sprawdzają, czy oznaczenie nie zawęża odbio
 Legenda: ✅ zgodnie z wymaganiem · ❌ błąd · „autor” – autor komentarza · ⏳ nie wykonano.
 Wyniki automatyczne (Playwright) zgodne z wykonaniem ręcznym.
 
-| ID                     | Damian (admin) | Piotr (współpr.) | Marcin (członek) | Klient1 (gość) | Wynik | Uwagi                                                                              |
-| ---------------------- | :------------: | :--------------: | :--------------: | :------------: | :---: | ---------------------------------------------------------------------------------- |
-| P-01                   |       ⏳       |        ⏳        |        ⏳        |       –        |  ⏳   | brak propozycji na liście testowej – test automatyczny pomijany bez linku          |
-| P-02                   |       ✅       |        ✅        |      **❌**      |    – (brak)    |  ❌   | [BUG-02](#bug-02) – członek zespołu nie dostaje powiadomienia o komentarzu klienta |
-| P-03 + N-01            |    autor ✅    |      **❌**      |      **❌**      |   ✅ (brak)    |  ❌   | [BUG-01](#bug-01)                                                                  |
-| P-04 + N-01            |     **❌**     |     autor ✅     |      **❌**      |   ✅ (brak)    |  ❌   | [BUG-01](#bug-01)                                                                  |
-| P-05 + N-01            |     **❌**     |      **❌**      |     autor ✅     |   ✅ (brak)    |  ❌   | [BUG-01](#bug-01)                                                                  |
-| P-06                   |       –        |        ✅        |      autor       |       –        |  ✅   | oznaczony dostaje „Marcin oznaczył/a Ciebie w komentarzu”                          |
-| P-07                   |    autor ✅    |      **❌**      |        ✅        |       –        |  ❌   | [BUG-01](#bug-01) – powiadomiony tylko oznaczony                                   |
-| P-08                   |     autor      |        ✅        |        ✅        |       –        |  ✅   | po jednym powiadomieniu, bez duplikatów                                            |
-| P-10                   |       ✅       |        ✅        |        ✅        |       –        |  ✅   | autor, rodzaj zdarzenia, treść, projekt; **brak nazwy produktu** (uwaga U-01)      |
-| P-12                   |     **❌**     |      **❌**      |      **❌**      |       –        |  ❌   | ręcznie: komentarze Marcina i Piotra w „Komentarze klienta” – brak powiadomień     |
-| N-02                   | **❌** (jest)  |        –         |   ✅ (kontr.)    |       –        |  ❌   | [BUG-03](#bug-03) – autor oznaczający siebie dostaje powiadomienie                 |
-| N-03                   |       –        |        –         |        –         |   ✅ (brak)    |  ✅   | sprawdzane w P-03…P-05                                                             |
-| N-08                   |       ✅       |        ✅        |        ✅        |       –        |  ✅   | liczba powiadomień bez zmian                                                       |
-| P-09                   |     **❌**     | ✅ (autor wątku) |     autor ✅     |       –        |  ❌   | [BUG-01](#bug-01) – o odpowiedzi dowiaduje się tylko autor komentarza nadrzędnego  |
-| N-06                   |       –        |        –         |        ✅        |       –        |  ✅   | pusty komentarz i same spacje nie są dodawane                                      |
-| P-11, N-04, N-05, N-07 |                |                  |                  |                |  ⏳   | poza zakresem tego przebiegu (patrz PLAN.md)                                       |
+| ID                     | Damian (admin) | Piotr (współpr.) | Marcin (członek) | Klient1 (gość) | Wynik | Uwagi                                                                                    |
+| ---------------------- | :------------: | :--------------: | :--------------: | :------------: | :---: | ---------------------------------------------------------------------------------------- |
+| P-01                   |       ✅       |        ✅        |      **❌**      |    – (brak)    |  ❌   | [BUG-02](#bug-02) – członek zespołu nie dostaje powiadomienia o komentarzu do propozycji |
+| P-02                   |       ✅       |        ✅        |      **❌**      |    – (brak)    |  ❌   | [BUG-02](#bug-02) – członek zespołu nie dostaje powiadomienia o komentarzu klienta       |
+| P-03 + N-01            |    autor ✅    |      **❌**      |      **❌**      |   ✅ (brak)    |  ❌   | [BUG-01](#bug-01)                                                                        |
+| P-04 + N-01            |     **❌**     |     autor ✅     |      **❌**      |   ✅ (brak)    |  ❌   | [BUG-01](#bug-01)                                                                        |
+| P-05 + N-01            |     **❌**     |      **❌**      |     autor ✅     |   ✅ (brak)    |  ❌   | [BUG-01](#bug-01)                                                                        |
+| P-06                   |       –        |        ✅        |      autor       |       –        |  ✅   | oznaczony dostaje „Marcin oznaczył/a Ciebie w komentarzu”                                |
+| P-07                   |    autor ✅    |      **❌**      |        ✅        |       –        |  ❌   | [BUG-01](#bug-01) – powiadomiony tylko oznaczony                                         |
+| P-08                   |     autor      |        ✅        |        ✅        |       –        |  ✅   | po jednym powiadomieniu, bez duplikatów                                                  |
+| P-10                   |       ✅       |        ✅        |        ✅        |       –        |  ✅   | autor, rodzaj zdarzenia, treść, projekt; **brak nazwy produktu** (uwaga U-01)            |
+| P-12                   |     **❌**     |      **❌**      |      **❌**      |       –        |  ❌   | ręcznie: komentarze Marcina i Piotra w „Komentarze klienta” – brak powiadomień           |
+| N-02                   | **❌** (jest)  |        –         |   ✅ (kontr.)    |       –        |  ❌   | [BUG-03](#bug-03) – autor oznaczający siebie dostaje powiadomienie                       |
+| N-03                   |       –        |        –         |        –         |   ✅ (brak)    |  ✅   | sprawdzane w P-03…P-05                                                                   |
+| N-08                   |       ✅       |        ✅        |        ✅        |       –        |  ✅   | liczba powiadomień bez zmian                                                             |
+| P-09                   |     **❌**     | ✅ (autor wątku) |     autor ✅     |       –        |  ❌   | [BUG-01](#bug-01) – o odpowiedzi dowiaduje się tylko autor komentarza nadrzędnego        |
+| N-06                   |       –        |        –         |        ✅        |       –        |  ✅   | pusty komentarz i same spacje nie są dodawane                                            |
+| P-11, N-04, N-05, N-07 |                |                  |                  |                |  ⏳   | poza zakresem tego przebiegu (patrz docs/TEST_CASES.md)                                  |
 
 ### Zgłoszone błędy
 
@@ -222,9 +222,9 @@ src/
 │   ├── team.ts                   # Piotr, Anna, Marcin, Michalina: osoba z zadania + nazwa konta w aplikacji
 │   └── factories.ts              # komentarze z unikalnym znacznikiem (faker)
 ├── pages/                        # Page Objecty – lokatory i akcje, BEZ asercji
-│   ├── LoginPage.ts  TwoFactorPage.ts  ListPage.ts  ClientViewPage.ts  TeamPage.ts
+│   ├── LoginPage.ts  TwoFactorPage.ts  ListPage.ts  ClientViewPage.ts
 │   └── components/               # CommentsModal, CommentForm (TipTap), NotificationCenter
-├── support/                      # @step (krok raportu + zrzut), retryUntil, session (logowanie z 2FA), mailbox, video, privacy
+├── support/                      # @step (krok raportu + zrzut), retryUntil, session (logowanie z 2FA), gmail (kody 2FA), video, privacy
 ├── fixtures/test.ts              # actor(konto), client, listId, testItem
 ├── assertions/notifications.ts   # asercje domenowe: toHaveNotification, toKeepNotificationCount
 └── allure/                       # metadane (adnotacje) i dowody (zrzuty) do raportu
@@ -315,10 +315,8 @@ Zachowania aplikacji uwzględnione w Page Objectach:
     (DevTools → Application → Cookies → `kislist.com` → `devid`).
   - Gdy aplikacja poprosi o kod, jest on pobierany w kolejności:
   1. zmienna `<KONTO>_2FA_CODE`;
-  2. **skrzynka e-mail** (`src/support/mailbox.ts`), automatycznie, także w CI:
-     - **Gmail API** (`src/support/mail/gmail.ts`, zakres tylko do odczytu) – jedna skrzynka dla wszystkich kont;
-       wiadomość wybierana po adresacie „+” (nagłówki `To`/`Delivered-To`) i czasie otrzymania,
-     - albo **Mailosaur** (`src/support/mail/mailosaur.ts`) – dla adresów `@<serverId>.mailosaur.net`.
+  2. **skrzynka Gmail** (`src/support/gmail.ts`, Gmail API, zakres tylko do odczytu), automatycznie, także w CI –
+     jedna skrzynka dla wszystkich kont; wiadomość wybierana po adresacie „+” (nagłówki `To`/`Delivered-To`) i czasie.
 
      Znacznik czasu zapisywany jest _przed_ kliknięciem „Zaloguj”, więc kod z poprzedniego przebiegu nie
      zostanie użyty. IMAP nie jest używany – Gmail API działa po HTTPS, także za proxy;
@@ -408,19 +406,19 @@ z kodami 2FA). Bez nich:
 
 Konfiguracja jednorazowa: **Settings → Secrets and variables → Actions** – sekrety o nazwach z `.env.example`:
 
-| Sekret                                                          | Wymagany | Opis                                                                 |
-| --------------------------------------------------------------- | :------: | -------------------------------------------------------------------- |
-| `KIS_LIST_ID`, `CLIENT_SHARE_URL`                               |    ✔     | lista testowa i jej link udostępnienia                               |
-| `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `ADMIN_DEVICE_ID`              |    ✔     | administrator; `devid` zaufanego urządzenia zamiast kodu 2FA         |
-| `PIOTR_*`, `MARCIN_*`, `GUEST_*` (`_EMAIL`, `_PASSWORD`)        |    ✔     | pozostałe konta (adresy „+” skrzynki Gmail)                          |
-| `GMAIL_CLIENT_ID`, `GMAIL_CLIENT_SECRET`, `GMAIL_REFRESH_TOKEN` |    ✔     | odczyt kodów 2FA z Gmaila (tylko do odczytu)                         |
-| `CLIENT_PROPOSAL_URL`                                           |    ✔     | link klienta do propozycji (R1, P-01) – bez niego P-01 jest pomijany |
-| `KIS_ITEM_ID`, `<KONTO>_DEVICE_ID`                              |          | produkt do komentarzy, logowanie bez kodu                            |
+| Sekret                                                          | Wymagany | Opis                                                         |
+| --------------------------------------------------------------- | :------: | ------------------------------------------------------------ |
+| `KIS_LIST_ID`, `CLIENT_SHARE_URL`                               |    ✔     | lista testowa i jej link udostępnienia                       |
+| `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `ADMIN_DEVICE_ID`              |    ✔     | administrator; `devid` zaufanego urządzenia zamiast kodu 2FA |
+| `PIOTR_*`, `MARCIN_*`, `GUEST_*` (`_EMAIL`, `_PASSWORD`)        |    ✔     | pozostałe konta (adresy „+” skrzynki Gmail)                  |
+| `GMAIL_CLIENT_ID`, `GMAIL_CLIENT_SECRET`, `GMAIL_REFRESH_TOKEN` |    ✔     | odczyt kodów 2FA z Gmaila (tylko do odczytu)                 |
+| `CLIENT_PROPOSAL_URL`                                           |    ✔     | link klienta do propozycji (R1, P-01)                        |
+| `KIS_ITEM_ID`, `<KONTO>_DEVICE_ID`                              |          | produkt do komentarzy, logowanie bez kodu                    |
 
 Najszybciej: uzupełnij lokalny `.env` i wyślij wszystkie wartości jednym poleceniem
 [GitHub CLI](https://cli.github.com/): `gh secret set -f .env --repo dkelle1/kis-lists-tests`.
 
-Opcjonalnie zmienne (Variables): `BASE_URL`, `<KONTO>_DISPLAY_NAME`. Sekrety nie trafiają do logów ani do przebiegów
+Opcjonalnie zmienna (Variables): `BASE_URL`. Sekrety nie trafiają do logów ani do przebiegów
 z forków, a workflow E2E uruchamia się tylko ręcznie.
 
 Testy dodają prawdziwe komentarze na liście testowej (z unikalnym znacznikiem `[e2e …]`) – lista służy wyłącznie testom.

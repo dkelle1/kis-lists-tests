@@ -3,12 +3,9 @@ import { step } from '../support/step';
 import { CommentForm } from './components/CommentForm';
 
 /**
- * Widok klienta (bez logowania): propozycja (/proposal/...) lub udostępniona lista.
- *
- *   produkt              .proposal-item#item_<itemId>   (podkreślnik – inaczej niż na liście zespołu)
- *   kolumna komentarzy   .proposal-item-comments z przyciskiem "Napisz komentarz"
- *
- * Zweryfikowane na podglądzie propozycji; widok udostępnionej listy do potwierdzenia po jej udostępnieniu.
+ * Widok klienta (bez logowania): propozycja (/proposal/preview/…) i udostępniona lista (/list-preview/…) –
+ * ten sam układ: produkt .proposal-item#item_<itemId> (podkreślnik – inaczej niż na liście zespołu)
+ * z przyciskiem „Napisz komentarz”.
  */
 export class ClientViewPage {
   readonly items: Locator;
@@ -25,10 +22,6 @@ export class ClientViewPage {
 
   item(itemId: string): Locator {
     return this.page.locator(`#item_${itemId}`);
-  }
-
-  comments(itemId: string): Locator {
-    return this.item(itemId).locator('.proposal-item-comments');
   }
 
   commentForm(itemId: string): CommentForm {

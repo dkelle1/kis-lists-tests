@@ -47,7 +47,7 @@ to błąd aplikacji, a nie testu.
 ## 7. Raport
 
 - README §4: tabela wyników, zgłoszenie `BUG-0x` z polem „Test regresyjny”, uwagi `U-0x`.
-- README §5: licznik przebiegu; PLAN.md: statusy.
+- README §5: licznik przebiegu; docs/TEST_CASES.md: status przypadku.
 - Test regresyjny zostaje czerwony do czasu poprawki (link „Błąd” w Allure).
 
 ## 8. PR
