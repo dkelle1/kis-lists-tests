@@ -324,13 +324,15 @@ test.describe('R3: komentarz członka zespołu', { tag: '@R3' }, () => {
       await modal.privateTab.click();
 
       const sentAt = await test.step('Marcin wysyła 3 komentarze pod rząd', async () => {
-        for (const c of comments) await modal.form.send(c.text);
+        // Kolejne wysyłki czekają tylko na widoczność poprzedniego komentarza (nie na okno powiadomienia) –
+        // "pod rząd" znaczy bez przerwy między wysyłkami, nie bez potwierdzenia, że edytor przyjął poprzedni wpis.
+        for (const c of comments) {
+          await modal.form.send(c.text);
+          await expect(modal.comment(c.marker), `komentarz ${c.marker} jest widoczny w czacie`).toBeVisible();
+        }
         return Date.now();
       });
 
-      for (const c of comments) {
-        await expect(modal.comment(c.marker), `komentarz ${c.marker} jest widoczny w czacie`).toBeVisible();
-      }
       await attachScreenshot('Seria komentarzy w czacie zespołu', modal.thread);
 
       const piotr = await actor('piotr');
