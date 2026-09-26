@@ -242,8 +242,11 @@ tests/
 - **Kroki biznesowe:** metody Page Objectów oznaczone `@step` („Otwórz komentarze produktu…”, „Wyślij komentarz…”)
   oraz kroki testu („Marcin (członek zespołu) dostaje dokładnie jedno powiadomienie”). Wywołania API są w nich zagnieżdżone,
   a asercje widoczne jako osobne kroki (`detail: true`).
-- **Dowody także przy sukcesie:** zrzut dodanego komentarza i zrzut powiadomienia każdego odbiorcy;
-  przy błędzie dodatkowo zrzut ekranu, wideo i trace Playwrighta.
+- **Zrzut ekranu w każdym kroku**, pod tym krokiem (także przy sukcesie i przy błędzie): każda akcja Page Objectu
+  (`@step`), centrum powiadomień każdej sprawdzanej osoby oraz „Stan końcowy” każdego konta po teście.
+  Bez zrzutów: logowanie i kod 2FA (dane konta – raport jest publiczny) oraz odświeżanie w pętli odpytywania.
+- **Wideo całego testu** – osobne nagranie dla każdego konta i klienta: domyślnie tylko przy błędzie, dla wszystkich
+  testów po ustawieniu `VIDEO=on` (w Actions: opcja „Wideo z całego testu”). Przy błędzie także trace Playwrighta.
 - Interfejs raportu po polsku (`reportLanguage: 'pl'`), informacje o środowisku (URL, przeglądarka, okno czasowe).
 
 ### Kluczowe selektory
@@ -320,6 +323,7 @@ npm test                           # wszystkie scenariusze
 npm run test:regression            # tylko @regression (także: test:positive, test:negative)
 npx playwright test --grep @R3     # tylko wybrane wymaganie
 npm run test:headed                # z widoczną przeglądarką
+VIDEO=on npm test                  # wideo z całego testu dla każdego testu (domyślnie tylko przy błędzie)
 npm run report:allure              # raport Allure (bez Javy – Allure 3)
 npm run report:html                # raport HTML Playwright
 npm run check                      # typecheck + lint + format

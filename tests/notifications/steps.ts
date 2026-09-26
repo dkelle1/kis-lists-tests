@@ -1,4 +1,4 @@
-import { attachScreenshot } from '../../src/allure/evidence';
+import { attachScreenshot, withFailureScreenshot } from '../../src/allure/evidence';
 import { CommentData } from '../../src/data/factories';
 import { Account } from '../../src/data/team';
 import { Actor, expect, test, TestItem } from '../../src/fixtures/test';
@@ -34,23 +34,28 @@ export async function postTeamComment(
   }: { listId: string; item: TestItem; comment: CommentData; mentions?: readonly Account[] },
 ): Promise<number> {
   const mentionInfo = mentions.length ? ` z oznaczeniem ${mentions.map((m) => `@${m.appName}`).join(', ')}` : '';
-  return test.step(`${author.account.name} komentuje produkt „${item.name}”${mentionInfo}`, async () => {
-    await author.list.goto(listId);
-    const modal = await author.list.openComments(item.id);
-    await expect(modal.productName, 'modal komentarzy dotyczy wybranego produktu').toHaveText(item.name);
+  const title = `${author.account.name} komentuje produkt „${item.name}”${mentionInfo}`;
+  return test.step(title, () =>
+    withFailureScreenshot(author.account.name, author.list.page, async () => {
+      await author.list.goto(listId);
+      const modal = await author.list.openComments(item.id);
+      await expect(modal.productName, 'modal komentarzy dotyczy wybranego produktu').toHaveText(item.name);
 
-    await modal.sendTeamComment(comment.text, { mentions: mentions.map((m) => m.appName) });
-    const sentAt = Date.now();
+      await modal.sendTeamComment(comment.text, { mentions: mentions.map((m) => m.appName) });
+      const sentAt = Date.now();
 
-    const posted = modal.comment(comment.marker);
-    await expect(posted, 'komentarz jest widoczny w czacie zespołu').toBeVisible();
-    await expect(modal.form.editor, 'edytor jest wyczyszczony po wysłaniu').toHaveText('');
-    for (const mentioned of mentions) {
-      await expect(posted, `komentarz zawiera oznaczenie @${mentioned.appName}`).toContainText(`@${mentioned.appName}`);
-    }
-    await attachScreenshot('Komentarz w czacie zespołu', posted);
-    return sentAt;
-  });
+      const posted = modal.comment(comment.marker);
+      await expect(posted, 'komentarz jest widoczny w czacie zespołu').toBeVisible();
+      await expect(modal.form.editor, 'edytor jest wyczyszczony po wysłaniu').toHaveText('');
+      for (const mentioned of mentions) {
+        await expect(posted, `komentarz zawiera oznaczenie @${mentioned.appName}`).toContainText(
+          `@${mentioned.appName}`,
+        );
+      }
+      await attachScreenshot('Komentarz w czacie zespołu', posted);
+      return sentAt;
+    }),
+  );
 }
 
 /**
@@ -70,12 +75,14 @@ export async function expectNotified(
       .soft(notifications, `${recipient.account.name}: powiadomienie o komentarzu`)
       .toHaveNotification(comment.marker, { since: sentAt });
 
+    // Zrzut całego centrum powiadomień – dowód także wtedy, gdy powiadomienia brak.
+    await attachScreenshot(`Centrum powiadomień – ${recipient.account.name}`, recipient.list.page);
+
     const entry = notifications.entriesWith(comment.marker);
     // eslint-disable-next-line playwright/no-conditional-in-test -- treść sprawdzamy tylko, gdy wpis istnieje
     if ((await entry.count()) !== 1) return;
     await expect.soft(notifications.author(entry), 'P-10: powiadomienie wskazuje autora').toHaveText(expected.author);
     await expect.soft(notifications.context(entry), 'P-10: rodzaj zdarzenia').toContainText(expected.action);
-    await attachScreenshot(`Powiadomienie – ${recipient.account.name}`, entry);
   });
 }
 
@@ -88,5 +95,6 @@ export async function expectNotNotified(
     await expect
       .soft(person.notifications, `${person.account.name}: brak powiadomienia (${reason})`)
       .not.toHaveNotification(comment.marker, { since: sentAt });
+    await attachScreenshot(`Centrum powiadomień – ${person.account.name}`, person.list.page);
   });
 }

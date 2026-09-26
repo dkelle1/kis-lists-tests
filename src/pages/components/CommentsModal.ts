@@ -16,7 +16,7 @@ export class CommentsModal {
   readonly form: CommentForm;
   readonly closeButton: Locator;
 
-  constructor(page: Page) {
+  constructor(readonly page: Page) {
     this.root = page.getByRole('dialog').filter({ has: page.locator('.comments-modal') });
     this.productName = this.root.locator('.modal-subtitle');
     this.privateTab = this.root.getByRole('link', { name: /Prywatne/ });
