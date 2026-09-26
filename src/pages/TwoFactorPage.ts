@@ -18,7 +18,8 @@ export class TwoFactorPage {
     return new URL(this.page.url()).pathname.startsWith('/2fa');
   }
 
-  @step('Wpisz kod 2FA')
+  // Bez zrzutu: kod jednorazowy i adres konta.
+  @step('Wpisz kod 2FA', { screenshot: false })
   async enterCode(code: string): Promise<void> {
     for (const [index, digit] of [...code.trim()].entries()) {
       await this.digits.nth(index).fill(digit);

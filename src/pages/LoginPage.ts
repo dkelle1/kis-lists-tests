@@ -16,7 +16,8 @@ export class LoginPage {
     this.submit = page.locator('#_submit');
   }
 
-  @step('Otwórz stronę logowania')
+  // Bez zrzutów: formularz pokazuje adres konta (raport i artefakty są publiczne).
+  @step('Otwórz stronę logowania', { screenshot: false })
   async goto(): Promise<void> {
     await this.page.goto('/logowanie');
   }
@@ -25,7 +26,7 @@ export class LoginPage {
    * Po poprawnych danych aplikacja przechodzi na /2fa (kod z e-maila) – patrz TwoFactorPage –
    * chyba że przeglądarka ma cookie `devid` zaufanego urządzenia; wtedy od razu na listy.
    */
-  @step('Zaloguj się loginem i hasłem')
+  @step('Zaloguj się loginem i hasłem', { screenshot: false })
   async login(user: Account): Promise<void> {
     await this.email.fill(user.email);
     await this.password.fill(user.password);

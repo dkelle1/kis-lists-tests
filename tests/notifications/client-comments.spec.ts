@@ -1,4 +1,4 @@
-import { attachScreenshot } from '../../src/allure/evidence';
+import { attachScreenshot, withFailureScreenshot } from '../../src/allure/evidence';
 import { allureMeta } from '../../src/allure/metadata';
 import { env } from '../../src/config/env';
 import { buildComment } from '../../src/data/factories';
@@ -37,14 +37,15 @@ test.describe('R1/R2: komentarz klienta', () => {
         test.skip(!link, 'Brak CLIENT_PROPOSAL_URL – propozycja dla klienta nie została jeszcze utworzona');
         const comment = buildComment(scenario);
 
-        const sentAt = await test.step(`Klient komentuje produkt „${testItem.name}”`, async () => {
-          await client.goto(link!);
-          await client.sendComment(testItem.id, comment.text);
-          const sentAt = Date.now();
-          await expect(client.item(testItem.id), 'komentarz jest widoczny u klienta').toContainText(comment.marker);
-          await attachScreenshot('Komentarz klienta', client.item(testItem.id));
-          return sentAt;
-        });
+        const sentAt = await test.step(`Klient komentuje produkt „${testItem.name}”`, () =>
+          withFailureScreenshot('Klient', client.page, async () => {
+            await client.goto(link!);
+            await client.sendComment(testItem.id, comment.text);
+            const sentAt = Date.now();
+            await expect(client.item(testItem.id), 'komentarz jest widoczny u klienta').toContainText(comment.marker);
+            await attachScreenshot('Komentarz klienta', client.item(testItem.id));
+            return sentAt;
+          }));
 
         for (const key of TEAM) {
           await expectNotified(await actor(key), {
@@ -80,6 +81,7 @@ test.describe('R1/R2: komentarz klienta', () => {
             notifications.entries.or(notifications.emptyState).first(),
             `${personaName(key)}: lista powiadomień jest czytelna dla testu`,
           ).toBeVisible();
+          await attachScreenshot(`Centrum powiadomień przed – ${personaName(key)}`, notifications.page);
         }
         return counts;
       });
@@ -87,6 +89,7 @@ test.describe('R1/R2: komentarz klienta', () => {
       const viewedAt = await test.step('Klient otwiera udostępnioną listę i niczego nie komentuje', async () => {
         await client.goto(env().CLIENT_SHARE_URL);
         await expect(client.items.first(), 'lista jest widoczna dla klienta').toBeVisible();
+        await attachScreenshot('Widok klienta', client.page);
         return Date.now();
       });
 
@@ -97,6 +100,7 @@ test.describe('R1/R2: komentarz klienta', () => {
             baseline[key],
             { since: viewedAt },
           );
+          await attachScreenshot(`Centrum powiadomień po – ${personaName(key)}`, notifications.page);
         });
       }
     },

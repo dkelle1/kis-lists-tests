@@ -50,8 +50,11 @@ export default defineConfig({
     actionTimeout: 15_000,
     navigationTimeout: 30_000,
     trace: 'retain-on-failure',
-    screenshot: 'only-on-failure',
-    video: 'retain-on-failure',
+    // Zrzuty dołączają kroki testów i fixture'y (src/allure/evidence.ts): pod właściwym krokiem oraz „Stan końcowy”
+    // po każdym teście – z podpisem, dla każdego konta. Automatyczne zrzuty Playwrighta (bez podpisu) są wyłączone.
+    screenshot: 'off',
+    // Wideo całego testu: VIDEO=on (każdy test) – domyślnie tylko testy zakończone błędem.
+    video: process.env.VIDEO === 'on' ? 'on' : 'retain-on-failure',
   },
   projects: [
     { name: 'setup', testMatch: /.*\.setup\.ts/ },
