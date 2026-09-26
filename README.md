@@ -271,6 +271,8 @@ tests/
   Bez zrzutów: logowanie i kod 2FA (dane konta – raport jest publiczny) oraz odświeżanie w pętli odpytywania.
 - **Wideo całego testu** – osobne nagranie dla każdego konta i klienta: domyślnie tylko przy błędzie, dla wszystkich
   testów po ustawieniu `VIDEO=on` (w Actions: opcja „Wideo z całego testu”). Przy błędzie także trace Playwrighta.
+- **Tylko scenariusze:** przygotowanie sesji kont (projekt `setup`) jest ukryte w raporcie, dopóki przechodzi
+  (`allurerc.mjs` → `filter`); nieudane logowanie pozostaje widoczne jako przyczyna pominiętych testów.
 - Interfejs raportu po polsku (`reportLanguage: 'pl'`), informacje o środowisku (URL, przeglądarka, okno czasowe).
 
 ### Kluczowe selektory
