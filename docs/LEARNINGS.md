@@ -50,6 +50,18 @@ Dla zadania „dopisz test” zacznij od [WORKFLOW.md](WORKFLOW.md) i skilli w `
   E-mail „<Imię> zaprasza Cię do listy w KIS List 💜” zawiera link `https://kislist.com/list-preview/<token>?lang=pl`.
 - Widok `/list-preview/<token>` (bez logowania): produkt `#item_<id>` (**podkreślnik**, a nie myślnik), notatka sekcji ma klasę `proposal-note`; przycisk „NAPISZ KOMENTARZ” (`<button>`, rola button, dopasowanie nazwy bez rozróżniania wielkości liter).
 - Komentarz klienta z linku jest podpisany **„Klient/ka”**.
+- **Propozycja:** `getByTitle('Utwórz propozycję dla klienta')` → okno „Wyślij propozycję”: `#proposal_link` (link podglądu już
+  wysłanej propozycji), `#proposal_email` (**domyślnie wypełnione przykładem `jan.kowalski@email.pl` – zawsze nadpisuj**),
+  `#proposal_subject`, przycisk „WYŚLIJ”. E-mail do klienta ma temat = tytuł propozycji i link
+  `/proposal/preview/<token>?lang=pl&rk=<klucz odbiorcy>` (kolejne wysyłki używają tego samego tokenu). Widok klienta jak przy
+  udostępnionej liście: `.proposal-item#item_<id>`, „Napisz komentarz”.
+- **Odpowiedź w wątku:** pod komentarzem przycisk `.kis-comment-reply` („odpowiedz”) → widok „Wątek: `<autor>`” (strzałka wstecz)
+  z własnym formularzem; w głównym wątku komentarz pokazuje „(1) odpowiedzi”. Powiadomienie: „`<autor>` odpowiedział/a na Twój
+  komentarz” – **tylko dla autora komentarza nadrzędnego**.
+- **Pusty komentarz / same spacje:** „Wyślij” jest aktywny, ale nic nie zostaje dodane; spacje zostają w edytorze.
+- **Wątek doczytuje się asynchronicznie** – liczba `.kis-comment` tuż po otwarciu okna bywa niepełna; nie porównuj liczby
+  wpisów „przed/po”, sprawdzaj konkretne wpisy (np. brak wpisów bez treści).
+- Testy dodają przy każdym przebiegu komentarze – wątek produktu testowego rośnie (kilkadziesiąt wpisów).
 
 ### 1.5 Powiadomienia
 
