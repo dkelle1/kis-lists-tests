@@ -1,28 +1,26 @@
 import { Locator, Page } from '@playwright/test';
 import { retryUntil } from '../support/retry';
 import { step } from '../support/step';
-import { BasePage } from './BasePage';
 import { CommentsModal } from './components/CommentsModal';
+import { NotificationCenter } from './components/NotificationCenter';
 
 /**
- * Lista w widoku członka zespołu: /lists/<listId>/edit
+ * Lista w widoku członka zespołu: /lists/<listId>/edit (+ centrum powiadomień zalogowanego konta).
+ *
+ * Page Objecty udostępniają lokatory i akcje (`@step` = krok raportu ze zrzutem ekranu); nie zawierają asercji –
+ * weryfikacja należy do testów (pilnuje tego reguła ESLint `no-restricted-imports` dla src/pages).
  *
  * Stabilne identyfikatory nadawane przez aplikację:
  *   wiersz produktu     #item-<itemId>
  *   ikona komentarzy    [data-testid="item-comments-<itemId>"]  (renderowana 3× – po jednej na breakpoint)
  */
-export class ListPage extends BasePage {
+export class ListPage {
   readonly items: Locator;
-  readonly shareButton: Locator;
-  readonly addMemberButton: Locator;
-  readonly proposalButton: Locator;
+  readonly notifications: NotificationCenter;
 
-  constructor(page: Page) {
-    super(page);
+  constructor(readonly page: Page) {
     this.items = page.locator('[id^="item-"]').filter({ has: page.getByTestId(/^item-comments-/) });
-    this.shareButton = page.getByTitle('Udostępnij listę', { exact: true });
-    this.addMemberButton = page.getByTitle('Dodaj członka zespołu lub współpracownika', { exact: true });
-    this.proposalButton = page.getByTitle('Utwórz propozycję dla klienta', { exact: true });
+    this.notifications = new NotificationCenter(page);
   }
 
   /** Strona startowa zalogowanego użytkownika (/lists) – bez ważnej sesji aplikacja przekierowuje na logowanie. */

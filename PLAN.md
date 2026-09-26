@@ -55,22 +55,22 @@ Termin: 3 dni robocze od otrzymania zadania. Legenda: ✅ zrobione · 🟡 czę�
 
 ## Etap 5 – Framework testów (Playwright + TypeScript)
 
-| #    | Subtask                                                                                                                                                    | Zależy od | Status |
-| ---- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- | ------ |
-| 5.1  | Struktura projektu: `src/` (framework) + `tests/` (specyfikacje), `playwright.config.ts`, `tsconfig.json` (strict)                                         | –         | ✅     |
-| 5.2  | Konfiguracja z walidacją (zod): `src/config/env.ts`, `.env.example`, sekrety poza repo                                                                     | 5.1       | ✅     |
-| 5.3  | Page Object Model: `LoginPage`/`TwoFactorPage`, `ListPage`, `ClientViewPage`, `TeamPage` + komponenty `CommentsModal`, `CommentForm`, `NotificationCenter` | 5.1       | ✅     |
-| 5.4  | Fixtures (`test.extend`): `actor(konto)` – osobny kontekst na konto, `client`, `listId`, `testItem`                                                        | 5.3       | ✅     |
-| 5.5  | Logowanie w kroku „Sesja: <konto>” testu (fixture `actor`) + `storageState` w `.auth/` – kod 2FA najwyżej raz na przebieg                                  | 5.4       | ✅     |
-| 5.6  | Dane testowe z faker (odpowiednik Bogus): komentarze z unikalnym znacznikiem, opcjonalny `FAKER_SEED`                                                      | 5.1       | ✅     |
-| 5.7  | Asercje domenowe (`expect.extend`): dokładnie 1 powiadomienie / brak do końca okna od wysłania / liczba wpisów bez zmian                                   | 5.3       | ✅     |
-| 5.8  | Raportowanie: Allure 3 (metadane w adnotacjach, link do planu, kroki `@step`, dowody przy sukcesie, PL) + HTML Playwright                                  | 5.1       | ✅     |
-| 5.9  | Tagi i zestawy: `@positive`, `@negative`, `@regression`, `@R1`–`@R3` + skrypty npm                                                                         | 5.1       | ✅     |
-| 5.10 | Jakość kodu: ESLint (typescript-eslint, eslint-plugin-playwright), Prettier, `npm run check`                                                               | 5.1       | ✅     |
-| 5.11 | Lokatory na rzeczywistym DOM, zweryfikowane na żywo (także „@”, wpis powiadomienia, widok klienta)                                                         | 1.4       | ✅     |
-| 5.12 | Uruchomić framework na żywej aplikacji: centrum powiadomień z `/inbox`, zaufane urządzenie (`devid`), kody z Gmaila                                        | 5.11, 0.6 | ✅     |
-| 5.13 | Review testów: asercje wyłącznie w testach (ESLint), dokładnie 1 powiadomienie, treść (P-10), próby kontrolne, poprawka N-08                               | 5.11      | ✅     |
-| 5.14 | Kody 2FA z e-maila (`src/support/mailbox.ts`): Gmail API (adresy „+”) lub Mailosaur; `since` przed logowaniem, filtr adresat + czas                        | 0.3       | ✅     |
+| #    | Subtask                                                                                                                                        | Zależy od | Status |
+| ---- | ---------------------------------------------------------------------------------------------------------------------------------------------- | --------- | ------ |
+| 5.1  | Struktura projektu: `src/` (framework) + `tests/` (specyfikacje), `playwright.config.ts`, `tsconfig.json` (strict)                             | –         | ✅     |
+| 5.2  | Konfiguracja z walidacją (zod): `src/config/env.ts`, `.env.example`, sekrety poza repo                                                         | 5.1       | ✅     |
+| 5.3  | Page Object Model: `LoginPage`/`TwoFactorPage`, `ListPage`, `ClientViewPage` + komponenty `CommentsModal`, `CommentForm`, `NotificationCenter` | 5.1       | ✅     |
+| 5.4  | Fixtures (`test.extend`): `actor(konto)` – osobny kontekst na konto, `client`, `listId`, `testItem`                                            | 5.3       | ✅     |
+| 5.5  | Logowanie w kroku „Sesja: <konto>” testu (fixture `actor`) + `storageState` w `.auth/` – kod 2FA najwyżej raz na przebieg                      | 5.4       | ✅     |
+| 5.6  | Dane testowe z faker (odpowiednik Bogus): komentarze z unikalnym znacznikiem, opcjonalny `FAKER_SEED`                                          | 5.1       | ✅     |
+| 5.7  | Asercje domenowe (`expect.extend`): dokładnie 1 powiadomienie / brak do końca okna od wysłania / liczba wpisów bez zmian                       | 5.3       | ✅     |
+| 5.8  | Raportowanie: Allure 3 (metadane w adnotacjach, link do planu, kroki `@step`, dowody przy sukcesie, PL) + HTML Playwright                      | 5.1       | ✅     |
+| 5.9  | Tagi i zestawy: `@positive`, `@negative`, `@regression`, `@R1`–`@R3` + skrypty npm                                                             | 5.1       | ✅     |
+| 5.10 | Jakość kodu: ESLint (typescript-eslint, eslint-plugin-playwright), Prettier, `npm run check`                                                   | 5.1       | ✅     |
+| 5.11 | Lokatory na rzeczywistym DOM, zweryfikowane na żywo (także „@”, wpis powiadomienia, widok klienta)                                             | 1.4       | ✅     |
+| 5.12 | Uruchomić framework na żywej aplikacji: centrum powiadomień z `/inbox`, zaufane urządzenie (`devid`), kody z Gmaila                            | 5.11, 0.6 | ✅     |
+| 5.13 | Review testów: asercje wyłącznie w testach (ESLint), dokładnie 1 powiadomienie, treść (P-10), próby kontrolne, poprawka N-08                   | 5.11      | ✅     |
+| 5.14 | Kody 2FA z e-maila (`src/support/gmail.ts`): Gmail API (adresy „+”); `since` przed logowaniem, filtr adresat + czas                            | 0.3       | ✅     |
 
 ## Etap 6 – Automatyzacja scenariuszy i test regresyjny (część 2)
 

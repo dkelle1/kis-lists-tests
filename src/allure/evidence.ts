@@ -14,10 +14,6 @@ export async function attachScreenshot(name: string, target: Locator | Page): Pr
   await test.info().attach(name, { body, contentType: 'image/jpeg' });
 }
 
-export async function attachText(name: string, text: string): Promise<void> {
-  await test.info().attach(name, { body: text, contentType: 'text/plain' });
-}
-
 /**
  * Wykonuje krok i przy błędzie dołącza zrzut ekranu do TEGO kroku, zanim błąd przerwie test.
  * Zastępuje automatyczne zrzuty Playwrighta z końca testu (`screenshot: 'only-on-failure'`),

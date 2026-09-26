@@ -38,10 +38,6 @@ export class NotificationCenter {
     return entry.locator('.notification-context .user');
   }
 
-  project(entry: Locator): Locator {
-    return entry.locator('.notification-header');
-  }
-
   /**
    * Wczytuje centrum powiadomień od nowa – powiadomienia powstają w tle, po stronie serwera.
    * Czeka, aż lista się wyrenderuje (wpisy albo komunikat o braku), a potem, aż każdy wpis ma opis zdarzenia i treść –

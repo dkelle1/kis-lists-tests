@@ -1,6 +1,6 @@
 ---
 name: kis-accounts-2fa
-description: Konta testowe KIS List, logowanie z 2FA (kod z e-maila) i sekrety – sesje .auth, cookie zaufanego urządzenia devid, odczyt kodów z Gmail API / Mailosaur, konfiguracja .env i sekretów GitHub Actions. Użyj, gdy setup nie może się zalogować, trzeba dodać konto lub rolę, token Gmaila wygasł albo konfigurujesz CI.
+description: Konta testowe KIS List, logowanie z 2FA (kod z e-maila) i sekrety – sesje .auth, cookie zaufanego urządzenia devid, odczyt kodów z Gmail API, konfiguracja .env i sekretów GitHub Actions. Użyj, gdy setup nie może się zalogować, trzeba dodać konto lub rolę, token Gmaila wygasł albo konfigurujesz CI.
 ---
 
 # Konta, 2FA i sekrety
@@ -11,8 +11,8 @@ Szczegóły i uzasadnienia: [docs/LEARNINGS.md](../../../docs/LEARNINGS.md), sek
 
 1. Ważna sesja `.auth/<konto>.json` → bez logowania.
 2. Logowanie w kontekście z poprzednią sesją lub z `<KONTO>_DEVICE_ID` → cookie `devid` pomija kod 2FA.
-3. Jeśli aplikacja poprosi o kod: `<KONTO>_2FA_CODE` → skrzynka (`src/support/mailbox.ts`: Gmail API dla adresów
-   właściciela skrzynki łącznie z „+”, Mailosaur dla `@<serverId>.mailosaur.net`) → plik `.auth/<konto>.code` (5 min).
+3. Jeśli aplikacja poprosi o kod: `<KONTO>_2FA_CODE` → skrzynka Gmail (`src/support/gmail.ts`, adresy właściciela
+   skrzynki łącznie z „+”) → plik `.auth/<konto>.code` (5 min).
 4. Po logowaniu z kodem wartość `devid` trafia do `.auth/<konto>.device` (nie do logów).
 
 ## Typowe problemy

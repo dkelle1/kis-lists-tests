@@ -24,18 +24,17 @@ export interface Account {
   name: string;
   /** Nazwa konta w KIS List – tak osoba jest pokazywana w powiadomieniach i na liście „@”. */
   appName: string;
-  role: string;
   email: string;
   password: string;
   /** Cookie `devid` zaufanego urządzenia – logowanie bez kodu 2FA. */
   deviceId?: string;
 }
 
-const PERSONAS: Record<AccountKey, { name: string; role: string; appName: string }> = {
-  admin: { name: 'Damian (administrator)', role: 'Administrator', appName: 'Damian Keller' },
-  piotr: { name: 'Piotr (współpracownik)', role: 'Współpracownik', appName: 'Piotr' },
-  marcin: { name: 'Marcin (członek zespołu)', role: 'Członek zespołu', appName: 'Marcin' },
-  guest: { name: 'Klient1 (gość)', role: 'Gość', appName: 'Klient1' },
+const PERSONAS: Record<AccountKey, { name: string; appName: string }> = {
+  admin: { name: 'Damian (administrator)', appName: 'Damian Keller' },
+  piotr: { name: 'Piotr (współpracownik)', appName: 'Piotr' },
+  marcin: { name: 'Marcin (członek zespołu)', appName: 'Marcin' },
+  guest: { name: 'Klient1 (gość)', appName: 'Klient1' },
 };
 
 /** Nazwa osoby bez sięgania do konfiguracji – bezpieczna w tytułach testów (`playwright test --list`). */
@@ -47,7 +46,6 @@ export function account(key: AccountKey): Account {
   return {
     key,
     ...PERSONAS[key],
-    appName: config[`${prefix}_DISPLAY_NAME`] ?? PERSONAS[key].appName,
     email: config[`${prefix}_EMAIL`],
     password: config[`${prefix}_PASSWORD`],
     deviceId: config[`${prefix}_DEVICE_ID`],
@@ -56,5 +54,5 @@ export function account(key: AccountKey): Account {
 
 export const othersThan = (key: AccountKey): TeamMemberKey[] => TEAM.filter((other) => other !== key);
 
-/** Ścieżka do zapisanej sesji (storageState) konta – tworzona w projekcie "setup". */
+/** Ścieżka do zapisanej sesji (storageState) konta – zapisywana w kroku „Sesja: <konto>” (src/support/session.ts). */
 export const storageStatePath = (key: AccountKey): string => `.auth/${key}.json`;

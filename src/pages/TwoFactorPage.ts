@@ -7,13 +7,11 @@ import { HasSensitiveData, step } from '../support/step';
  */
 export class TwoFactorPage implements HasSensitiveData {
   readonly digits: Locator;
-  readonly error: Locator;
   /** Zamazywane na zrzutach kroków: kod jednorazowy i adres konta. */
   readonly sensitive: readonly Locator[];
 
-  constructor(private readonly page: Page) {
+  constructor(readonly page: Page) {
     this.digits = page.locator('form:has(#_auth_code) input[type=text]');
-    this.error = page.getByText('Kod weryfikacyjny jest niepoprawny.');
     this.sensitive = [this.digits];
   }
 

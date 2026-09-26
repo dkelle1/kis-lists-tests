@@ -40,15 +40,9 @@ jobs:
       PIOTR_DEVICE_ID: ${{ secrets.PIOTR_DEVICE_ID }}
       MARCIN_DEVICE_ID: ${{ secrets.MARCIN_DEVICE_ID }}
       GUEST_DEVICE_ID: ${{ secrets.GUEST_DEVICE_ID }}
-      ADMIN_DISPLAY_NAME: ${{ vars.ADMIN_DISPLAY_NAME }}
-      PIOTR_DISPLAY_NAME: ${{ vars.PIOTR_DISPLAY_NAME }}
-      MARCIN_DISPLAY_NAME: ${{ vars.MARCIN_DISPLAY_NAME }}
-      GUEST_DISPLAY_NAME: ${{ vars.GUEST_DISPLAY_NAME }}
       GMAIL_CLIENT_ID: ${{ secrets.GMAIL_CLIENT_ID }}
       GMAIL_CLIENT_SECRET: ${{ secrets.GMAIL_CLIENT_SECRET }}
       GMAIL_REFRESH_TOKEN: ${{ secrets.GMAIL_REFRESH_TOKEN }}
-      MAILOSAUR_API_KEY: ${{ secrets.MAILOSAUR_API_KEY }}
-      MAILOSAUR_SERVER_ID: ${{ secrets.MAILOSAUR_SERVER_ID }}
       CLIENT_SHARE_URL: ${{ secrets.CLIENT_SHARE_URL }}
       CLIENT_PROPOSAL_URL: ${{ secrets.CLIENT_PROPOSAL_URL }}
     steps:
@@ -70,13 +64,10 @@ jobs:
       - name: Kontrola sekretów
         run: |
           missing=()
-          for name in KIS_LIST_ID CLIENT_SHARE_URL \
+          for name in KIS_LIST_ID CLIENT_SHARE_URL CLIENT_PROPOSAL_URL GMAIL_CLIENT_ID GMAIL_CLIENT_SECRET GMAIL_REFRESH_TOKEN \
             ADMIN_EMAIL ADMIN_PASSWORD PIOTR_EMAIL PIOTR_PASSWORD MARCIN_EMAIL MARCIN_PASSWORD GUEST_EMAIL GUEST_PASSWORD; do
             [ -n "${!name}" ] || missing+=("$name")
           done
-          if [ -z "$GMAIL_REFRESH_TOKEN" ] && [ -z "$MAILOSAUR_API_KEY" ]; then
-            missing+=("GMAIL_CLIENT_ID/GMAIL_CLIENT_SECRET/GMAIL_REFRESH_TOKEN (albo MAILOSAUR_*)")
-          fi
           if [ ${#missing[@]} -gt 0 ]; then
             printf '::error::Brak sekretów: %s\n' "${missing[*]}"
             exit 1
@@ -91,9 +82,9 @@ jobs:
           # Zmienne przekazywane jako `-e NAZWA` (wartość z env tego kroku) – sekrety nie trafiają do wiersza poleceń.
           env_args=()
           for name in BASE_URL KIS_LIST_ID KIS_ITEM_ID CLIENT_SHARE_URL CLIENT_PROPOSAL_URL VIDEO \
-            ADMIN_EMAIL ADMIN_PASSWORD ADMIN_DEVICE_ID ADMIN_DISPLAY_NAME PIOTR_EMAIL PIOTR_PASSWORD PIOTR_DEVICE_ID PIOTR_DISPLAY_NAME \
-            MARCIN_EMAIL MARCIN_PASSWORD MARCIN_DEVICE_ID MARCIN_DISPLAY_NAME GUEST_EMAIL GUEST_PASSWORD GUEST_DEVICE_ID GUEST_DISPLAY_NAME \
-            GMAIL_CLIENT_ID GMAIL_CLIENT_SECRET GMAIL_REFRESH_TOKEN MAILOSAUR_API_KEY MAILOSAUR_SERVER_ID; do
+            ADMIN_EMAIL ADMIN_PASSWORD ADMIN_DEVICE_ID PIOTR_EMAIL PIOTR_PASSWORD PIOTR_DEVICE_ID \
+            MARCIN_EMAIL MARCIN_PASSWORD MARCIN_DEVICE_ID GUEST_EMAIL GUEST_PASSWORD GUEST_DEVICE_ID \
+            GMAIL_CLIENT_ID GMAIL_CLIENT_SECRET GMAIL_REFRESH_TOKEN; do
             env_args+=(-e "$name")
           done
           grep_args=()

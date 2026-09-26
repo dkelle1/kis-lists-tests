@@ -103,7 +103,7 @@ BUG-01: zespół jest powiadamiany **tylko przez „@”**. Wyjątek do wyjaśni
 
 - Ruch wychodzi przez **proxy** (`$HTTPS_PROXY`) z własnym CA. Chromium z Playwrighta: `executablePath: '/opt/pw-browsers/chromium'`, `proxy: { server: process.env.HTTPS_PROXY }` i `--ignore-certificate-errors-spki-list=<SPKI>` – gotowa konfiguracja w `.claude/skills/kis-explore-app/templates/`.
 - **Nie uruchamiać `playwright install`.** Node 22 ma `fetch` działający przez proxy; `node plik.ts` działa (usuwanie typów), ale importy typów muszą być `import type`.
-- **Port IMAP 993 jest zablokowany**, HTTPS działa → Gmail czytamy przez **Gmail API**, nie IMAP. Mailosaur API też osiągalne.
+- **Port IMAP 993 jest zablokowany**, HTTPS działa → Gmail czytamy przez **Gmail API**, nie IMAP.
 - **Google blokuje logowanie z automatycznej przeglądarki** („This browser or app may not be secure”) → konfiguracji OAuth/Cloud Console nie da się zrobić automatem; robi ją człowiek.
 - `sleep` w pierwszym planie jest blokowany – do czekania na długi proces: `run_in_background` + pętla `until grep …`.
 - Skrypty z `| grep` buforują wyjście – przy długich przebiegach zapisuj log do pliku i czytaj plik.
@@ -125,7 +125,7 @@ BUG-01: zespół jest powiadamiany **tylko przez „@”**. Wyjątek do wyjaśni
 
 ## 3. Dostęp do poczty i 2FA w testach
 
-- Kolejność pozyskania kodu w `src/support/session.ts` (krok „Sesja: <konto>” w każdym teście): `devid` (bez kodu) → `<KONTO>_2FA_CODE` → skrzynka (Gmail/Mailosaur) → plik `.auth/<konto>.code`.
+- Kolejność pozyskania kodu w `src/support/session.ts` (krok „Sesja: <konto>” w każdym teście): `devid` (bez kodu) → `<KONTO>_2FA_CODE` → skrzynka Gmail → plik `.auth/<konto>.code`.
 - **Zapisuj znacznik czasu przed kliknięciem „Zaloguj”** i szukaj wiadomości po adresacie + czasie – inaczej złapiesz kod z poprzedniego przebiegu.
 - **Adresy „+”** (`login+anna@gmail.com`) trafiają do jednej skrzynki; dopasowuj po nagłówkach `To` / `Delivered-To` (w wyszukiwarce `to:` + `after:<epoch>`, a dokładne dopasowanie w kodzie).
 - Gmail API: klient OAuth „Desktop app”, zakres `gmail.readonly`, użytkownik dodany jako **Test user** (inaczej `403 access_denied`). W trybie Testing refresh token wygasa po **7 dniach** („Publish app” to usuwa). Token: `npm run gmail:token`.

@@ -6,7 +6,7 @@ import { Account, storageStatePath } from '../data/team';
 import { ListPage } from '../pages/ListPage';
 import { LoginPage } from '../pages/LoginPage';
 import { TwoFactorPage } from '../pages/TwoFactorPage';
-import { mailboxFor, waitForLoginCode } from './mailbox';
+import { readsInboxOf, waitForLoginCode } from './gmail';
 
 /**
  * Sesja konta – wykonywana w kroku „Sesja: <konto>” KAŻDEGO testu, więc raport testu pokazuje ją razem z jego krokami
@@ -19,7 +19,7 @@ import { mailboxFor, waitForLoginCode } from './mailbox';
  * („zaufane urządzenie”, ważne rok – aplikacja ustawia je po pierwszym logowaniu z kodem, a `<KONTO>_DEVICE_ID`
  * pozwala je podać z zewnątrz). Gdy aplikacja poprosi o kod, jest on pobierany w kolejności:
  *   1. zmienna <KONTO>_2FA_CODE,
- *   2. skrzynka e-mail (src/support/mailbox.ts) – Gmail z adresami „+” albo Mailosaur; automatycznie, także w CI,
+ *   2. skrzynka Gmail (src/support/gmail.ts) – adresy „+” jednej skrzynki; automatycznie, także w CI,
  *   3. plik .auth/<konto>.code – ręcznie, dla adresu, którego skrzynki testy nie czytają (np. prywatny).
  * Po takim logowaniu wartość `devid` trafia do .auth/<konto>.device (nie do logów – są publiczne).
  */
@@ -44,7 +44,7 @@ async function waitForCodeFile(key: string): Promise<string> {
 async function loginCode(who: Account, since: Date): Promise<string> {
   const fromEnv = process.env[`${who.key.toUpperCase()}_2FA_CODE`];
   if (fromEnv) return fromEnv;
-  if (await mailboxFor(who.email)) return waitForLoginCode(who.email, since);
+  if (await readsInboxOf(who.email)) return waitForLoginCode(who.email, since);
   return waitForCodeFile(who.key);
 }
 
