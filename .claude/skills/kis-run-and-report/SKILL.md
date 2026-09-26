@@ -1,6 +1,6 @@
 ---
 name: kis-run-and-report
-description: Uruchomienie testów E2E kis-lists-tests na żywej aplikacji (lokalnie, w chmurze Claude albo w GitHub Actions), odczyt wyników i raportu Allure oraz aktualizacja raportu testerskiego (tabela wyników, zgłoszenia błędów BUG-xx, PLAN.md). Użyj po napisaniu testu, przed PR-em i gdy użytkownik prosi o wyniki.
+description: Uruchomienie testów E2E kis-lists-tests na żywej aplikacji (lokalnie, w chmurze Claude albo w GitHub Actions), odczyt wyników i raportu Allure oraz aktualizacja raportu testerskiego (tabela wyników, zgłoszenia błędów BUG-xx). Użyj po napisaniu testu, przed PR-em i gdy użytkownik prosi o wyniki.
 ---
 
 # Uruchomienie testów i raport
@@ -42,7 +42,7 @@ albo „Oczekiwano braku… znaleziono: 1”. Zrzuty: `test-results/**/test-fail
 1. **Sekcja 4 „Wyniki”** – wiersz na scenariusz, kolumna na konto: ✅ zgodnie z wymaganiem, **❌** błąd, „autor”, ⏳ nie wykonano; w „Uwagach” link `[BUG-0x](#bug-0x)`.
 2. **Nowy błąd** – kolejny numer `BUG-0x` w „Zgłoszone błędy”: Tytuł, Priorytet, Kroki, Oczekiwany / Rzeczywisty rezultat, Częstotliwość/środowisko (data), **Test regresyjny** (plik + ID). Obserwacje, które nie łamią wymagań → „Uwagi (U-0x)”.
 3. **Sekcja 5** – licznik ostatniego przebiegu i lista testów regresyjnych.
-4. **PLAN.md** – statusy etapów (✅ / 🟡 / ⬜).
-5. `npx prettier --write README.md PLAN.md && npm run check`.
+4. **docs/TEST_CASES.md** i **docs/BUGS.md** – status przypadku i pełne zgłoszenie błędu.
+5. `npx prettier --write README.md docs && npm run check`.
 
 Nie wpisuj do raportu niczego, czego nie zaobserwowano na żywo, ani danych kont (adresów, haseł, id listy, linków).

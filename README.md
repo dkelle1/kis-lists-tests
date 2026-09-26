@@ -2,7 +2,7 @@
 
 Raport testerski oraz test E2E (Playwright + TypeScript) do zadania rekrutacyjnego KIS List.
 
-> Plan realizacji z podziałem na subtaski: [PLAN.md](PLAN.md). Wiedza o aplikacji i pułapkach: [docs/LEARNINGS.md](docs/LEARNINGS.md);
+> Wiedza o aplikacji i pułapkach: [docs/LEARNINGS.md](docs/LEARNINGS.md);
 > proces dopisywania testów: [docs/WORKFLOW.md](docs/WORKFLOW.md) (skille i agent Claude Code w `.claude/`).
 >
 > **Status:** testy wykonane 2026-09-26 na https://kislist.com (ręcznie i automatycznie, także w GitHub Actions).
@@ -130,7 +130,7 @@ Wyniki automatyczne (Playwright) zgodne z wykonaniem ręcznym.
 | N-08                   |       ✅       |        ✅        |        ✅        |       –        |  ✅   | liczba powiadomień bez zmian                                                             |
 | P-09                   |     **❌**     | ✅ (autor wątku) |     autor ✅     |       –        |  ❌   | [BUG-01](#bug-01) – o odpowiedzi dowiaduje się tylko autor komentarza nadrzędnego        |
 | N-06                   |       –        |        –         |        ✅        |       –        |  ✅   | pusty komentarz i same spacje nie są dodawane                                            |
-| P-11, N-04, N-05, N-07 |                |                  |                  |                |  ⏳   | poza zakresem tego przebiegu (patrz PLAN.md)                                             |
+| P-11, N-04, N-05, N-07 |                |                  |                  |                |  ⏳   | poza zakresem tego przebiegu (patrz docs/TEST_CASES.md)                                  |
 
 ### Zgłoszone błędy
 
