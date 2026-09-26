@@ -13,7 +13,7 @@ import { COMMENT_ADDED, expectNotified } from './steps';
 const CLIENT_AUTHOR = 'Klient/ka';
 
 const CLIENT_CASES = [
-  { scenario: 'P-01', requirement: 'R1', target: 'propozycję', url: () => env().CLIENT_PROPOSAL_URL, bug: undefined },
+  { scenario: 'P-01', requirement: 'R1', target: 'propozycję', url: () => env().CLIENT_PROPOSAL_URL, bug: 'BUG-02' },
   {
     scenario: 'P-02',
     requirement: 'R2',

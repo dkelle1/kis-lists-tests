@@ -5,14 +5,34 @@ Raport testerski oraz test E2E (Playwright + TypeScript) do zadania rekrutacyjne
 > Plan realizacji z podziałem na subtaski: [PLAN.md](PLAN.md). Wiedza o aplikacji i pułapkach: [docs/LEARNINGS.md](docs/LEARNINGS.md);
 > proces dopisywania testów: [docs/WORKFLOW.md](docs/WORKFLOW.md) (skille i agent Claude Code w `.claude/`).
 >
-> **Status:** testy wykonane 2026-09-26 na https://kislist.com (ręcznie i automatycznie).
-> Znalezione błędy: [BUG-01](#bug-01), [BUG-02](#bug-02), [BUG-03](#bug-03) – każdy odtwarza test regresyjny.
+> **Status:** testy wykonane 2026-09-26 na https://kislist.com (ręcznie i automatycznie, także w GitHub Actions).
+> Znalezione błędy: [BUG-01](docs/BUGS.md#bug-01), [BUG-02](docs/BUGS.md#bug-02), [BUG-03](docs/BUGS.md#bug-03) –
+> każdy odtwarza test regresyjny.
+>
+> - Przypadki testowe (kroki, oczekiwany i rzeczywisty rezultat): **[docs/TEST_CASES.md](docs/TEST_CASES.md)**
+> - Zgłoszenia błędów: **[docs/BUGS.md](docs/BUGS.md)**
+
+### Zgodność z zadaniem
+
+| Wymaganie zadania                                                             | Gdzie                                                                                                    |
+| ----------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| Przejście interfejsu jako członkowie zespołu i jako klient                    | sekcja 2, [docs/LEARNINGS.md](docs/LEARNINGS.md) (role, lista, komentarze, widok klienta, powiadomienia) |
+| Plan testów: scenariusze pozytywne i negatywne                                | sekcja 3, [docs/TEST_CASES.md](docs/TEST_CASES.md) – 12 pozytywnych, 8 negatywnych                       |
+| Wykonanie testów i opis wyników                                               | sekcja 4, [docs/TEST_CASES.md](docs/TEST_CASES.md), [docs/BUGS.md](docs/BUGS.md)                         |
+| Test E2E w Playwright (TypeScript) odtwarzający znaleziony problem (regresja) | `tests/notifications/*.spec.ts` – tag `@regression` (BUG-01…03); sekcja 5                                |
+| Publiczne repozytorium: README (raport + instrukcja), `/tests`, konfiguracja  | ten plik, `tests/`, `playwright.config.ts`, `package.json`, `tsconfig.json`, `.env.example`, `.github/`  |
+| Uruchomienie po sklonowaniu                                                   | sekcja 5 „Uruchomienie lokalne” (`npm ci` → `.env` → `npm test`) i „Uruchomienie w GitHub Actions”       |
+
+Zakres nieobjęty wykonaniem (⏳): P-11, N-04, N-05, N-07 – opisane w [docs/TEST_CASES.md](docs/TEST_CASES.md).
 
 ---
 
 ## 1. Kontekst
 
-Zgłoszenie: _członkowie zespołu nie zawsze otrzymują powiadomienia o komentarzach na listach_.
+Zgłoszenie: _członkowie zespołu nie zawsze otrzymują powiadomienia o komentarzach na listach_. Zespół biura
+projektowego ze zgłoszenia: Piotr (założyciel), Anna (zarządza projektem), Marcin (kosztorys), Michalina (praca
+w terenie). Konta testowe odwzorowują **role** dostępne w KIS List (sekcja 2), a nie cztery osoby jeden do jednego –
+wyniki pokazują, że błąd zależy od roli odbiorcy i od oznaczenia „@”.
 
 ### Wymagania
 
@@ -56,7 +76,7 @@ co 3 s), zanim uznamy brak powiadomienia. Wyniki automatyczne potwierdzono ręcz
 
 | ID   | Wym.  | Scenariusz                                                       | Oczekiwany rezultat                                                           |
 | ---- | ----- | ---------------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| P-01 | R1    | Klient dodaje komentarz do propozycji                            | Damian, Piotr, Marcin dostają powiadomienie                                   |
+| P-01 | ✅    | ✅                                                               | **❌**                                                                        | – (brak) | ❌  | [BUG-02](#bug-02) – członek zespołu nie dostaje powiadomienia o komentarzu do propozycji |
 | P-02 | R2    | Klient dodaje komentarz do udostępnionej listy (podgląd na żywo) | Damian, Piotr, Marcin dostają powiadomienie                                   |
 | P-03 | R3    | Administrator (Damian) komentuje produkt w czacie zespołu        | Piotr, Marcin dostają powiadomienie                                           |
 | P-04 | R3    | Współpracownik (Piotr) komentuje produkt                         | Damian, Marcin dostają powiadomienie                                          |
@@ -93,28 +113,32 @@ z prawem edycji, a warianty z `@` sprawdzają, czy oznaczenie nie zawęża odbio
 Legenda: ✅ zgodnie z wymaganiem · ❌ błąd · „autor” – autor komentarza · ⏳ nie wykonano.
 Wyniki automatyczne (Playwright) zgodne z wykonaniem ręcznym.
 
-| ID                    | Damian (admin) | Piotr (współpr.) | Marcin (członek) | Klient1 (gość) | Wynik | Uwagi                                                                              |
-| --------------------- | :------------: | :--------------: | :--------------: | :------------: | :---: | ---------------------------------------------------------------------------------- |
-| P-01                  |       ⏳       |        ⏳        |        ⏳        |       –        |  ⏳   | brak propozycji na liście testowej – test automatyczny pomijany bez linku          |
-| P-02                  |       ✅       |        ✅        |      **❌**      |    – (brak)    |  ❌   | [BUG-02](#bug-02) – członek zespołu nie dostaje powiadomienia o komentarzu klienta |
-| P-03 + N-01           |    autor ✅    |      **❌**      |      **❌**      |   ✅ (brak)    |  ❌   | [BUG-01](#bug-01)                                                                  |
-| P-04 + N-01           |     **❌**     |     autor ✅     |      **❌**      |   ✅ (brak)    |  ❌   | [BUG-01](#bug-01)                                                                  |
-| P-05 + N-01           |     **❌**     |      **❌**      |     autor ✅     |   ✅ (brak)    |  ❌   | [BUG-01](#bug-01)                                                                  |
-| P-06                  |       –        |        ✅        |      autor       |       –        |  ✅   | oznaczony dostaje „Marcin oznaczył/a Ciebie w komentarzu”                          |
-| P-07                  |    autor ✅    |      **❌**      |        ✅        |       –        |  ❌   | [BUG-01](#bug-01) – powiadomiony tylko oznaczony                                   |
-| P-08                  |     autor      |        ✅        |        ✅        |       –        |  ✅   | po jednym powiadomieniu, bez duplikatów                                            |
-| P-10                  |       ✅       |        ✅        |        ✅        |       –        |  ✅   | autor, rodzaj zdarzenia, treść, projekt; **brak nazwy produktu** (uwaga U-01)      |
-| P-12                  |     **❌**     |      **❌**      |      **❌**      |       –        |  ❌   | ręcznie: komentarze Marcina i Piotra w „Komentarze klienta” – brak powiadomień     |
-| N-02                  | **❌** (jest)  |        –         |   ✅ (kontr.)    |       –        |  ❌   | [BUG-03](#bug-03) – autor oznaczający siebie dostaje powiadomienie                 |
-| N-03                  |       –        |        –         |        –         |   ✅ (brak)    |  ✅   | sprawdzane w P-03…P-05                                                             |
-| N-08                  |       ✅       |        ✅        |        ✅        |       –        |  ✅   | liczba powiadomień bez zmian                                                       |
-| P-09, P-11, N-04…N-07 |                |                  |                  |                |  ⏳   | poza zakresem tego przebiegu (patrz PLAN.md)                                       |
+| ID                     | Damian (admin) | Piotr (współpr.) | Marcin (członek) | Klient1 (gość) | Wynik | Uwagi                                                                              |
+| ---------------------- | :------------: | :--------------: | :--------------: | :------------: | :---: | ---------------------------------------------------------------------------------- |
+| P-01                   |       ⏳       |        ⏳        |        ⏳        |       –        |  ⏳   | brak propozycji na liście testowej – test automatyczny pomijany bez linku          |
+| P-02                   |       ✅       |        ✅        |      **❌**      |    – (brak)    |  ❌   | [BUG-02](#bug-02) – członek zespołu nie dostaje powiadomienia o komentarzu klienta |
+| P-03 + N-01            |    autor ✅    |      **❌**      |      **❌**      |   ✅ (brak)    |  ❌   | [BUG-01](#bug-01)                                                                  |
+| P-04 + N-01            |     **❌**     |     autor ✅     |      **❌**      |   ✅ (brak)    |  ❌   | [BUG-01](#bug-01)                                                                  |
+| P-05 + N-01            |     **❌**     |      **❌**      |     autor ✅     |   ✅ (brak)    |  ❌   | [BUG-01](#bug-01)                                                                  |
+| P-06                   |       –        |        ✅        |      autor       |       –        |  ✅   | oznaczony dostaje „Marcin oznaczył/a Ciebie w komentarzu”                          |
+| P-07                   |    autor ✅    |      **❌**      |        ✅        |       –        |  ❌   | [BUG-01](#bug-01) – powiadomiony tylko oznaczony                                   |
+| P-08                   |     autor      |        ✅        |        ✅        |       –        |  ✅   | po jednym powiadomieniu, bez duplikatów                                            |
+| P-10                   |       ✅       |        ✅        |        ✅        |       –        |  ✅   | autor, rodzaj zdarzenia, treść, projekt; **brak nazwy produktu** (uwaga U-01)      |
+| P-12                   |     **❌**     |      **❌**      |      **❌**      |       –        |  ❌   | ręcznie: komentarze Marcina i Piotra w „Komentarze klienta” – brak powiadomień     |
+| N-02                   | **❌** (jest)  |        –         |   ✅ (kontr.)    |       –        |  ❌   | [BUG-03](#bug-03) – autor oznaczający siebie dostaje powiadomienie                 |
+| N-03                   |       –        |        –         |        –         |   ✅ (brak)    |  ✅   | sprawdzane w P-03…P-05                                                             |
+| N-08                   |       ✅       |        ✅        |        ✅        |       –        |  ✅   | liczba powiadomień bez zmian                                                       |
+| P-09                   |     **❌**     | ✅ (autor wątku) |     autor ✅     |       –        |  ❌   | [BUG-01](#bug-01) – o odpowiedzi dowiaduje się tylko autor komentarza nadrzędnego  |
+| N-06                   |       –        |        –         |        ✅        |       –        |  ✅   | pusty komentarz i same spacje nie są dodawane                                      |
+| P-11, N-04, N-05, N-07 |                |                  |                  |                |  ⏳   | poza zakresem tego przebiegu (patrz PLAN.md)                                       |
 
 ### Zgłoszone błędy
 
+Pełne zgłoszenia (środowisko, kroki, obserwacje): [docs/BUGS.md](docs/BUGS.md).
+
 #### BUG-01
 
-- **Tytuł:** Komentarz członka zespołu na liście nie wysyła powiadomień pozostałym członkom zespołu – powiadamiane są tylko osoby oznaczone `@`.
+- **Tytuł:** Komentarz członka zespołu na liście nie wysyła powiadomień pozostałym członkom zespołu – powiadamiane są tylko osoby oznaczone `@` (a przy odpowiedzi – tylko autor komentarza nadrzędnego).
 - **Priorytet:** wysoki (narusza R3 – główna przyczyna zgłoszenia „nie zawsze dostają powiadomienia”).
 - **Kroki:**
   1. Zaloguj się jako członek zespołu listy (np. Marcin – „Członek zespołu”).
@@ -129,18 +153,18 @@ Wyniki automatyczne (Playwright) zgodne z wykonaniem ręcznym.
   przygotowania kont). Tamtej sytuacji nie udało się odtworzyć – żaden z kilkunastu komentarzy bez oznaczeń
   w trakcie testów nie wygenerował powiadomienia. To pasuje do zgłoszenia „nie zawsze”: warto sprawdzić
   po stronie serwera, od czego zależy wybór odbiorców.
-- **Testy regresyjne:** `tests/notifications/team-comments.spec.ts` – P-03, P-04, P-05, P-07.
+- **Testy regresyjne:** `tests/notifications/team-comments.spec.ts` – P-03, P-04, P-05, P-07, P-09.
 
 #### BUG-02
 
-- **Tytuł:** Członek zespołu (rola „Członek zespołu”) nie dostaje powiadomienia o komentarzu klienta na udostępnionej liście.
-- **Priorytet:** wysoki (narusza R2).
+- **Tytuł:** Członek zespołu (rola „Członek zespołu”) nie dostaje powiadomienia o komentarzu klienta – do propozycji ani na udostępnionej liście.
+- **Priorytet:** wysoki (narusza R1 i R2).
 - **Kroki:** klient otwiera link „Udostępnij listę”, pod produktem „Napisz komentarz”, wysyła komentarz;
   sprawdzamy powiadomienia Administratora, Współpracownika i Członka zespołu.
 - **Oczekiwany rezultat:** wszyscy trzej dostają „Klient/ka dodał/a komentarz”.
 - **Rzeczywisty rezultat:** Administrator i Współpracownik – tak; **Członek zespołu (Marcin) – nie**.
 - **Częstotliwość / środowisko:** zawsze, kislist.com, Chrome, 2026-09-26.
-- **Test regresyjny:** `tests/notifications/client-comments.spec.ts` – P-02.
+- **Testy regresyjne:** `tests/notifications/client-comments.spec.ts` – P-01, P-02.
 
 #### BUG-03
 
@@ -165,11 +189,11 @@ Wyniki automatyczne (Playwright) zgodne z wykonaniem ręcznym.
 
 ## 5. Test automatyczny (Playwright + TypeScript)
 
-Framework automatyzuje scenariusze R1–R3: P-01…P-08, P-10 (treść powiadomienia) oraz N-01, N-02, N-03, N-08.
-Testy odtwarzające błędy (**@regression**): P-02 (BUG-02), P-03…P-05 i P-07 (BUG-01), N-02 (BUG-03) –
-**obecnie czerwone** i zmienią się na zielone po poprawce. P-06, P-08 i N-08 przechodzą (widoczność powiadomień).
+Framework automatyzuje scenariusze R1–R3: P-01…P-10 (P-10 – treść powiadomienia) oraz N-01, N-02, N-03, N-06, N-08.
+Testy odtwarzające błędy (**@regression**): P-01 i P-02 (BUG-02), P-03…P-05, P-07 i P-09 (BUG-01), N-02 (BUG-03) –
+**obecnie czerwone** i zmienią się na zielone po poprawce. P-06, P-08, N-06 i N-08 przechodzą.
 
-Ostatni przebieg (2026-09-26): 7 ✅ (4 × setup, P-06, P-08, N-08), 6 ❌ (błędy powyżej), 1 pominięty (P-01).
+Ostatni przebieg (2026-09-26): 8 ✅ (4 × setup, P-06, P-08, N-06, N-08), 8 ❌ (P-01, P-02, P-03, P-04, P-05, P-07, P-09, N-02 – każdy z powodu opisanego błędu).
 
 ### Co dokładnie weryfikują testy
 
@@ -332,6 +356,15 @@ npm run check                      # typecheck + lint + format
 Dane logowania są czytane wyłącznie ze zmiennych środowiskowych (`.env` jest w `.gitignore`) –
 w repozytorium nie ma żadnych haseł.
 
+**Dla recenzenta:** testy działają na prawdziwych kontach KIS List, więc potrzebują danych w `.env` (konta z rolami
+Administrator / Współpracownik / Członek zespołu / Gość powiązane z listą, link udostępnienia listy, dostęp do skrzynki
+z kodami 2FA). Bez nich:
+
+- `npm ci && npm run check && npx playwright test --list` działa od razu po sklonowaniu (typy, lint, lista testów);
+- `npm test` zatrzymuje się na starcie z listą brakujących zmiennych;
+- wyniki przebiegu na kontach autora: zakładka **Actions → „E2E – powiadomienia o komentarzach”** (podsumowanie
+  i artefakt `allure-report` z raportem w jednym pliku `index.html`). Dane kont testowych mogę udostępnić na prośbę.
+
 ### Uruchomienie w GitHub Actions
 
 - **CI** (`.github/workflows/ci.yml`) – przy każdym pushu i PR: typecheck, lint, format i wczytanie testów.
@@ -350,13 +383,14 @@ w repozytorium nie ma żadnych haseł.
 
 Konfiguracja jednorazowa: **Settings → Secrets and variables → Actions** – sekrety o nazwach z `.env.example`:
 
-| Sekret                                                          | Wymagany | Opis                                                         |
-| --------------------------------------------------------------- | :------: | ------------------------------------------------------------ |
-| `KIS_LIST_ID`, `CLIENT_SHARE_URL`                               |    ✔     | lista testowa i jej link udostępnienia                       |
-| `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `ADMIN_DEVICE_ID`              |    ✔     | administrator; `devid` zaufanego urządzenia zamiast kodu 2FA |
-| `PIOTR_*`, `MARCIN_*`, `GUEST_*` (`_EMAIL`, `_PASSWORD`)        |    ✔     | pozostałe konta (adresy „+” skrzynki Gmail)                  |
-| `GMAIL_CLIENT_ID`, `GMAIL_CLIENT_SECRET`, `GMAIL_REFRESH_TOKEN` |    ✔     | odczyt kodów 2FA z Gmaila (tylko do odczytu)                 |
-| `KIS_ITEM_ID`, `CLIENT_PROPOSAL_URL`, `<KONTO>_DEVICE_ID`       |          | produkt do komentarzy, propozycja (P-01), logowanie bez kodu |
+| Sekret                                                          | Wymagany | Opis                                                                 |
+| --------------------------------------------------------------- | :------: | -------------------------------------------------------------------- |
+| `KIS_LIST_ID`, `CLIENT_SHARE_URL`                               |    ✔     | lista testowa i jej link udostępnienia                               |
+| `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `ADMIN_DEVICE_ID`              |    ✔     | administrator; `devid` zaufanego urządzenia zamiast kodu 2FA         |
+| `PIOTR_*`, `MARCIN_*`, `GUEST_*` (`_EMAIL`, `_PASSWORD`)        |    ✔     | pozostałe konta (adresy „+” skrzynki Gmail)                          |
+| `GMAIL_CLIENT_ID`, `GMAIL_CLIENT_SECRET`, `GMAIL_REFRESH_TOKEN` |    ✔     | odczyt kodów 2FA z Gmaila (tylko do odczytu)                         |
+| `CLIENT_PROPOSAL_URL`                                           |    ✔     | link klienta do propozycji (R1, P-01) – bez niego P-01 jest pomijany |
+| `KIS_ITEM_ID`, `<KONTO>_DEVICE_ID`                              |          | produkt do komentarzy, logowanie bez kodu                            |
 
 Najszybciej: uzupełnij lokalny `.env` i wyślij wszystkie wartości jednym poleceniem
 [GitHub CLI](https://cli.github.com/): `gh secret set -f .env --repo dkelle1/kis-lists-tests`.
