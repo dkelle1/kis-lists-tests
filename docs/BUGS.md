@@ -4,11 +4,11 @@ Błędy znalezione podczas wykonania planu testów ([TEST_CASES.md](TEST_CASES.m
 Każdy błąd odtwarza test regresyjny (`@regression`) – czerwony do czasu poprawki; w raporcie Allure ma link „Błąd: BUG-0x”
 oraz zrzut centrum powiadomień każdej osoby pod krokiem weryfikacji.
 
-| ID                | Tytuł                                                                                                                  | Wymaganie | Priorytet | Test regresyjny              |
-| ----------------- | ---------------------------------------------------------------------------------------------------------------------- | :-------: | :-------: | ---------------------------- |
-| [BUG-01](#bug-01) | Komentarz członka zespołu powiadamia tylko osoby oznaczone „@” (przy odpowiedzi – tylko autora wątku), nie cały zespół |    R3     |  wysoki   | P-03, P-04, P-05, P-07, P-09 |
-| [BUG-02](#bug-02) | Rola „Członek zespołu” nie dostaje powiadomienia o komentarzu klienta (propozycja i udostępniona lista)                |  R1, R2   |  wysoki   | P-01, P-02                   |
-| [BUG-03](#bug-03) | Autor oznaczający samego siebie dostaje powiadomienie o własnym komentarzu                                             |    R3     |   niski   | N-02                         |
+| ID                | Tytuł                                                                                                                  | Wymaganie | Priorytet | Test regresyjny                                      |
+| ----------------- | ---------------------------------------------------------------------------------------------------------------------- | :-------: | :-------: | ---------------------------------------------------- |
+| [BUG-01](#bug-01) | Komentarz członka zespołu powiadamia tylko osoby oznaczone „@” (przy odpowiedzi – tylko autora wątku), nie cały zespół |    R3     |  wysoki   | P-03, P-04, P-05, P-07, P-09, P-13, P-14, N-09, N-10 |
+| [BUG-02](#bug-02) | Rola „Członek zespołu” nie dostaje powiadomienia o komentarzu klienta (propozycja i udostępniona lista)                |  R1, R2   |  wysoki   | P-01, P-02                                           |
+| [BUG-03](#bug-03) | Autor oznaczający samego siebie dostaje powiadomienie o własnym komentarzu                                             |    R3     |   niski   | N-02                                                 |
 
 **Środowisko (wszystkie błędy):** https://kislist.com (plan EXPERT – wersja próbna), Chrome/Chromium desktop, język polski,
 lista „PROJEKT REKRUTACJA / KOSZTORYS”. Konta: Damian Keller (Administrator), Piotr (Współpracownik), Marcin (Członek
@@ -28,7 +28,7 @@ o komentarzach” → zestaw `regression`.
 | Wymaganie     | R3 – „gdy członek zespołu komentuje element listy, powiadomienie powinni otrzymać pozostali członkowie zespołu powiązani z listą” |
 | Priorytet     | **wysoki** – najbardziej prawdopodobna przyczyna zgłoszenia „nie zawsze dostają powiadomienia”                                    |
 | Częstotliwość | zawsze – dla każdej roli autora (Administrator, Współpracownik, Członek zespołu)                                                  |
-| Przypadki     | P-03, P-04, P-05, P-07, P-09, P-12                                                                                                |
+| Przypadki     | P-03, P-04, P-05, P-07, P-09, P-12, P-13, P-14, N-09, N-10                                                                        |
 
 **Kroki:**
 
@@ -55,8 +55,19 @@ o komentarzach” → zestaw `regression`.
   co pasuje do zgłoszenia „nie zawsze”; warto sprawdzić po stronie serwera logikę wyboru odbiorców.
 - W trakcie testów nie przyszły też e-maile o komentarzach, a w ustawieniach konta nie ma opcji powiadomień, które
   mogłyby je wyłączać.
+- **Błąd nie zależy od długości ani treści komentarza:** bardzo długi komentarz (~800 znaków, P-13) i seria 3
+  komentarzy pod rząd (P-14) zapisują się poprawnie i są widoczne w czacie – po prostu nikt (poza „@”) nie dostaje
+  o nich powiadomienia, tak samo jak przy zwykłym, krótkim komentarzu.
+- **Komentarz z ładunkiem HTML/JS (N-09)** jest bezpieczny – pokazany jako tekst, żaden `alert` się nie uruchamia –
+  ale i on nie generuje powiadomienia dla pozostałych członków zespołu.
+- **E-mail nie jest zapasowym kanałem (N-10):** dodatkowo, oprócz braku opcji powiadomień e-mail w ustawieniach
+  konta, jednorazowy skrypt diagnostyczny (Gmail API) potwierdził, że po komentarzu Marcina do Piotra **nie
+  przyszedł żaden e-mail** w ciągu 75 s. Użytkownik nie ma więc żadnego innego sposobu, żeby dowiedzieć się
+  o komentarzu poza samodzielnym wejściem na listę.
 
-**Testy regresyjne:** `tests/notifications/team-comments.spec.ts` – P-03, P-04, P-05 (+ N-01, N-03), P-07, P-09.
+**Testy regresyjne:** `tests/notifications/team-comments.spec.ts` – P-03, P-04, P-05 (+ N-01, N-03), P-07, P-09,
+P-13, P-14, N-09; N-10 – jednorazowa weryfikacja skryptem (Gmail API), nieautomatyzowana na stałe (patrz
+`docs/TEST_CASES.md`).
 
 ---
 
@@ -121,3 +132,4 @@ Obserwacje, które nie naruszają wymagań R1–R3, ale warto je przekazać zesp
 | U-02 | W edytorze po oznaczeniu kilku osób drugie oznaczenie dostaje atrybuty pierwszego (`data-email`/`data-name`); powiadomienia trafiają do właściwych osób.                          |
 | U-03 | Lista „@” ładuje się z opóźnieniem – pierwsze „@” po otwarciu okna pokazuje „Nic nie znaleziono.” i nie odświeża się; strona `/team` zwraca 403 dla ról innych niż administrator. |
 | U-04 | Powiadomienia jednego rodzaju są grupowane (licznik przy wpisie, widoczna tylko najnowsza treść) – starsze komentarze znikają z listy powiadomień.                                |
+| U-05 | Wpis w centrum powiadomień (`/inbox`) nie jest klikalny – w DOM nie ma żadnego linku ani nawigacji do produktu/wątku, tylko przyciski „Oznacz jako przeczytane” i „Wyczyść”.      |
