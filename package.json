@@ -15,6 +15,8 @@
     "format:check": "prettier --check .",
     "typecheck": "tsc",
     "gmail:token": "node scripts/gmail-token.ts",
+    "docker:build": "docker build -t kis-lists-tests .",
+    "docker:test": "mkdir -p allure-results playwright-report test-results && docker run --rm --env-file .env -v \"$PWD/allure-results:/app/allure-results\" -v \"$PWD/playwright-report:/app/playwright-report\" -v \"$PWD/test-results:/app/test-results\" kis-lists-tests",
     "check": "npm run typecheck && npm run lint && npm run format:check"
   },
   "repository": {
