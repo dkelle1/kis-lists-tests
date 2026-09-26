@@ -25,6 +25,12 @@ export class ListPage extends BasePage {
     this.proposalButton = page.getByTitle('Utwórz propozycję dla klienta', { exact: true });
   }
 
+  /** Strona startowa zalogowanego użytkownika (/lists) – bez ważnej sesji aplikacja przekierowuje na logowanie. */
+  @step('Sprawdź zapisaną sesję')
+  async openHome(): Promise<void> {
+    await this.page.goto('/lists');
+  }
+
   @step('Otwórz listę {0}')
   async goto(listId: string): Promise<void> {
     await this.page.goto(`/lists/${listId}/edit`);

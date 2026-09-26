@@ -70,12 +70,18 @@ Dla zadania „dopisz test” zacznij od [WORKFLOW.md](WORKFLOW.md) i skilli w `
   - strona `/lists` ma **drugi, osadzony panel** → zdublowane wpisy i konflikty trybu ścisłego;
   - `/team` jest tylko dla administratora.
 - Wpis: `.notification[data-key]`; nagłówek `.notification-header` (projekt, przy komentarzu klienta także adresy klientów), `.notification-context` („`<autor>` dodał/a komentarz” / „`<autor>` oznaczył/a Ciebie w komentarzu”), autor `.notification-context .user`, treść `.notification-details`, data `.notification-date`; grupa wpisów ma klasę `.group` i licznik `.notification-count .kis-pill`.
+- **Lista rysuje się etapami:** najpierw nagłówki grup („KOSZTORYS”, licznik, data), dopiero potem opis zdarzenia
+  i treść. Liczenie wpisów ze znacznikiem zaraz po pojawieniu się pierwszego wpisu dawało fałszywe „brak powiadomienia”
+  (P-08 czerwony 3 razy na 4, choć powiadomienie było). `NotificationCenter.refresh()` czeka więc, aż żaden wpis nie jest
+  bez `.notification-context`. Zmierzony czas dostarczenia powiadomienia: 2–9 s.
 - **Wpisy są grupowane** (np. wszystkie „Klient/ka dodał/a komentarz” albo „X oznaczył/a Ciebie” w jednej grupie z licznikiem
   `count=N`); `.notification-details` pokazuje **tylko najnowszy** komentarz grupy. Skutek dla testów: znacznik starszego
   komentarza znika z listy, a **duplikat nie tworzy drugiego wpisu, tylko zwiększa licznik** – „dokładnie 1 wpis ze znacznikiem”
   nie wykryje duplikatu; do tego trzeba porównać licznik grupy przed i po zdarzeniu (do zrobienia).
 - Pusto: „Wszystko przeczytane, wszystko ogarnięte.”; zakładki „Inbox / Powiadomienia / Wyczyszczone”.
-- Powiadomienie **nie zawiera nazwy produktu ani listy** (tylko projekt, autor, treść).
+- Powiadomienie o komentarzu do produktu pokazuje projekt, listę, **sekcję i produkt** („Salon / Narożnik…”), autora i treść
+  (starsza grupa „Piotr dodał/a komentarz” z poziomu projektu – bez produktu). Uwaga: `.notification-context` zawiera
+  tylko „`<autor>` dodał/a komentarz” – produkt jest w osobnym elemencie wpisu, więc sprawdzaj cały wpis.
 - W trakcie testów **nie przyszły e-maile o komentarzach**; w ustawieniach konta (Profil → Ustawienia aplikacji) **nie ma opcji powiadomień**.
 - Powiadomienia pojawiają się w ciągu kilku sekund (okno 20 s wystarcza); brak powiadomienia potwierdzono ręcznie po ~15 min.
 
@@ -104,6 +110,9 @@ BUG-01: zespół jest powiadamiany **tylko przez „@”**. Wyjątek do wyjaśni
 - **GitHub Actions:** artefakty repozytoriów prywatnych liczą się do limitu miejsca konta (Free 500 MB) – przy przekroczeniu `upload-artifact` zwraca „Artifact storage quota has been hit”; publiczne repozytorium nie ma limitu. Akcje w wersji v4 działają na wycofywanym Node 20 → używamy v5.
 - **Wideo dla `browser.newContext()`:** `use.video` nagrywa tylko wbudowany kontekst Playwrighta – konteksty kont z fixture'ów trzeba nagrywać przez `recordVideo` i dołączać po `context.close()` (`src/support/video.ts`). Trace działa dla wszystkich kontekstów.
 - **Zrzuty w Allure:** `testInfo.attach()` wywołane wewnątrz `test.step` trafia pod ten krok; automatyczne `screenshot: 'only-on-failure'` ląduje na poziomie testu bez podpisu (po jednym na kontekst) – dlatego zrzuty robi dekorator `@step` i kroki testów.
+- **Trace w Allure:** allure-playwright zawsze dołącza trace (kilka–kilkanaście MB na test); nie ma opcji, więc `src/allure/reporter.ts` odfiltrowuje go w `onTestEnd` – trace zostaje w raporcie HTML Playwrighta. Ścieżka reportera musi być bezwzględna (`path.join(__dirname, …)`), bo względną Playwright liczy od pliku konfiguracji.
+- **Zrzuty:** JPEG (`quality: 70`) i `mask` dla adresów e-mail (`page.getByText(/…@…/)`) oraz pól logowania; zrzut po kliknięciu „Zaloguj” wymaga czekania na nową stronę (`waitForURL`), inaczej pokazuje pół-wyrenderowaną stronę.
+- **Logowanie w teście zamiast projektu „setup”:** projekt `setup` Playwrighta jest raportowany jak testy (zawyża statystyki), a jego kroki są „obok” scenariuszy. Logowanie jest więc w fixture `actor` (krok „Sesja: <konto>”), a sesja w `.auth/` sprawia, że kod 2FA potrzebny jest tylko w pierwszym teście konta.
 - `--reporter=list` w CLI **wyłącza Allure** (nadpisuje reportery z konfiguracji) – do sprawdzenia raportu uruchamiaj bez tej flagi.
 - Konfiguracja w `.local/` zapisuje `allure-results` względem katalogu roboczego (nie katalogu configu).
 
@@ -111,13 +120,13 @@ BUG-01: zespół jest powiadamiany **tylko przez „@”**. Wyjątek do wyjaśni
 
 ## 3. Dostęp do poczty i 2FA w testach
 
-- Kolejność pozyskania kodu w `tests/setup/auth.setup.ts`: `devid` (bez kodu) → `<KONTO>_2FA_CODE` → skrzynka (Gmail/Mailosaur) → plik `.auth/<konto>.code`.
+- Kolejność pozyskania kodu w `src/support/session.ts` (krok „Sesja: <konto>” w każdym teście): `devid` (bez kodu) → `<KONTO>_2FA_CODE` → skrzynka (Gmail/Mailosaur) → plik `.auth/<konto>.code`.
 - **Zapisuj znacznik czasu przed kliknięciem „Zaloguj”** i szukaj wiadomości po adresacie + czasie – inaczej złapiesz kod z poprzedniego przebiegu.
 - **Adresy „+”** (`login+anna@gmail.com`) trafiają do jednej skrzynki; dopasowuj po nagłówkach `To` / `Delivered-To` (w wyszukiwarce `to:` + `after:<epoch>`, a dokładne dopasowanie w kodzie).
 - Gmail API: klient OAuth „Desktop app”, zakres `gmail.readonly`, użytkownik dodany jako **Test user** (inaczej `403 access_denied`). W trybie Testing refresh token wygasa po **7 dniach** („Publish app” to usuwa). Token: `npm run gmail:token`.
 - Mailpit/lokalny SMTP odpada (SMTP należy do KIS List); Docker + Mailpit miałby sens tylko z własną domeną, MX i publicznym serwerem.
 - **Prywatnej skrzynki administratora nie czytamy** – jego konto loguje się przez `ADMIN_DEVICE_ID` (wartość `devid` z przeglądarki: DevTools → Application → Cookies).
-- Wartości `devid` nie wypisujemy w logach (logi CI są publiczne) – setup zapisuje ją do `.auth/<konto>.device`.
+- Wartości `devid` nie wypisujemy w logach (logi CI są publiczne) – trafia do `.auth/<konto>.device`.
 
 ---
 
@@ -129,7 +138,7 @@ BUG-01: zespół jest powiadamiany **tylko przez „@”**. Wyjątek do wyjaśni
 - **Asercje miękkie per odbiorca** – raport pokazuje wynik dla każdej osoby, nie tylko pierwszą rozbieżność. Treść sprawdzaj tylko gdy wpis istnieje (inaczej 15 s szumu na każdej asercji).
 - **Próby kontrolne** w testach negatywnych (np. oznaczony Marcin musi dostać powiadomienie), inaczej „brak” przechodzi przy zepsutym lokatorze.
 - **Testy regresyjne błędów są czerwone** (bez `test.fail()`), mają tag `@regression` i link Allure `issue` → „Błąd: BUG-0x”.
-- `failOnFlakyTests: true` + `retries: 1` w CI – przerywany błąd nie może zostać ukryty ponowieniem.
+- `retries: 0` – przerywany błąd nie może zostać ukryty ponowieniem, a znane błędy i tak nie przechodzą.
 - **Tytuły testów nie mogą czytać `.env`** (`playwright test --list` w CI działa bez sekretów) – używaj `personaName()`.
 - Sekret nieustawiony w GitHub Actions trafia do procesu jako **pusty napis** → `env()` odfiltrowuje `''` przed walidacją zod.
 - `browser.newContext()` w fixture dziedziczy opcje `use` (baseURL, locale, launchOptions) – potwierdzone w źródłach Playwrighta.

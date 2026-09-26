@@ -98,11 +98,11 @@ Zgłoszenia błędów: [BUGS.md](BUGS.md). Podsumowanie wyników: [README – se
   Marcin ✅ brak. Odpowiedź powiadamia tylko autora komentarza nadrzędnego.
 - **Automatyzacja:** 🤖 `team-comments.spec.ts` › P-09 (`@regression`).
 
-### P-10 – Treść powiadomienia (R1–R3) · ✅ (z uwagą U-01)
+### P-10 – Treść powiadomienia (R1–R3) · ✅
 
 - **Kroki:** sprawdzane przy każdym powiadomieniu z P-02, P-06–P-08.
 - **Oczekiwany rezultat:** autor, rodzaj zdarzenia, treść komentarza, miejsce (projekt/lista/produkt).
-- **Rzeczywisty rezultat:** autor ✅, rodzaj zdarzenia ✅, treść ✅, projekt ✅; **brak nazwy produktu i listy** ([U-01](BUGS.md#uwagi)).
+- **Rzeczywisty rezultat:** autor ✅, rodzaj zdarzenia ✅, sekcja i produkt (np. „Salon / Narożnik…”) ✅, treść ✅, projekt ✅.
 - **Automatyzacja:** 🤖 asercje w `tests/notifications/steps.ts` (`expectNotified`).
 
 ### P-11 – Członek dodany do listy później (R3) · ⏳

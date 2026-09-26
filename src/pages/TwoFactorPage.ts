@@ -1,25 +1,27 @@
 import { Locator, Page } from '@playwright/test';
-import { step } from '../support/step';
+import { HasSensitiveData, step } from '../support/step';
 
 /**
  * Drugi krok logowania /2fa: 4 pola na cyfry kodu wysłanego e-mailem.
  * Po wpisaniu 4. cyfry formularz wysyła się sam.
  */
-export class TwoFactorPage {
+export class TwoFactorPage implements HasSensitiveData {
   readonly digits: Locator;
   readonly error: Locator;
+  /** Zamazywane na zrzutach kroków: kod jednorazowy i adres konta. */
+  readonly sensitive: readonly Locator[];
 
   constructor(private readonly page: Page) {
     this.digits = page.locator('form:has(#_auth_code) input[type=text]');
     this.error = page.getByText('Kod weryfikacyjny jest niepoprawny.');
+    this.sensitive = [this.digits];
   }
 
   isCurrent(): boolean {
     return new URL(this.page.url()).pathname.startsWith('/2fa');
   }
 
-  // Bez zrzutu: kod jednorazowy i adres konta.
-  @step('Wpisz kod 2FA', { screenshot: false })
+  @step('Wpisz kod 2FA')
   async enterCode(code: string): Promise<void> {
     for (const [index, digit] of [...code.trim()].entries()) {
       await this.digits.nth(index).fill(digit);

@@ -15,10 +15,13 @@ import { step } from '../../support/step';
  */
 export class NotificationCenter {
   readonly entries: Locator;
+  /** Wpisy jeszcze bez opisu zdarzenia – lista rysuje najpierw nagłówki, treść dochodzi asynchronicznie. */
+  readonly incompleteEntries: Locator;
   readonly emptyState: Locator;
 
   constructor(readonly page: Page) {
     this.entries = page.locator('.notification[data-key]');
+    this.incompleteEntries = this.entries.filter({ hasNot: page.locator('.notification-context') });
     this.emptyState = page.getByText('Wszystko przeczytane, wszystko ogarnięte.');
   }
 
@@ -41,13 +44,14 @@ export class NotificationCenter {
 
   /**
    * Wczytuje centrum powiadomień od nowa – powiadomienia powstają w tle, po stronie serwera.
-   * Czeka, aż lista się wyrenderuje (wpisy albo komunikat o braku), żeby liczenie nie trafiło w pusty DOM.
+   * Czeka, aż lista się wyrenderuje (wpisy albo komunikat o braku), a potem, aż każdy wpis ma opis zdarzenia i treść –
+   * aplikacja rysuje najpierw same nagłówki grup, a liczenie wpisów ze znacznikiem w tym momencie dawało fałszywe „brak”.
    */
-  // Bez zrzutu: wywoływane w pętli odpytywania; stan centrum dokumentuje krok weryfikacji w teście.
-  @step('Odśwież centrum powiadomień', { screenshot: false })
+  @step('Odśwież centrum powiadomień')
   async refresh(): Promise<void> {
     await this.page.goto('/inbox');
     await this.entries.first().or(this.emptyState).waitFor();
+    await this.incompleteEntries.first().waitFor({ state: 'detached' });
   }
 
   /** Odświeża i liczy wpisy z danym tekstem w treści (np. znacznikiem komentarza). */

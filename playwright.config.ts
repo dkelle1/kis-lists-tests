@@ -1,4 +1,5 @@
 import { defineConfig, devices } from '@playwright/test';
+import path from 'node:path';
 import { bugUrl, TEST_PLAN_URL } from './src/allure/metadata';
 import { baseURL } from './src/config/env';
 
@@ -11,17 +12,17 @@ export default defineConfig({
   fullyParallel: false,
   workers: 1,
   forbidOnly: isCI,
-  // Zgłoszony błąd jest przerywany ("nie zawsze dostają powiadomienia"), więc ponowienie nie może go ukryć:
-  // test, który przejdzie dopiero za drugim razem, jest oznaczany jako flaky I kończy przebieg błędem.
-  retries: isCI ? 1 : 0,
-  failOnFlakyTests: true,
+  // Bez ponowień: zgłoszony błąd jest przerywany ("nie zawsze dostają powiadomienia"), więc ponowienie mogłoby go
+  // ukryć, a testy regresyjne znanych błędów i tak nie przechodzą – ponowienie tylko wydłużało przebieg i raport.
+  retries: 0,
   timeout: 3 * 60_000,
   expect: { timeout: 15_000 },
   reporter: [
     ['list'],
     ['html', { open: 'never' }],
     [
-      'allure-playwright',
+      // allure-playwright bez trace – trace jest w raporcie HTML Playwrighta (src/allure/reporter.ts).
+      path.join(__dirname, 'src/allure/reporter.ts'),
       {
         resultsDir: 'allure-results',
         // detail: true pokazuje w raporcie także asercje (expect). Pojedyncze wywołania API (click, goto…)
@@ -56,13 +57,7 @@ export default defineConfig({
     // Wideo całego testu: VIDEO=on (każdy test) – domyślnie tylko testy zakończone błędem.
     video: process.env.VIDEO === 'on' ? 'on' : 'retain-on-failure',
   },
-  projects: [
-    { name: 'setup', testMatch: /.*\.setup\.ts/ },
-    {
-      name: 'chromium',
-      testMatch: /.*\.spec\.ts/,
-      use: { ...devices['Desktop Chrome'] },
-      dependencies: ['setup'],
-    },
-  ],
+  // Bez osobnego projektu „setup”: logowanie kont jest krokiem „Sesja: <konto>” w każdym teście (fixture `actor`),
+  // więc raport testu pokazuje je razem z jego krokami, a statystyki liczą tylko scenariusze.
+  projects: [{ name: 'chromium', testMatch: /.*\.spec\.ts/, use: { ...devices['Desktop Chrome'] } }],
 });
