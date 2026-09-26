@@ -334,7 +334,12 @@ w repozytorium nie ma żadnych haseł.
   Nie wymaga dostępu do aplikacji.
 - **E2E** (`.github/workflows/e2e.yml`) – uruchamiane ręcznie: zakładka **Actions → E2E – powiadomienia
   o komentarzach → Run workflow**, z wyborem zestawu (`all`, `positive`, `negative`, `regression`, `R1`–`R3`).
-  Raporty Allure i Playwright są dostępne jako artefakty przebiegu (również gdy testy nie przejdą).
+  Na starcie sprawdza, czy są wszystkie wymagane sekrety; na końcu dodaje podsumowanie (liczby testów) do strony przebiegu.
+  Artefakty (30 dni, również gdy testy nie przejdą):
+  - **`allure-report`** – raport Allure jako **jeden plik `index.html`** (otwiera się bez serwera, po polsku,
+    ze zrzutami, wideo i trace przy błędach),
+  - `allure-results` – surowe wyniki (np. `npx allure generate allure-results` lokalnie),
+  - `playwright-report` – raport HTML Playwrighta (`npx playwright show-report <katalog>`).
 
 Konfiguracja jednorazowa: **Settings → Secrets and variables → Actions** – sekrety o nazwach z `.env.example`:
 
@@ -345,6 +350,9 @@ Konfiguracja jednorazowa: **Settings → Secrets and variables → Actions** –
 | `PIOTR_*`, `MARCIN_*`, `GUEST_*` (`_EMAIL`, `_PASSWORD`)        |    ✔     | pozostałe konta (adresy „+” skrzynki Gmail)                  |
 | `GMAIL_CLIENT_ID`, `GMAIL_CLIENT_SECRET`, `GMAIL_REFRESH_TOKEN` |    ✔     | odczyt kodów 2FA z Gmaila (tylko do odczytu)                 |
 | `KIS_ITEM_ID`, `CLIENT_PROPOSAL_URL`, `<KONTO>_DEVICE_ID`       |          | produkt do komentarzy, propozycja (P-01), logowanie bez kodu |
+
+Najszybciej: uzupełnij lokalny `.env` i wyślij wszystkie wartości jednym poleceniem
+[GitHub CLI](https://cli.github.com/): `gh secret set -f .env --repo dkelle1/rekrutacja-kis`.
 
 Opcjonalnie zmienne (Variables): `BASE_URL`, `<KONTO>_DISPLAY_NAME`. Sekrety nie trafiają do logów ani do przebiegów
 z forków, a workflow E2E uruchamia się tylko ręcznie.

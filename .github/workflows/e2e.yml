@@ -57,6 +57,23 @@ jobs:
       - name: Instalacja przeglądarki
         run: npx playwright install --with-deps chromium
 
+      # Czytelny błąd na starcie zamiast nieudanego logowania po kilku minutach.
+      - name: Kontrola sekretów
+        run: |
+          missing=()
+          for name in KIS_LIST_ID CLIENT_SHARE_URL \
+            ADMIN_EMAIL ADMIN_PASSWORD PIOTR_EMAIL PIOTR_PASSWORD MARCIN_EMAIL MARCIN_PASSWORD GUEST_EMAIL GUEST_PASSWORD; do
+            [ -n "${!name}" ] || missing+=("$name")
+          done
+          if [ -z "$GMAIL_REFRESH_TOKEN" ] && [ -z "$MAILOSAUR_API_KEY" ]; then
+            missing+=("GMAIL_CLIENT_ID/GMAIL_CLIENT_SECRET/GMAIL_REFRESH_TOKEN (albo MAILOSAUR_*)")
+          fi
+          if [ ${#missing[@]} -gt 0 ]; then
+            printf '::error::Brak sekretów: %s\n' "${missing[*]}"
+            exit 1
+          fi
+          [ -n "$ADMIN_DEVICE_ID" ] || echo "::warning::Brak ADMIN_DEVICE_ID – logowanie administratora może wymagać kodu 2FA"
+
       - name: Testy E2E
         env:
           SUITE: ${{ inputs.suite }}
@@ -67,20 +84,49 @@ jobs:
             npx playwright test --grep "@$SUITE"
           fi
 
+      # Raport jako jeden plik HTML (allurerc.mjs: singleFile) – po pobraniu artefaktu wystarczy otworzyć index.html.
       - name: Raport Allure
         if: ${{ !cancelled() }}
         run: npx allure generate allure-results
 
-      - uses: actions/upload-artifact@v4
+      - name: Podsumowanie przebiegu
+        if: ${{ !cancelled() }}
+        run: |
+          node -e '
+            const fs = require("fs");
+            const file = "allure-report/summary.json";
+            if (!fs.existsSync(file)) process.exit(0);
+            const { stats, status, duration } = JSON.parse(fs.readFileSync(file, "utf8"));
+            const rows = Object.entries(stats).map(([k, v]) => `| ${k} | ${v} |`).join("\n");
+            fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY,
+              `## E2E – powiadomienia o komentarzach (${process.env.SUITE})\n\n` +
+              `Status: **${status}**, czas: ${Math.round(duration / 1000)} s\n\n| wynik | liczba |\n| --- | --- |\n${rows}\n\n` +
+              "Raport: artefakt **allure-report** → `index.html` (otwiera się bez serwera).\n" +
+              "Testy `@regression` odtwarzają znane błędy (BUG-01…03) i są czerwone do czasu poprawki.\n");
+          '
+        env:
+          SUITE: ${{ inputs.suite }}
+
+      - name: Artefakt – raport Allure
+        uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:
           name: allure-report
           path: allure-report/
-          retention-days: 14
+          retention-days: 30
 
-      - uses: actions/upload-artifact@v4
+      - name: Artefakt – wyniki Allure (surowe, do ponownego wygenerowania raportu)
+        uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: allure-results
+          path: allure-results/
+          retention-days: 30
+
+      - name: Artefakt – raport Playwright
+        uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:
           name: playwright-report
           path: playwright-report/
-          retention-days: 14
+          retention-days: 30
