@@ -11,7 +11,8 @@ Cel: **zanim dopiszesz lokator albo asercję, zobacz to na żywo.** Wszystko, co
 ## Przygotowanie (raz na sesję)
 
 1. `.env` musi istnieć (patrz `.env.example`), a sesje kont w `.auth/` – jeśli ich nie ma, uruchom sam setup:
-   `npx playwright test -c .local/playwright.sandbox.config.ts --project=setup`.
+   dowolny test używający kont, np. `npx playwright test -c .local/playwright.sandbox.config.ts --grep "P-03"`
+   (loguje administratora, Piotra, Marcina i gościa i zapisuje ich sesje).
 2. Skopiuj szablony do ignorowanego katalogu `.local/`:
    ```bash
    mkdir -p .local/explore

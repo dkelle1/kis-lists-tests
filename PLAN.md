@@ -61,7 +61,7 @@ Termin: 3 dni robocze od otrzymania zadania. Legenda: ✅ zrobione · ⬜ do zro
 | 5.2  | Konfiguracja z walidacją (zod): `src/config/env.ts`, `.env.example`, sekrety poza repo                                                                     | 5.1       | ✅     |
 | 5.3  | Page Object Model: `LoginPage`/`TwoFactorPage`, `ListPage`, `ClientViewPage`, `TeamPage` + komponenty `CommentsModal`, `CommentForm`, `NotificationCenter` | 5.1       | ✅     |
 | 5.4  | Fixtures (`test.extend`): `teamMember(osoba)` – osobny kontekst na osobę, `client`, `listId`, `testItem`                                                   | 5.3       | ✅     |
-| 5.5  | Logowanie raz na przebieg: projekt `setup` + `storageState` w `.auth/`                                                                                     | 5.4       | ✅     |
+| 5.5  | Logowanie w kroku „Sesja: <konto>” testu (fixture `actor`) + `storageState` w `.auth/` – kod 2FA najwyżej raz na przebieg                                  | 5.4       | ✅     |
 | 5.6  | Dane testowe z faker (odpowiednik Bogus): komentarze z unikalnym znacznikiem, opcjonalny `FAKER_SEED`                                                      | 5.1       | ✅     |
 | 5.7  | Asercje domenowe (`expect.extend`): dokładnie 1 powiadomienie / brak do końca okna od wysłania / liczba wpisów bez zmian                                   | 5.3       | ✅     |
 | 5.8  | Raportowanie: Allure 3 (metadane w adnotacjach, link do planu, kroki `@step`, dowody przy sukcesie, PL) + HTML Playwright                                  | 5.1       | ✅     |

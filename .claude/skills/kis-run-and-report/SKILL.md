@@ -16,7 +16,7 @@ description: Uruchomienie testów E2E kis-lists-tests na żywej aplikacji (lokal
 - Pełny przebieg trwa ~7 min (workers = 1, okno 20 s na powiadomienie). Uruchamiaj w tle i czekaj pętlą
   `until grep -qE "^\s+[0-9]+ (passed|failed)" .local/run.log; do sleep 10; done`.
 - **Nie dodawaj `--reporter=list`**, jeśli potrzebujesz Allure – nadpisuje reportery z konfiguracji.
-- Jeśli setup prosi o kod 2FA – skill `kis-accounts-2fa`.
+- Jeśli logowanie (krok „Sesja: …”) prosi o kod 2FA – skill `kis-accounts-2fa`.
 - W GitHub Actions: podsumowanie na stronie przebiegu, artefakt `allure-report` = jeden plik `index.html` (otwiera się bez serwera), `allure-results`, `playwright-report`.
 
 ## Odczyt wyników
