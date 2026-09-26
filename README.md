@@ -2,7 +2,8 @@
 
 Raport testerski oraz test E2E (Playwright + TypeScript) do zadania rekrutacyjnego KIS List.
 
-> Plan realizacji z podziałem na subtaski: [PLAN.md](PLAN.md).
+> Plan realizacji z podziałem na subtaski: [PLAN.md](PLAN.md). Wiedza o aplikacji i pułapkach: [docs/LEARNINGS.md](docs/LEARNINGS.md);
+> proces dopisywania testów: [docs/WORKFLOW.md](docs/WORKFLOW.md) (skille i agent Claude Code w `.claude/`).
 >
 > **Status:** testy wykonane 2026-09-26 na https://kislist.com (ręcznie i automatycznie).
 > Znalezione błędy: [BUG-01](#bug-01), [BUG-02](#bug-02), [BUG-03](#bug-03) – każdy odtwarza test regresyjny.
@@ -175,11 +176,14 @@ Ostatni przebieg (2026-09-26): 7 ✅ (4 × setup, P-06, P-08, N-08), 6 ❌ (bł�
 | Sprawdzenie                                              | Jak                                                                                                  | Po co                                                                            |
 | -------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
 | Komentarz został zapisany                                | modal dotyczy właściwego produktu, komentarz widoczny w wątku, edytor wyczyszczony, oznaczenia `@`   | brak powiadomienia nie jest mylony z niewysłanym komentarzem                     |
-| Każdy odbiorca dostaje **dokładnie jedno** powiadomienie | `toHaveNotification` – osobny krok na osobę; 2 wpisy = błąd (duplikat, P-08)                         | raport wskazuje, **kto** nie dostał powiadomienia                                |
+| Każdy odbiorca dostaje **dokładnie jedno** powiadomienie | `toHaveNotification` – osobny krok na osobę; 2 wpisy = błąd (duplikat, P-08)¹                        | raport wskazuje, **kto** nie dostał powiadomienia                                |
 | Autor i gość **nie** dostają powiadomienia               | `not.toHaveNotification` do końca okna liczonego od wysłania komentarza                              | „pozostali” w R3 wyklucza autora (N-01, N-02); czat zespołu jest prywatny (N-03) |
 | Treść powiadomienia                                      | autor (`.notification-context .user`) i rodzaj zdarzenia („dodał/a komentarz” / „oznaczył/a Ciebie”) | P-10                                                                             |
 | Samo przeglądanie listy nie generuje powiadomień         | liczba wpisów u każdego członka bez zmian (N-08)                                                     | zamiast szukać znanego tekstu – odporne na wcześniejsze przebiegi                |
 | Próby kontrolne w testach negatywnych                    | N-02: oznaczony Marcin musi dostać powiadomienie; N-08: widać wpisy albo komunikat „pusto”           | test „braku” nie przechodzi przy zepsutym lokatorze czy niedziałającym systemie  |
+
+¹ Aplikacja grupuje powiadomienia tego samego rodzaju (licznik przy wpisie), więc duplikat mógłby tylko zwiększyć licznik
+grupy – wykrycie tego wymaga porównania licznika przed i po (planowane, patrz docs/LEARNINGS.md).
 
 Asercje per odbiorca są **miękkie** (`expect.soft`): przy macierzy nadawca → odbiorcy raport pokazuje wynik dla
 każdej osoby (kto dostał, kto nie), a nie tylko pierwszą rozbieżność.
