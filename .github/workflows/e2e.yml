@@ -23,18 +23,23 @@ jobs:
       BASE_URL: ${{ vars.BASE_URL || 'https://kislist.com' }}
       KIS_LIST_ID: ${{ secrets.KIS_LIST_ID }}
       KIS_ITEM_ID: ${{ secrets.KIS_ITEM_ID }}
+      ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
+      ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
       PIOTR_EMAIL: ${{ secrets.PIOTR_EMAIL }}
       PIOTR_PASSWORD: ${{ secrets.PIOTR_PASSWORD }}
-      ANNA_EMAIL: ${{ secrets.ANNA_EMAIL }}
-      ANNA_PASSWORD: ${{ secrets.ANNA_PASSWORD }}
       MARCIN_EMAIL: ${{ secrets.MARCIN_EMAIL }}
       MARCIN_PASSWORD: ${{ secrets.MARCIN_PASSWORD }}
-      MICHALINA_EMAIL: ${{ secrets.MICHALINA_EMAIL }}
-      MICHALINA_PASSWORD: ${{ secrets.MICHALINA_PASSWORD }}
+      GUEST_EMAIL: ${{ secrets.GUEST_EMAIL }}
+      GUEST_PASSWORD: ${{ secrets.GUEST_PASSWORD }}
+      # Zaufane urządzenie (cookie devid) – logowanie bez kodu 2FA, np. dla prywatnej skrzynki administratora
+      ADMIN_DEVICE_ID: ${{ secrets.ADMIN_DEVICE_ID }}
+      PIOTR_DEVICE_ID: ${{ secrets.PIOTR_DEVICE_ID }}
+      MARCIN_DEVICE_ID: ${{ secrets.MARCIN_DEVICE_ID }}
+      GUEST_DEVICE_ID: ${{ secrets.GUEST_DEVICE_ID }}
+      ADMIN_DISPLAY_NAME: ${{ vars.ADMIN_DISPLAY_NAME }}
       PIOTR_DISPLAY_NAME: ${{ vars.PIOTR_DISPLAY_NAME }}
-      ANNA_DISPLAY_NAME: ${{ vars.ANNA_DISPLAY_NAME }}
       MARCIN_DISPLAY_NAME: ${{ vars.MARCIN_DISPLAY_NAME }}
-      MICHALINA_DISPLAY_NAME: ${{ vars.MICHALINA_DISPLAY_NAME }}
+      GUEST_DISPLAY_NAME: ${{ vars.GUEST_DISPLAY_NAME }}
       GMAIL_CLIENT_ID: ${{ secrets.GMAIL_CLIENT_ID }}
       GMAIL_CLIENT_SECRET: ${{ secrets.GMAIL_CLIENT_SECRET }}
       GMAIL_REFRESH_TOKEN: ${{ secrets.GMAIL_REFRESH_TOKEN }}
@@ -51,22 +56,6 @@ jobs:
       - run: npm ci
       - name: Instalacja przeglądarki
         run: npx playwright install --with-deps chromium
-
-      # KIS List wymaga 2FA przy logowaniu. Przy skonfigurowanej skrzynce (Gmail API / Mailosaur) konta logują się
-      # same; w przeciwnym razie używamy sesji zapisanych lokalnie, przekazanych jako sekrety
-      # <OSOBA>_STORAGE_STATE (base64 z pliku .auth/<osoba>.json).
-      - name: Sesje członków zespołu
-        env:
-          PIOTR_STORAGE_STATE: ${{ secrets.PIOTR_STORAGE_STATE }}
-          ANNA_STORAGE_STATE: ${{ secrets.ANNA_STORAGE_STATE }}
-          MARCIN_STORAGE_STATE: ${{ secrets.MARCIN_STORAGE_STATE }}
-          MICHALINA_STORAGE_STATE: ${{ secrets.MICHALINA_STORAGE_STATE }}
-        run: |
-          mkdir -p .auth
-          for who in piotr anna marcin michalina; do
-            var="$(echo "$who" | tr a-z A-Z)_STORAGE_STATE"
-            if [ -n "${!var}" ]; then echo "${!var}" | base64 -d > ".auth/$who.json"; fi
-          done
 
       - name: Testy E2E
         env:

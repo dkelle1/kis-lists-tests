@@ -1,4 +1,5 @@
 import { Locator, Page } from '@playwright/test';
+import { retryUntil } from '../../support/retry';
 import { step } from '../../support/step';
 
 /**
@@ -20,20 +21,31 @@ export class CommentForm {
   }
 
   /**
-   * Podpowiedź po wpisaniu "@". Niezweryfikowane na żywo (na koncie nie było jeszcze innych członków
-   * zespołu): lista TipTap renderuje się poza formularzem, stąd wyszukiwanie w całej stronie.
+   * Podpowiedź po wpisaniu "@" (TipTap, renderowana w .tippy-box poza formularzem):
+   * przyciski .mention-item z nazwami kont powiązanych z listą.
    */
-  mentionSuggestion(appName: string): Locator {
-    return this.page
-      .getByRole('option', { name: appName })
-      .or(this.page.locator('.kis-dropdown-item').filter({ hasText: appName }))
-      .first();
+  mentionOption(appName: string): Locator {
+    return this.page.locator('.tippy-box .mention-item').filter({ hasText: appName }).first();
   }
 
+  /**
+   * Lista osób ładuje się asynchronicznie – pierwsze "@" po otwarciu okna często pokazuje „Nic nie znaleziono.”
+   * i już się nie odświeża. Wtedy usuwamy "@" i wpisujemy je ponownie.
+   */
   @step('Oznacz osobę @{0}')
   async mention(appName: string): Promise<void> {
-    await this.editor.pressSequentially(`@${appName.slice(0, 3)}`);
-    await this.mentionSuggestion(appName).click();
+    const option = this.mentionOption(appName);
+    let typed = false;
+    await retryUntil(
+      `Podpowiedź "@${appName}"`,
+      async () => {
+        if (typed) await this.editor.press('Backspace');
+        await this.editor.pressSequentially('@');
+        typed = true;
+      },
+      () => option.isVisible(),
+    );
+    await option.click();
     await this.editor.pressSequentially(' ');
   }
 

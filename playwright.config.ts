@@ -1,5 +1,5 @@
 import { defineConfig, devices } from '@playwright/test';
-import { TEST_PLAN_URL } from './src/allure/metadata';
+import { BUGS_URL, TEST_PLAN_URL } from './src/allure/metadata';
 import { baseURL } from './src/config/env';
 
 const isCI = !!process.env.CI;
@@ -30,6 +30,7 @@ export default defineConfig({
         suiteTitle: true,
         links: {
           tms: { urlTemplate: () => TEST_PLAN_URL, nameTemplate: 'Plan testów: %s' },
+          issue: { urlTemplate: () => BUGS_URL, nameTemplate: 'Błąd: %s' },
         },
         environmentInfo: {
           BASE_URL: baseURL,
