@@ -17,7 +17,7 @@ Raport testerski oraz test E2E (Playwright + TypeScript) do zadania rekrutacyjne
 | Wymaganie zadania                                                             | Gdzie                                                                                                    |
 | ----------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
 | Przejście interfejsu jako członkowie zespołu i jako klient                    | sekcja 2, [docs/LEARNINGS.md](docs/LEARNINGS.md) (role, lista, komentarze, widok klienta, powiadomienia) |
-| Plan testów: scenariusze pozytywne i negatywne                                | sekcja 3, [docs/TEST_CASES.md](docs/TEST_CASES.md) – 12 pozytywnych, 8 negatywnych                       |
+| Plan testów: scenariusze pozytywne i negatywne                                | sekcja 3, [docs/TEST_CASES.md](docs/TEST_CASES.md) – 14 pozytywnych, 9 negatywnych                       |
 | Wykonanie testów i opis wyników                                               | sekcja 4, [docs/TEST_CASES.md](docs/TEST_CASES.md), [docs/BUGS.md](docs/BUGS.md)                         |
 | Test E2E w Playwright (TypeScript) odtwarzający znaleziony problem (regresja) | `tests/notifications/*.spec.ts` – tag `@regression` (BUG-01…03); sekcja 5                                |
 | Publiczne repozytorium: README (raport + instrukcja), `/tests`, konfiguracja  | ten plik, `tests/`, `playwright.config.ts`, `package.json`, `tsconfig.json`, `.env.example`, `.github/`  |
@@ -74,20 +74,22 @@ co 3 s), zanim uznamy brak powiadomienia. Wyniki automatyczne potwierdzono ręcz
 
 ### 3.1 Scenariusze pozytywne
 
-| ID   | Wym. | Scenariusz                                                       | Oczekiwany rezultat                                                           |
-| ---- | ---- | ---------------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| P-01 | R1   | Klient dodaje komentarz do propozycji                            | Damian, Piotr, Marcin dostają powiadomienie                                   |
-| P-02 | R2   | Klient dodaje komentarz do udostępnionej listy (podgląd na żywo) | Damian, Piotr, Marcin dostają powiadomienie                                   |
-| P-03 | R3   | Administrator (Damian) komentuje produkt w czacie zespołu        | Piotr, Marcin dostają powiadomienie                                           |
-| P-04 | R3   | Współpracownik (Piotr) komentuje produkt                         | Damian, Marcin dostają powiadomienie                                          |
-| P-05 | R3   | Członek zespołu (Marcin) komentuje produkt                       | Damian, Piotr dostają powiadomienie                                           |
-| P-06 | R3   | Komentarz z oznaczeniem `@Piotr`                                 | Piotr dostaje powiadomienie „oznaczył/a Ciebie w komentarzu”                  |
-| P-07 | R3   | Administrator komentuje z oznaczeniem `@Marcin`                  | Marcin **oraz** Piotr dostają powiadomienie (oznaczenie nie zawęża odbiorców) |
-| P-08 | R3   | Oznaczenie kilku osób (`@Marcin @Piotr`)                         | Każda z osób – dokładnie jedno powiadomienie (bez duplikatów)                 |
-| P-09 | R3   | Odpowiedź w istniejącym wątku komentarzy                         | Pozostali członkowie dostają powiadomienie również o odpowiedzi               |
-| P-10 | ✅   | ✅                                                               | ✅                                                                            | –   | ✅  | autor, rodzaj zdarzenia, sekcja i produkt, treść komentarza, projekt |
-| P-11 | R3   | Członek dodany do listy później                                  | Po dodaniu do listy otrzymuje powiadomienia o nowych komentarzach             |
-| P-12 | R3   | Komentarz członka zespołu w zakładce „Komentarze klienta”        | Pozostali członkowie dostają powiadomienie                                    |
+| ID   | Wym.  | Scenariusz                                                       | Oczekiwany rezultat                                                                 |
+| ---- | ----- | ---------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| P-01 | R1    | Klient dodaje komentarz do propozycji                            | Damian, Piotr, Marcin dostają powiadomienie                                         |
+| P-02 | R2    | Klient dodaje komentarz do udostępnionej listy (podgląd na żywo) | Damian, Piotr, Marcin dostają powiadomienie                                         |
+| P-03 | R3    | Administrator (Damian) komentuje produkt w czacie zespołu        | Piotr, Marcin dostają powiadomienie                                                 |
+| P-04 | R3    | Współpracownik (Piotr) komentuje produkt                         | Damian, Marcin dostają powiadomienie                                                |
+| P-05 | R3    | Członek zespołu (Marcin) komentuje produkt                       | Damian, Piotr dostają powiadomienie                                                 |
+| P-06 | R3    | Komentarz z oznaczeniem `@Piotr`                                 | Piotr dostaje powiadomienie „oznaczył/a Ciebie w komentarzu”                        |
+| P-07 | R3    | Administrator komentuje z oznaczeniem `@Marcin`                  | Marcin **oraz** Piotr dostają powiadomienie (oznaczenie nie zawęża odbiorców)       |
+| P-08 | R3    | Oznaczenie kilku osób (`@Marcin @Piotr`)                         | Każda z osób – dokładnie jedno powiadomienie (bez duplikatów)                       |
+| P-09 | R3    | Odpowiedź w istniejącym wątku komentarzy                         | Pozostali członkowie dostają powiadomienie również o odpowiedzi                     |
+| P-10 | R1–R3 | Treść powiadomienia (autor, zdarzenie, produkt, treść, projekt)  | Powiadomienie zawiera komplet informacji – sprawdzane przy każdym innym scenariuszu |
+| P-11 | R3    | Członek dodany do listy później                                  | Po dodaniu do listy otrzymuje powiadomienia o nowych komentarzach                   |
+| P-12 | R3    | Komentarz członka zespołu w zakładce „Komentarze klienta”        | Pozostali członkowie dostają powiadomienie                                          |
+| P-13 | R3    | Bardzo długi komentarz (~800 znaków)                             | Zapisuje się bez błędu/limitu; pozostali dostają powiadomienie                      |
+| P-14 | R3    | Seria 3 komentarzy pod rząd                                      | Każdy dostaje osobne powiadomienie – nic nie ginie, nic się nie duplikuje           |
 
 ### 3.2 Scenariusze negatywne
 
@@ -101,6 +103,7 @@ co 3 s), zanim uznamy brak powiadomienia. Wyniki automatyczne potwierdzono ręcz
 | N-06 | R1–R3 | Pusty komentarz / same spacje                                 | Komentarz nie zostaje dodany, brak powiadomienia                                   |
 | N-07 | R1–R3 | Edycja / usunięcie komentarza                                 | Nie generuje nowego powiadomienia „dodał komentarz” (do potwierdzenia z produktem) |
 | N-08 | R2    | Klient otwiera link udostępnienia, ale nie dodaje komentarza  | Brak powiadomienia                                                                 |
+| N-09 | R3    | Komentarz z ładunkiem HTML/JS (`<img onerror=alert(1)>`)      | Treść pokazana jako zwykły tekst (bez wykonania); pozostali dostają powiadomienie  |
 
 ### 3.3 Priorytety
 
@@ -113,24 +116,27 @@ z prawem edycji, a warianty z `@` sprawdzają, czy oznaczenie nie zawęża odbio
 Legenda: ✅ zgodnie z wymaganiem · ❌ błąd · „autor” – autor komentarza · ⏳ nie wykonano.
 Wyniki automatyczne (Playwright) zgodne z wykonaniem ręcznym.
 
-| ID                     | Damian (admin) | Piotr (współpr.) | Marcin (członek) | Klient1 (gość) | Wynik | Uwagi                                                                                    |
-| ---------------------- | :------------: | :--------------: | :--------------: | :------------: | :---: | ---------------------------------------------------------------------------------------- |
-| P-01                   |       ✅       |        ✅        |      **❌**      |    – (brak)    |  ❌   | [BUG-02](#bug-02) – członek zespołu nie dostaje powiadomienia o komentarzu do propozycji |
-| P-02                   |       ✅       |        ✅        |      **❌**      |    – (brak)    |  ❌   | [BUG-02](#bug-02) – członek zespołu nie dostaje powiadomienia o komentarzu klienta       |
-| P-03 + N-01            |    autor ✅    |      **❌**      |      **❌**      |   ✅ (brak)    |  ❌   | [BUG-01](#bug-01)                                                                        |
-| P-04 + N-01            |     **❌**     |     autor ✅     |      **❌**      |   ✅ (brak)    |  ❌   | [BUG-01](#bug-01)                                                                        |
-| P-05 + N-01            |     **❌**     |      **❌**      |     autor ✅     |   ✅ (brak)    |  ❌   | [BUG-01](#bug-01)                                                                        |
-| P-06                   |       –        |        ✅        |      autor       |       –        |  ✅   | oznaczony dostaje „Marcin oznaczył/a Ciebie w komentarzu”                                |
-| P-07                   |    autor ✅    |      **❌**      |        ✅        |       –        |  ❌   | [BUG-01](#bug-01) – powiadomiony tylko oznaczony                                         |
-| P-08                   |     autor      |        ✅        |        ✅        |       –        |  ✅   | po jednym powiadomieniu, bez duplikatów                                                  |
-| P-10                   |       ✅       |        ✅        |        ✅        |       –        |  ✅   | autor, rodzaj zdarzenia, treść, projekt; **brak nazwy produktu** (uwaga U-01)            |
-| P-12                   |     **❌**     |      **❌**      |      **❌**      |       –        |  ❌   | ręcznie: komentarze Marcina i Piotra w „Komentarze klienta” – brak powiadomień           |
-| N-02                   | **❌** (jest)  |        –         |   ✅ (kontr.)    |       –        |  ❌   | [BUG-03](#bug-03) – autor oznaczający siebie dostaje powiadomienie                       |
-| N-03                   |       –        |        –         |        –         |   ✅ (brak)    |  ✅   | sprawdzane w P-03…P-05                                                                   |
-| N-08                   |       ✅       |        ✅        |        ✅        |       –        |  ✅   | liczba powiadomień bez zmian                                                             |
-| P-09                   |     **❌**     | ✅ (autor wątku) |     autor ✅     |       –        |  ❌   | [BUG-01](#bug-01) – o odpowiedzi dowiaduje się tylko autor komentarza nadrzędnego        |
-| N-06                   |       –        |        –         |        ✅        |       –        |  ✅   | pusty komentarz i same spacje nie są dodawane                                            |
-| P-11, N-04, N-05, N-07 |                |                  |                  |                |  ⏳   | poza zakresem tego przebiegu (patrz docs/TEST_CASES.md)                                  |
+| ID                     | Damian (admin) | Piotr (współpr.) | Marcin (członek) | Klient1 (gość) | Wynik | Uwagi                                                                                     |
+| ---------------------- | :------------: | :--------------: | :--------------: | :------------: | :---: | ----------------------------------------------------------------------------------------- |
+| P-01                   |       ✅       |        ✅        |      **❌**      |    – (brak)    |  ❌   | [BUG-02](#bug-02) – członek zespołu nie dostaje powiadomienia o komentarzu do propozycji  |
+| P-02                   |       ✅       |        ✅        |      **❌**      |    – (brak)    |  ❌   | [BUG-02](#bug-02) – członek zespołu nie dostaje powiadomienia o komentarzu klienta        |
+| P-03 + N-01            |    autor ✅    |      **❌**      |      **❌**      |   ✅ (brak)    |  ❌   | [BUG-01](#bug-01)                                                                         |
+| P-04 + N-01            |     **❌**     |     autor ✅     |      **❌**      |   ✅ (brak)    |  ❌   | [BUG-01](#bug-01)                                                                         |
+| P-05 + N-01            |     **❌**     |      **❌**      |     autor ✅     |   ✅ (brak)    |  ❌   | [BUG-01](#bug-01)                                                                         |
+| P-06                   |       –        |        ✅        |      autor       |       –        |  ✅   | oznaczony dostaje „Marcin oznaczył/a Ciebie w komentarzu”                                 |
+| P-07                   |    autor ✅    |      **❌**      |        ✅        |       –        |  ❌   | [BUG-01](#bug-01) – powiadomiony tylko oznaczony                                          |
+| P-08                   |     autor      |        ✅        |        ✅        |       –        |  ✅   | po jednym powiadomieniu, bez duplikatów                                                   |
+| P-10                   |       ✅       |        ✅        |        ✅        |       –        |  ✅   | autor, rodzaj zdarzenia, treść, projekt; **brak nazwy produktu** (uwaga U-01)             |
+| P-12                   |     **❌**     |      **❌**      |      **❌**      |       –        |  ❌   | ręcznie: komentarze Marcina i Piotra w „Komentarze klienta” – brak powiadomień            |
+| N-02                   | **❌** (jest)  |        –         |   ✅ (kontr.)    |       –        |  ❌   | [BUG-03](#bug-03) – autor oznaczający siebie dostaje powiadomienie                        |
+| N-03                   |       –        |        –         |        –         |   ✅ (brak)    |  ✅   | sprawdzane w P-03…P-05                                                                    |
+| N-08                   |       ✅       |        ✅        |        ✅        |       –        |  ✅   | liczba powiadomień bez zmian                                                              |
+| P-09                   |     **❌**     | ✅ (autor wątku) |     autor ✅     |       –        |  ❌   | [BUG-01](#bug-01) – o odpowiedzi dowiaduje się tylko autor komentarza nadrzędnego         |
+| N-06                   |       –        |        –         |        ✅        |       –        |  ✅   | pusty komentarz i same spacje nie są dodawane                                             |
+| P-13                   |    autor ✅    |      **❌**      |        –         |       –        |  ❌   | [BUG-01](#bug-01) – długi komentarz (~800 zn.) zapisuje się poprawnie, powiadomienia brak |
+| P-14                   |       –        |      **❌**      |     autor ✅     |       –        |  ❌   | [BUG-01](#bug-01) – 3 komentarze pod rząd zapisują się poprawnie, powiadomień brak        |
+| N-09                   |     **❌**     |        –         |     autor ✅     |       –        |  ❌   | [BUG-01](#bug-01) – ładunek HTML bezpieczny (brak `alert`), powiadomienia brak            |
+| P-11, N-04, N-05, N-07 |                |                  |                  |                |  ⏳   | poza zakresem tego przebiegu (patrz docs/TEST_CASES.md)                                   |
 
 ### Zgłoszone błędy
 
@@ -187,11 +193,13 @@ Pełne zgłoszenia (środowisko, kroki, obserwacje): [docs/BUGS.md](docs/BUGS.md
 
 ## 5. Test automatyczny (Playwright + TypeScript)
 
-Framework automatyzuje scenariusze R1–R3: P-01…P-10 (P-10 – treść powiadomienia) oraz N-01, N-02, N-03, N-06, N-08.
-Testy odtwarzające błędy (**@regression**): P-01 i P-02 (BUG-02), P-03…P-05, P-07 i P-09 (BUG-01), N-02 (BUG-03) –
-**obecnie czerwone** i zmienią się na zielone po poprawce. P-06, P-08, N-06 i N-08 przechodzą.
+Framework automatyzuje scenariusze R1–R3: P-01…P-10, P-13, P-14 oraz N-01, N-02, N-03, N-06, N-08, N-09.
+Testy odtwarzające błędy (**@regression**): P-01 i P-02 (BUG-02), P-03…P-05, P-07, P-09, P-13, P-14 i N-09 (BUG-01),
+N-02 (BUG-03) – **obecnie czerwone** i zmienią się na zielone po poprawce. P-06, P-08, N-06 i N-08 przechodzą.
 
-Ostatni przebieg (2026-09-26): 4 ✅ (P-06, P-08, N-06, N-08), 8 ❌ (P-01, P-02, P-03, P-04, P-05, P-07, P-09, N-02 – każdy z powodu opisanego błędu).
+Ostatni przebieg (2026-09-26): 4 ✅ (P-06, P-08, N-06, N-08), 11 ❌ (P-01, P-02, P-03, P-04, P-05, P-07, P-09, P-13,
+P-14, N-02, N-09 – każdy z powodu opisanego błędu). P-13, P-14 i N-09 dodatkowo potwierdzają, że komentarze (długie,
+w serii, z ładunkiem HTML) zapisują się poprawnie – czerwony wynik dotyczy wyłącznie brakującego powiadomienia.
 
 ### Co dokładnie weryfikują testy
 
@@ -234,7 +242,7 @@ src/
 tests/
 └── notifications/
     ├── steps.ts                  # kroki testów z asercjami: postTeamComment, expectNotified, expectNotNotified
-    ├── team-comments.spec.ts     # R3: P-03…P-08, N-01…N-03
+    ├── team-comments.spec.ts     # R3: P-03…P-09, P-13, P-14, N-01…N-03, N-06, N-09
     └── client-comments.spec.ts   # R1/R2: P-01, P-02, N-08
 ```
 

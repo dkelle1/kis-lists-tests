@@ -107,9 +107,13 @@ Zgłoszenia błędów: [BUGS.md](BUGS.md). Podsumowanie wyników: [README – se
 
 ### P-11 – Członek dodany do listy później (R3) · ⏳
 
-- **Kroki:** dodać nową osobę do listy, następnie komentarz innego członka.
-- **Oczekiwany rezultat:** nowa osoba dostaje powiadomienie.
-- **Rzeczywisty rezultat:** nie wykonano (plan: 3 z 5 miejsc zajęte; nowe konto wymaga ręcznej rejestracji – reCAPTCHA).
+- **Kroki:** dodać nową osobę do zespołu, następnie komentarz innego członka.
+- **Oczekiwany rezultat:** nowa osoba dostaje powiadomienia o nowych komentarzach (nie o starszych).
+- **Rzeczywisty rezultat:** **zablokowane przez konto, nie przez brak czasu** – przycisk „ZAPROŚ” w `/team` jest
+  wyłączony (plan próbny: 3 z 5 miejsc już zajęte). Nowe konto wymaga ręcznej rejestracji (reCAPTCHA – poza zakresem
+  automatyzacji). Zespół w KIS List jest **globalny dla konta** (komunikat w `/team`: „Członkowie zespołu mogą
+  udostępniać i edytować wszystkie listy i ulubione”) – nie ma osobnego przypisania „ta osoba do tej listy”, więc
+  scenariusz wymaga zmiany planu (dodatkowe miejsce) albo nowego, ręcznie założonego konta.
 
 ### P-12 – Komentarz członka zespołu w zakładce „Komentarze klienta” (R3) · ❌ [BUG-01](BUGS.md#bug-01)
 
@@ -117,6 +121,25 @@ Zgłoszenia błędów: [BUGS.md](BUGS.md). Podsumowanie wyników: [README – se
 - **Oczekiwany rezultat:** pozostali członkowie dostają powiadomienie.
 - **Rzeczywisty rezultat:** **nikt** nie dostał powiadomienia.
 - **Automatyzacja:** ✋ tylko ręcznie.
+
+### P-13 – Bardzo długi komentarz (R3) · ❌ [BUG-01](BUGS.md#bug-01)
+
+- **Warunki wstępne:** brak dokumentacji limitu długości komentarza.
+- **Kroki:** 1) Damian wpisuje w czacie zespołu komentarz o długości ~800 znaków (wpisywany znak po znaku, jak
+  realny użytkownik); 2) „Wyślij”; 3) centrum powiadomień Piotra.
+- **Oczekiwany rezultat:** komentarz zapisuje się bez błędu serwera i bez obcięcia treści; Piotr dostaje powiadomienie.
+- **Rzeczywisty rezultat:** komentarz zapisuje się poprawnie w całości (brak limitu/błędu) ✅; **Piotr ❌ – brak
+  powiadomienia** (ten sam wzorzec co P-04: autor Administrator).
+- **Automatyzacja:** 🤖 `team-comments.spec.ts` › P-13 (`@regression`).
+
+### P-14 – Seria kolejnych komentarzy pod rząd (R3) · ❌ [BUG-01](BUGS.md#bug-01)
+
+- **Kroki:** 1) Marcin wysyła 3 komentarze z unikalnymi znacznikami jeden po drugim, bez przerwy; 2) sprawdzenie, że
+  wszystkie 3 są widoczne w czacie; 3) centrum powiadomień Piotra dla każdego znacznika osobno.
+- **Oczekiwany rezultat:** żaden komentarz nie ginie, żaden się nie duplikuje; Piotr dostaje 3 osobne powiadomienia.
+- **Rzeczywisty rezultat:** wszystkie 3 komentarze zapisują się poprawnie i są widoczne (brak utraty danych przy
+  szybkiej serii) ✅; **Piotr ❌ – brak powiadomienia dla żadnego z 3** (ten sam wzorzec co P-05).
+- **Automatyzacja:** 🤖 `team-comments.spec.ts` › P-14 (`@regression`).
 
 ---
 
@@ -142,11 +165,16 @@ Zgłoszenia błędów: [BUGS.md](BUGS.md). Podsumowanie wyników: [README – se
 
 ### N-04 – Członek usunięty z listy · ⏳
 
-- **Oczekiwany rezultat:** po usunięciu z listy nie dostaje powiadomień. **Rzeczywisty rezultat:** nie wykonano.
+- **Oczekiwany rezultat:** po usunięciu z zespołu nie dostaje powiadomień.
+- **Rzeczywisty rezultat:** nie wykonano – zależy od P-11 (ta sama blokada: brak wolnego miejsca, żeby najpierw
+  kogoś dodać, a potem usunąć).
 
 ### N-05 – Komentarz na innej liście · ⏳
 
-- **Oczekiwany rezultat:** zespół listy testowej nie dostaje powiadomienia. **Rzeczywisty rezultat:** nie wykonano.
+- **Oczekiwany rezultat:** zespół listy testowej nie dostaje powiadomienia.
+- **Rzeczywisty rezultat:** nie wykonano – wymaga drugiej listy testowej; menu tworzenia nowej listy („UTWÓRZ” →
+  „Utwórz listę”) nie udało się jeszcze rozpoznać automatem (submenu nie otwierało się w skrypcie rozpoznania).
+  Do zrobienia w kolejnym podejściu (`kis-explore-app`).
 
 ### N-06 – Pusty komentarz / same spacje · ✅
 
@@ -160,6 +188,17 @@ Zgłoszenia błędów: [BUGS.md](BUGS.md). Podsumowanie wyników: [README – se
 
 - **Oczekiwany rezultat:** brak nowego powiadomienia „dodał komentarz”. **Rzeczywisty rezultat:** nie wykonano.
 
+### N-09 – Treść komentarza z HTML/JS (bezpieczeństwo) · ❌ [BUG-01](BUGS.md#bug-01)
+
+- **Kroki:** 1) Marcin wpisuje w czacie zespołu ładunek `<img src=x onerror=alert(1)>` znak po znaku (nie przez
+  schowek); 2) „Wyślij”; 3) sprawdzenie treści w czacie i centrum powiadomień Damiana.
+- **Oczekiwany rezultat:** treść jest pokazana jako zwykły tekst (nie jako wykonany HTML/JS – brak dialogu `alert`);
+  Damian dostaje powiadomienie o komentarzu.
+- **Rzeczywisty rezultat:** treść jest poprawnie pokazana jako tekst, żaden `alert` się nie uruchomił (edytor i
+  wątek nie interpretują wpisanego tekstu jako HTML) ✅ – **komentarz jest bezpieczny**; **Damian ❌ – brak
+  powiadomienia** (ten sam wzorzec co P-05: autor Członek zespołu).
+- **Automatyzacja:** 🤖 `team-comments.spec.ts` › N-09 (`@regression`).
+
 ### N-08 – Klient tylko przegląda udostępnioną listę (R2) · ✅
 
 - **Kroki:** 1) liczba powiadomień każdego członka; 2) klient otwiera link i niczego nie komentuje; 3) ponowne liczenie po 20 s.
@@ -171,10 +210,14 @@ Zgłoszenia błędów: [BUGS.md](BUGS.md). Podsumowanie wyników: [README – se
 
 ## Podsumowanie
 
-| Status      | Liczba | Przypadki                                            |
-| ----------- | :----: | ---------------------------------------------------- |
-| ✅ zgodnie  |   7    | P-06, P-08, P-10, N-01, N-03, N-06, N-08             |
-| ❌ błąd     |   9    | P-01, P-02, P-03, P-04, P-05, P-07, P-09, P-12, N-02 |
-| ⏳ nie wyk. |   4    | P-11, N-04, N-05, N-07                               |
+| Status      | Liczba | Przypadki                                                              |
+| ----------- | :----: | ---------------------------------------------------------------------- |
+| ✅ zgodnie  |   7    | P-06, P-08, P-10, N-01, N-03, N-06, N-08                               |
+| ❌ błąd     |   12   | P-01, P-02, P-03, P-04, P-05, P-07, P-09, P-12, P-13, P-14, N-02, N-09 |
+| ⏳ nie wyk. |   4    | P-11, N-04, N-05, N-07                                                 |
+
+P-13, P-14 i N-09 każdorazowo **potwierdzają, że treść komentarza zapisuje się poprawnie** (długi tekst, seria
+komentarzy, ładunek HTML/JS pokazany bezpiecznie jako tekst) – czerwony wynik dotyczy wyłącznie brakującego
+powiadomienia (BUG-01), nie utraty ani uszkodzenia danych.
 
 Uruchomienie testów automatycznych: [README – sekcja 5](../README.md#5-test-automatyczny-playwright--typescript).

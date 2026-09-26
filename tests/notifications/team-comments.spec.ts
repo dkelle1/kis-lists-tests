@@ -1,4 +1,6 @@
+import { faker } from '@faker-js/faker';
 import { allureMeta } from '../../src/allure/metadata';
+import { attachScreenshot } from '../../src/allure/evidence';
 import { buildComment } from '../../src/data/factories';
 import { account, othersThan, personaName, TeamMemberKey } from '../../src/data/team';
 import { expect, test } from '../../src/fixtures/test';
@@ -224,6 +226,121 @@ test.describe('R3: komentarz członka zespołu', { tag: '@R3' }, () => {
       await modal.sendTeamComment(control.text);
       await expect(modal.comment(control.marker), 'komentarz kontrolny jest widoczny').toBeVisible();
       await expect(modal.emptyComments, 'w wątku nie ma wpisów bez treści').toHaveCount(0);
+    },
+  );
+
+  test(
+    'N-09: treść z HTML/JS jest pokazana jako zwykły tekst, nigdy wykonana (bezpieczeństwo)',
+    {
+      tag: ['@negative', '@regression'],
+      annotation: allureMeta({
+        requirement: 'R3',
+        story: 'Bezpieczeństwo treści komentarza',
+        scenarios: ['N-09'],
+        severity: 'critical',
+        bug: 'BUG-01',
+      }),
+    },
+    async ({ actor, listId, testItem }) => {
+      const marcin = await actor('marcin');
+      // Ładunek nie jest wpisywany przez schowek (paste), tylko znak po znaku – tak jak realny użytkownik pisałby
+      // w edytorze; sprawdzamy, że edytor bogatego tekstu (TipTap) nie interpretuje wpisanych znaków jako HTML.
+      const payload = '<img src=x onerror=alert(1)>';
+      const comment = buildComment('N-09', payload);
+
+      let dialogFired = false;
+      marcin.list.page.on('dialog', (dialog) => {
+        dialogFired = true;
+        void dialog.dismiss();
+      });
+
+      await marcin.list.goto(listId);
+      const modal = await marcin.list.openComments(testItem.id);
+      await modal.sendTeamComment(comment.text);
+      const sentAt = Date.now();
+
+      // Znacznik jest unikalny per przebieg – filtrujemy po nim, bo sam ładunek jest identyczny w każdym przebiegu
+      // (wcześniejsze przebiegi zostawiają w wątku swoje kopie tego samego tekstu).
+      const posted = modal.commentEntry(comment.marker);
+      await expect(posted, 'komentarz jest widoczny w czacie zespołu').toBeVisible();
+      await expect(posted, 'ładunek HTML jest widoczny jako zwykły tekst (nie wykonany)').toContainText(payload);
+      expect(dialogFired, 'wysłanie i wyświetlenie komentarza nie wywołało dialogu (alert)').toBe(false);
+      await attachScreenshot('Komentarz z ładunkiem HTML w czacie zespołu', posted);
+
+      await expectNotified(await actor('admin'), {
+        comment,
+        sentAt,
+        expected: { product: testItem.name, author: marcin.account.appName, action: COMMENT_ADDED },
+      });
+      expect(dialogFired, 'centrum powiadomień też nie wywołało dialogu (alert) przy wyświetleniu treści').toBe(false);
+    },
+  );
+
+  test(
+    'P-13: bardzo długi komentarz zapisuje się i powiadamia (brak limitu/błędu serwera)',
+    {
+      tag: ['@positive', '@regression'],
+      annotation: allureMeta({
+        requirement: 'R3',
+        story: 'Długa treść komentarza',
+        scenarios: ['P-13'],
+        bug: 'BUG-01',
+      }),
+    },
+    async ({ actor, listId, testItem }) => {
+      const admin = await actor('admin');
+      // ~800 znaków – wystarczająco dużo, żeby sprawdzić brak limitu/błędu serwera, a wpisanie znak po znaku
+      // (pressSequentially, jak realny użytkownik) mieści się w domyślnym limicie czasu akcji.
+      const longBody = faker.lorem.paragraphs(4, ' ').slice(0, 800);
+      const comment = buildComment('P-13', longBody);
+
+      const sentAt = await postTeamComment(admin, { listId, item: testItem, comment });
+
+      await expectNotified(await actor('piotr'), {
+        comment,
+        sentAt,
+        expected: { product: testItem.name, author: admin.account.appName, action: COMMENT_ADDED },
+      });
+    },
+  );
+
+  test(
+    'P-14: seria kolejnych komentarzy → każdy dostaje osobne powiadomienie (nic nie ginie, nic się nie duplikuje)',
+    {
+      tag: ['@positive', '@regression'],
+      annotation: allureMeta({
+        requirement: 'R3',
+        story: 'Seria komentarzy pod rząd',
+        scenarios: ['P-14'],
+        bug: 'BUG-01',
+      }),
+    },
+    async ({ actor, listId, testItem }) => {
+      const marcin = await actor('marcin');
+      const comments = [buildComment('P-14'), buildComment('P-14'), buildComment('P-14')];
+
+      await marcin.list.goto(listId);
+      const modal = await marcin.list.openComments(testItem.id);
+      await modal.privateTab.click();
+
+      const sentAt = await test.step('Marcin wysyła 3 komentarze pod rząd', async () => {
+        for (const c of comments) await modal.form.send(c.text);
+        return Date.now();
+      });
+
+      for (const c of comments) {
+        await expect(modal.comment(c.marker), `komentarz ${c.marker} jest widoczny w czacie`).toBeVisible();
+      }
+      await attachScreenshot('Seria komentarzy w czacie zespołu', modal.thread);
+
+      const piotr = await actor('piotr');
+      for (const c of comments) {
+        await expectNotified(piotr, {
+          comment: c,
+          sentAt,
+          expected: { product: testItem.name, author: marcin.account.appName, action: COMMENT_ADDED },
+        });
+      }
     },
   );
 });
