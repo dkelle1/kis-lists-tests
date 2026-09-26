@@ -191,7 +191,7 @@ Framework automatyzuje scenariusze R1–R3: P-01…P-10 (P-10 – treść powiad
 Testy odtwarzające błędy (**@regression**): P-01 i P-02 (BUG-02), P-03…P-05, P-07 i P-09 (BUG-01), N-02 (BUG-03) –
 **obecnie czerwone** i zmienią się na zielone po poprawce. P-06, P-08, N-06 i N-08 przechodzą.
 
-Ostatni przebieg (2026-09-26): 8 ✅ (4 × setup, P-06, P-08, N-06, N-08), 8 ❌ (P-01, P-02, P-03, P-04, P-05, P-07, P-09, N-02 – każdy z powodu opisanego błędu).
+Ostatni przebieg (2026-09-26): 4 ✅ (P-06, P-08, N-06, N-08), 8 ❌ (P-01, P-02, P-03, P-04, P-05, P-07, P-09, N-02 – każdy z powodu opisanego błędu).
 
 ### Co dokładnie weryfikują testy
 
@@ -224,12 +224,11 @@ src/
 ├── pages/                        # Page Objecty – lokatory i akcje, BEZ asercji
 │   ├── LoginPage.ts  TwoFactorPage.ts  ListPage.ts  ClientViewPage.ts  TeamPage.ts
 │   └── components/               # CommentsModal, CommentForm (TipTap), NotificationCenter
-├── support/                      # @step (metoda Page Objectu = krok raportu), retryUntil (synchronizacja)
+├── support/                      # @step (krok raportu + zrzut), retryUntil, session (logowanie z 2FA), mailbox, video, privacy
 ├── fixtures/test.ts              # actor(konto), client, listId, testItem
 ├── assertions/notifications.ts   # asercje domenowe: toHaveNotification, toKeepNotificationCount
 └── allure/                       # metadane (adnotacje) i dowody (zrzuty) do raportu
 tests/
-├── setup/auth.setup.ts           # sesje 4 kont (.auth/); logowanie tylko, gdy sesja wygasła (zaufane urządzenie / kod z Gmaila)
 └── notifications/
     ├── steps.ts                  # kroki testów z asercjami: postTeamComment, expectNotified, expectNotNotified
     ├── team-comments.spec.ts     # R3: P-03…P-08, N-01…N-03
@@ -272,8 +271,9 @@ tests/
   testów po ustawieniu `VIDEO=on` (w Actions: opcja „Wideo z całego testu”).
 - **Trace Playwrighta tylko w raporcie HTML Playwrighta** (artefakt `playwright-report`) – raport Allure go nie zawiera
   (`src/allure/reporter.ts`), dzięki czemu jest kilkukrotnie mniejszy.
-- **Tylko scenariusze:** przygotowanie sesji kont (projekt `setup`) jest ukryte w raporcie, dopóki przechodzi
-  (`allurerc.mjs` → `filter`); nieudane logowanie pozostaje widoczne jako przyczyna pominiętych testów.
+- **Logowanie widoczne w teście:** krok „Sesja: <konto>” (fixture `actor`) pokazuje sprawdzenie zapisanej sesji,
+  w razie potrzeby logowanie z kodem 2FA i „Sesja aktywna” – ze zrzutami. Nie ma osobnego projektu „setup”,
+  więc statystyki raportu liczą tylko scenariusze.
 - Interfejs raportu po polsku (`reportLanguage: 'pl'`), informacje o środowisku (URL, przeglądarka, okno czasowe).
 
 ### Kluczowe selektory
@@ -305,10 +305,11 @@ Zachowania aplikacji uwzględnione w Page Objectach:
 - **Pierwszy element `#item-…` na liście bywa notatką sekcji** (bez ikony komentarzy) – `ListPage.items` to wiersze
   z ikoną komentarzy, a test sprawdza, że okno komentarzy dotyczy właściwego produktu.
 - **Logowanie wymaga 4-cyfrowego kodu 2FA z e-maila** (nie TOTP, więc generator kodów odpada; SMTP należy do
-  KIS List, więc lokalna skrzynka typu Mailpit też). Projekt `setup` loguje każde konto najwyżej raz na przebieg
-  i zapisuje sesję (`.auth/<konto>.json`, „Zapamiętaj mnie”); przy ważnej sesji logowanie jest pomijane.
+  KIS List, więc lokalna skrzynka typu Mailpit też). Krok „Sesja: <konto>” w teście (`src/support/session.ts`)
+  loguje konto tylko wtedy, gdy zapisana sesja (`.auth/<konto>.json`, „Zapamiętaj mnie”) jest nieważna, i zapisuje nową –
+  logowanie z kodem odbywa się więc najwyżej raz na przebieg, w pierwszym teście używającym konta.
   - **Zaufane urządzenie:** po pierwszym logowaniu z kodem aplikacja ustawia cookie `devid` (ważne rok) i kolejne
-    logowania z tej przeglądarki nie wymagają kodu. Setup zapisuje jego wartość do `.auth/<konto>.device`;
+    logowania z tej przeglądarki nie wymagają kodu. Jego wartość trafia do `.auth/<konto>.device`;
     podana jako `<KONTO>_DEVICE_ID` (np. sekret w CI) pozwala logować się bez kodu – tak działa konto administratora
     z prywatną skrzynką, której testy nie czytają. Wartość można też skopiować z własnej przeglądarki
     (DevTools → Application → Cookies → `kislist.com` → `devid`).
@@ -322,7 +323,7 @@ Zachowania aplikacji uwzględnione w Page Objectach:
      Znacznik czasu zapisywany jest _przed_ kliknięciem „Zaloguj”, więc kod z poprzedniego przebiegu nie
      zostanie użyty. IMAP nie jest używany – Gmail API działa po HTTPS, także za proxy;
 
-  3. plik `.auth/<konto>.code`, na który setup czeka do 5 minut (gdy skrzynka nie jest czytana).
+  3. plik `.auth/<konto>.code`, na który test czeka do 5 minut (gdy skrzynka nie jest czytana).
 
 #### Dostęp do Gmaila (jednorazowo)
 

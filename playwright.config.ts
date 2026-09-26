@@ -57,13 +57,7 @@ export default defineConfig({
     // Wideo całego testu: VIDEO=on (każdy test) – domyślnie tylko testy zakończone błędem.
     video: process.env.VIDEO === 'on' ? 'on' : 'retain-on-failure',
   },
-  projects: [
-    { name: 'setup', testMatch: /.*\.setup\.ts/ },
-    {
-      name: 'chromium',
-      testMatch: /.*\.spec\.ts/,
-      use: { ...devices['Desktop Chrome'] },
-      dependencies: ['setup'],
-    },
-  ],
+  // Bez osobnego projektu „setup”: logowanie kont jest krokiem „Sesja: <konto>” w każdym teście (fixture `actor`),
+  // więc raport testu pokazuje je razem z jego krokami, a statystyki liczą tylko scenariusze.
+  projects: [{ name: 'chromium', testMatch: /.*\.spec\.ts/, use: { ...devices['Desktop Chrome'] } }],
 });
