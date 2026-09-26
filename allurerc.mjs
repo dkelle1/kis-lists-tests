@@ -4,6 +4,6 @@ export default defineConfig({
   name: 'KIS List – powiadomienia o komentarzach',
   output: './allure-report',
   plugins: {
-    awesome: { options: { singleFile: false, reportLanguage: 'pl', groupBy: ['epic', 'feature', 'story'] } },
+    awesome: { options: { singleFile: true, reportLanguage: 'pl', groupBy: ['epic', 'feature', 'story'] } },
   },
 });
