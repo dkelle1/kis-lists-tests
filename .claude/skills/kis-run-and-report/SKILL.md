@@ -1,6 +1,6 @@
 ---
 name: kis-run-and-report
-description: Uruchomienie testów E2E rekrutacja-kis na żywej aplikacji (lokalnie, w chmurze Claude albo w GitHub Actions), odczyt wyników i raportu Allure oraz aktualizacja raportu testerskiego (tabela wyników, zgłoszenia błędów BUG-xx, PLAN.md). Użyj po napisaniu testu, przed PR-em i gdy użytkownik prosi o wyniki.
+description: Uruchomienie testów E2E kis-lists-tests na żywej aplikacji (lokalnie, w chmurze Claude albo w GitHub Actions), odczyt wyników i raportu Allure oraz aktualizacja raportu testerskiego (tabela wyników, zgłoszenia błędów BUG-xx, PLAN.md). Użyj po napisaniu testu, przed PR-em i gdy użytkownik prosi o wyniki.
 ---
 
 # Uruchomienie testów i raport

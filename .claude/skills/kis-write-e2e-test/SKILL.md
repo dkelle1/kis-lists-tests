@@ -1,9 +1,9 @@
 ---
 name: kis-write-e2e-test
-description: Pisanie lub poprawa testu E2E (Playwright + TypeScript) w repozytorium rekrutacja-kis – scenariusze powiadomień o komentarzach KIS List, Page Objecty, fixtures, asercje domenowe i metadane Allure. Użyj przy każdym nowym scenariuszu z planu testów (P-xx / N-xx), teście regresyjnym dla znalezionego błędu albo zmianie Page Objectu.
+description: Pisanie lub poprawa testu E2E (Playwright + TypeScript) w repozytorium kis-lists-tests – scenariusze powiadomień o komentarzach KIS List, Page Objecty, fixtures, asercje domenowe i metadane Allure. Użyj przy każdym nowym scenariuszu z planu testów (P-xx / N-xx), teście regresyjnym dla znalezionego błędu albo zmianie Page Objectu.
 ---
 
-# Pisanie testu E2E w rekrutacja-kis
+# Pisanie testu E2E w kis-lists-tests
 
 Przed pisaniem: scenariusz musi być w planie (README, sekcja 3) i sprawdzony na żywo (skill `kis-explore-app`).
 Kontekst aplikacji: [docs/LEARNINGS.md](../../../docs/LEARNINGS.md).

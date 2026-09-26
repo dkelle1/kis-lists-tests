@@ -1,4 +1,4 @@
-# rekrutacja-kis – wskazówki dla Claude Code
+# kis-lists-tests – wskazówki dla Claude Code
 
 Testy E2E (Playwright + TypeScript, Allure 3) powiadomień o komentarzach w KIS List + raport testerski (README).
 
