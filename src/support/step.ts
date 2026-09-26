@@ -19,15 +19,12 @@ export interface HasSensitiveData {
   readonly sensitive: readonly Locator[];
 }
 
-function pageOf(target: unknown): Page | undefined {
-  const page = (target as { page?: unknown } | null)?.page;
-  return page && typeof (page as Page).screenshot === 'function' ? (page as Page) : undefined;
-}
+/** Page Object, którego metody są krokami: ma stronę (do zrzutu) i opcjonalnie dane do zamazania. */
+type StepTarget = { readonly page: Page } & Partial<HasSensitiveData>;
 
-async function attachStepScreenshot(target: unknown, title: string): Promise<void> {
-  const page = pageOf(target);
-  if (!page || page.isClosed()) return;
-  const mask = [privateTextOn(page), ...((target as Partial<HasSensitiveData>).sensitive ?? [])];
+async function attachStepScreenshot({ page, sensitive = [] }: StepTarget, title: string): Promise<void> {
+  if (page.isClosed()) return;
+  const mask = [privateTextOn(page), ...sensitive];
   const body = await page.screenshot({ ...SCREENSHOT, mask, timeout: 5_000 }).catch(() => undefined);
   if (body) await test.info().attach(`Ekran: ${title}`, { body, contentType: 'image/jpeg' });
 }
@@ -39,7 +36,9 @@ async function attachStepScreenshot(target: unknown, title: string): Promise<voi
  * `box: true` – błąd wewnątrz kroku jest raportowany w linii testu, który wywołał metodę.
  */
 export function step(title: string) {
-  return function <This, Args extends unknown[], Result>(method: (this: This, ...args: Args) => Promise<Result>) {
+  return function <This extends StepTarget, Args extends unknown[], Result>(
+    method: (this: This, ...args: Args) => Promise<Result>,
+  ) {
     return function (this: This, ...args: Args): Promise<Result> {
       const stepTitle = formatTitle(title, args);
       return test.step(
