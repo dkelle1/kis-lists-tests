@@ -38,6 +38,16 @@ Dla zadania „dopisz test” zacznij od [WORKFLOW.md](WORKFLOW.md) i skilli w `
   jest `disabled` – limit dotyczy najwyraźniej też liczby zaproszeń, nie tylko aktywnych kont). P-11/N-04
   (dodanie/usunięcie członka) wymagają więc albo wolnego miejsca, albo zmiany planu – **nie da się tego wywołać
   samym UI bez ingerencji w konto/plan**.
+- **Tworzenie nowej listy:** `/lists` → zielony przycisk „Utwórz” (renderowany wielkimi literami przez CSS – jego
+  **prawdziwy tekst DOM to „Utwórz”, nie „UTWÓRZ”**; `getByRole('button', { name: 'UTWÓRZ', exact: true })` nic
+  nie znajdzie, bo dopasowanie jest wtedy wrażliwe na wielkość liter mimo że sama nazwa zgadza się case-insensitive
+  – używaj samego `'Utwórz'` albo dopasowania po tekście, bez `exact`). Klik otwiera dialog „Podaj nazwę listy” →
+  pole tekstowe → przycisk „Utwórz listę” (aktywny dopiero po wpisaniu nazwy).
+- **Backend bywa niestabilny w czasie testów:** `/lists` czasem zwraca całą stronę z samym tekstem
+  „upstream request failed” (do powtórzenia przez ponowne `goto`), a wysłanie formularza „Utwórz listę” raz
+  zostało w nieskończonym stanie ładowania – żadne żądanie POST nie pojawiło się w logu sieciowym Playwrighta
+  (`page.waitForResponse` – timeout 20 s), więc nie jest to blokada proxy sandboksa (log `$HTTPS_PROXY/__agentproxy/status`
+  nie pokazuje odrzuceń dla `kislist.com`), tylko chwilowa awaria po stronie aplikacji.
 
 ### 1.3 Lista i komentarze (widok zespołu)
 
@@ -90,6 +100,7 @@ Dla zadania „dopisz test” zacznij od [WORKFLOW.md](WORKFLOW.md) i skilli w `
   (starsza grupa „Piotr dodał/a komentarz” z poziomu projektu – bez produktu). Uwaga: `.notification-context` zawiera
   tylko „`<autor>` dodał/a komentarz” – produkt jest w osobnym elemencie wpisu, więc sprawdzaj cały wpis.
 - W trakcie testów **nie przyszły e-maile o komentarzach**; w ustawieniach konta (Profil → Ustawienia aplikacji) **nie ma opcji powiadomień**.
+  Potwierdzone też skryptem (N-10, Gmail API): po komentarzu Marcina do Piotra żaden e-mail nie przyszedł w ciągu 75 s.
 - Powiadomienia pojawiają się w ciągu kilku sekund (okno 20 s wystarcza); brak powiadomienia potwierdzono ręcznie po ~15 min.
 - **Wpis w `/inbox` nie jest klikalny** (U-05, `docs/BUGS.md`): `innerHTML` wpisu nie ma ani jednego `<a>`/`href` –
   tylko dwa przyciski akcji („Oznacz jako przeczytane”, „Wyczyść”). Kliknięcie w treść nie nawiguje nigdzie.

@@ -17,13 +17,14 @@ Raport testerski oraz test E2E (Playwright + TypeScript) do zadania rekrutacyjne
 | Wymaganie zadania                                                             | Gdzie                                                                                                    |
 | ----------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
 | Przejście interfejsu jako członkowie zespołu i jako klient                    | sekcja 2, [docs/LEARNINGS.md](docs/LEARNINGS.md) (role, lista, komentarze, widok klienta, powiadomienia) |
-| Plan testów: scenariusze pozytywne i negatywne                                | sekcja 3, [docs/TEST_CASES.md](docs/TEST_CASES.md) – 14 pozytywnych, 9 negatywnych                       |
+| Plan testów: scenariusze pozytywne i negatywne                                | sekcja 3, [docs/TEST_CASES.md](docs/TEST_CASES.md) – 14 pozytywnych, 10 negatywnych                      |
 | Wykonanie testów i opis wyników                                               | sekcja 4, [docs/TEST_CASES.md](docs/TEST_CASES.md), [docs/BUGS.md](docs/BUGS.md)                         |
 | Test E2E w Playwright (TypeScript) odtwarzający znaleziony problem (regresja) | `tests/notifications/*.spec.ts` – tag `@regression` (BUG-01…03); sekcja 5                                |
 | Publiczne repozytorium: README (raport + instrukcja), `/tests`, konfiguracja  | ten plik, `tests/`, `playwright.config.ts`, `package.json`, `tsconfig.json`, `.env.example`, `.github/`  |
 | Uruchomienie po sklonowaniu                                                   | sekcja 5 „Uruchomienie lokalne” (`npm ci` → `.env` → `npm test`) i „Uruchomienie w GitHub Actions”       |
 
-Zakres nieobjęty wykonaniem (⏳): P-11, N-04, N-05, N-07 – opisane w [docs/TEST_CASES.md](docs/TEST_CASES.md).
+Zakres nieobjęty wykonaniem (⏳): P-11, N-04, N-05, N-07 – opisane w [docs/TEST_CASES.md](docs/TEST_CASES.md)
+(N-05 – druga lista testowa – napotkała chwilową niestabilność backendu aplikacji przy tworzeniu listy).
 
 ---
 
@@ -104,6 +105,7 @@ co 3 s), zanim uznamy brak powiadomienia. Wyniki automatyczne potwierdzono ręcz
 | N-07 | R1–R3 | Edycja / usunięcie komentarza                                 | Nie generuje nowego powiadomienia „dodał komentarz” (do potwierdzenia z produktem) |
 | N-08 | R2    | Klient otwiera link udostępnienia, ale nie dodaje komentarza  | Brak powiadomienia                                                                 |
 | N-09 | R3    | Komentarz z ładunkiem HTML/JS (`<img onerror=alert(1)>`)      | Treść pokazana jako zwykły tekst (bez wykonania); pozostali dostają powiadomienie  |
+| N-10 | R3    | E-mail jako zapasowy kanał powiadomienia                      | E-mail o komentarzu przychodzi, jeśli powiadomienie w aplikacji nie dotarło        |
 
 ### 3.3 Priorytety
 
@@ -136,6 +138,7 @@ Wyniki automatyczne (Playwright) zgodne z wykonaniem ręcznym.
 | P-13                   |    autor ✅    |      **❌**      |        –         |       –        |  ❌   | [BUG-01](#bug-01) – długi komentarz (~800 zn.) zapisuje się poprawnie, powiadomienia brak |
 | P-14                   |       –        |      **❌**      |     autor ✅     |       –        |  ❌   | [BUG-01](#bug-01) – 3 komentarze pod rząd zapisują się poprawnie, powiadomień brak        |
 | N-09                   |     **❌**     |        –         |     autor ✅     |       –        |  ❌   | [BUG-01](#bug-01) – ładunek HTML bezpieczny (brak `alert`), powiadomienia brak            |
+| N-10                   |       –        |      **❌**      |        –         |       –        |  ❌   | [BUG-01](#bug-01) – brak e-maila do Piotra w 75 s; e-mail nie jest zapasowym kanałem      |
 | P-11, N-04, N-05, N-07 |                |                  |                  |                |  ⏳   | poza zakresem tego przebiegu (patrz docs/TEST_CASES.md)                                   |
 
 ### Zgłoszone błędy
@@ -200,6 +203,10 @@ N-02 (BUG-03) – **obecnie czerwone** i zmienią się na zielone po poprawce. P
 Ostatni przebieg (2026-09-26): 4 ✅ (P-06, P-08, N-06, N-08), 11 ❌ (P-01, P-02, P-03, P-04, P-05, P-07, P-09, P-13,
 P-14, N-02, N-09 – każdy z powodu opisanego błędu). P-13, P-14 i N-09 dodatkowo potwierdzają, że komentarze (długie,
 w serii, z ładunkiem HTML) zapisują się poprawnie – czerwony wynik dotyczy wyłącznie brakującego powiadomienia.
+
+**N-10 (kanał e-mail)** to jednorazowy skrypt diagnostyczny (Gmail API), nie stały test w tym zestawie – potwierdził,
+że po komentarzu Marcina do Piotra nie przyszedł żaden e-mail w ciągu 75 s; e-mail nie jest więc zapasowym kanałem
+powiadomienia. Szczegóły: [docs/TEST_CASES.md](docs/TEST_CASES.md) (N-10).
 
 ### Co dokładnie weryfikują testy
 
