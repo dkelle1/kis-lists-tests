@@ -11,13 +11,16 @@ import { Actor, expect, test, TestItem } from '../../src/fixtures/test';
 /** Czego oczekujemy w treści powiadomienia (P-10). */
 export interface ExpectedNotification {
   /** Opis zdarzenia, np. „dodał/a komentarz” albo „oznaczył/a Ciebie w komentarzu”. */
-  action: string;
+  action: string | RegExp;
   /** Nazwa autora w aplikacji; komentarz klienta z linku jest podpisany „Klient/ka”. */
   author: string;
 }
 
 export const COMMENT_ADDED = 'dodał/a komentarz';
 export const MENTIONED = 'oznaczył/a Ciebie w komentarzu';
+export const REPLIED = 'odpowiedział/a na Twój komentarz';
+/** Dowolne powiadomienie o komentarzu – gdy wymaganie nie określa rodzaju zdarzenia (np. odpowiedź dla osoby spoza wątku). */
+export const ANY_COMMENT_EVENT = /komentarz/;
 
 /**
  * Członek zespołu dodaje komentarz w czacie zespołu (zakładka „Prywatne”).
@@ -56,6 +59,32 @@ export async function postTeamComment(
       return sentAt;
     }),
   );
+}
+
+/**
+ * Członek zespołu odpowiada na istniejący komentarz („odpowiedz” → widok „Wątek: <autor>”).
+ * Zwraca moment wysłania odpowiedzi.
+ */
+export async function postReply(
+  author: Actor,
+  { listId, item, parent, comment }: { listId: string; item: TestItem; parent: CommentData; comment: CommentData },
+): Promise<number> {
+  return test.step(`${author.account.name} odpowiada na komentarz ${parent.marker}`, () =>
+    withFailureScreenshot(author.account.name, author.list.page, async () => {
+      await author.list.goto(listId);
+      const modal = await author.list.openComments(item.id);
+      await expect(modal.productName, 'modal komentarzy dotyczy wybranego produktu').toHaveText(item.name);
+
+      await modal.replyTo(parent.marker, comment.text);
+      const sentAt = Date.now();
+
+      await expect(modal.replyThreadTitle, 'otwarty wątek komentarza nadrzędnego').toBeVisible();
+      await expect(modal.commentEntry(parent.marker), 'komentarz nadrzędny jest w wątku').toBeVisible();
+      await expect(modal.commentEntry(comment.marker), 'odpowiedź jest widoczna w wątku').toBeVisible();
+      await expect(modal.form.editor, 'edytor jest wyczyszczony po wysłaniu').toHaveText('');
+      await attachScreenshot('Odpowiedź w wątku', modal.root);
+      return sentAt;
+    }));
 }
 
 /**

@@ -10,7 +10,7 @@ Termin: 3 dni robocze od otrzymania zadania. Legenda: ✅ zrobione · ⬜ do zro
 | 0.2 | Poczekać, aż na koncie pojawi się projekt testowy                                                             | Ty  | 0.1       | ✅     |
 | 0.3 | Konta z adresami „+”: **Piotr** (współpracownik), **Marcin** (członek zespołu), **Klient1** (gość); Gmail API | Ty  | 0.1       | ✅     |
 | 0.4 | Dodać konta do listy testowej z rolami (3 z 5 miejsc planu)                                                   | Ty  | 0.2, 0.3  | ✅     |
-| 0.5 | Link udostępnienia listy dla klienta (✅); propozycja dla klienta (⬜ – P-01)                                 | Ty  | 0.2       | 🟡     |
+| 0.5 | Linki dla klienta: udostępniona lista i propozycja (wysłane na adres Klient1, odczytane z Gmaila)             | Ty  | 0.2       | ✅     |
 | 0.6 | Odblokować sieć środowiska Claude (`www.kislist.com`, `app.kislist.com`, ewentualnie API)                     | Ty  | –         | ✅     |
 | 0.7 | Uzupełnić lokalny `.env` na podstawie `.env.example` (bez commitowania)                                       | Ty  | 0.3–0.5   | ✅     |
 
@@ -35,15 +35,15 @@ Termin: 3 dni robocze od otrzymania zadania. Legenda: ✅ zrobione · ⬜ do zro
 
 ## Etap 3 – Wykonanie testów manualnych
 
-| #   | Subtask                                                                        | Zależy od | Status |
-| --- | ------------------------------------------------------------------------------ | --------- | ------ |
-| 3.1 | P-02 – komentarz klienta na udostępnionej liście (P-01 – brak propozycji)      | 2.4       | 🟡     |
-| 3.2 | P-03…P-05 – komentarz każdej z 3 ról, sprawdzenie pozostałych + gościa         | 2.4       | ✅     |
-| 3.3 | P-07, P-08 – komentarze z oznaczeniami `@`                                     | 2.4       | ✅     |
-| 3.4 | P-09…P-11 – odpowiedzi w wątku, treść i link powiadomienia, nowy członek listy | 2.4       | ⬜     |
-| 3.5 | N-01…N-08 – scenariusze negatywne                                              | 2.4       | ✅     |
-| 3.6 | Powtórzyć przypadki z błędem 2–3 razy (czy to stały, czy losowy problem)       | 3.1–3.5   | ✅     |
-| 3.7 | Zebrać dowody: zrzuty ekranu i nagrania, godzina, autor, odbiorca              | 3.1–3.5   | ✅     |
+| #   | Subtask                                                                  | Zależy od | Status |
+| --- | ------------------------------------------------------------------------ | --------- | ------ |
+| 3.1 | P-01, P-02 – komentarze klienta (propozycja, udostępniona lista)         | 2.4       | ✅     |
+| 3.2 | P-03…P-05 – komentarz każdej z 3 ról, sprawdzenie pozostałych + gościa   | 2.4       | ✅     |
+| 3.3 | P-07, P-08 – komentarze z oznaczeniami `@`                               | 2.4       | ✅     |
+| 3.4 | P-09 (odpowiedź w wątku), P-10 (treść); P-11 – nie wykonano              | 2.4       | 🟡     |
+| 3.5 | N-01…N-03, N-06, N-08; N-04, N-05, N-07 – nie wykonano                   | 2.4       | 🟡     |
+| 3.6 | Powtórzyć przypadki z błędem 2–3 razy (czy to stały, czy losowy problem) | 3.1–3.5   | ✅     |
+| 3.7 | Zebrać dowody: zrzuty ekranu i nagrania, godzina, autor, odbiorca        | 3.1–3.5   | ✅     |
 
 ## Etap 4 – Raport
 
