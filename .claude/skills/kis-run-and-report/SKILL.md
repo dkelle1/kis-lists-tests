@@ -11,6 +11,7 @@ description: Uruchomienie testów E2E kis-lists-tests na żywej aplikacji (lokal
 | -------------- | -------------------------------------------------------------------------------------------------------------- |
 | Lokalnie       | `npm test`, `npm run test:regression`, `npx playwright test --grep "@R3"`                                      |
 | Chmura Claude  | `npx playwright test -c .local/playwright.sandbox.config.ts [--grep …] > .local/run.log 2>&1` (w tle)          |
+| Docker         | `npm run docker:build && npm run docker:test` (obraz z `Dockerfile`, `.env` przez `--env-file`)                |
 | GitHub Actions | Actions → „E2E – powiadomienia o komentarzach” → Run workflow (zestaw: all/positive/negative/regression/R1–R3) |
 
 - Pełny przebieg trwa ~7 min (workers = 1, okno 20 s na powiadomienie). Uruchamiaj w tle i czekaj pętlą
