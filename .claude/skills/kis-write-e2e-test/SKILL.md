@@ -69,4 +69,4 @@ npm run check                                                         # typechec
 npx playwright test -c .local/playwright.sandbox.config.ts --grep "P-xx"   # w chmurze; lokalnie: npx playwright test --grep "P-xx"
 ```
 
-Potem skill `kis-run-and-report` – wynik do README i PLAN.md.
+Potem skill `kis-run-and-report` – wynik do README i docs/TEST_CASES.md.

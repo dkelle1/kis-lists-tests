@@ -32,14 +32,11 @@ test.describe('R1/R2: komentarz klienta', () => {
         annotation: allureMeta({ requirement, story: 'Komentarz klienta do produktu', scenarios: [scenario], bug }),
       },
       async ({ client, actor, testItem }) => {
-        const link = url();
-        // eslint-disable-next-line playwright/no-skipped-test -- R1 wymaga linku do propozycji, który tworzy się ręcznie
-        test.skip(!link, 'Brak CLIENT_PROPOSAL_URL – propozycja dla klienta nie została jeszcze utworzona');
         const comment = buildComment(scenario);
 
         const sentAt = await test.step(`Klient komentuje produkt „${testItem.name}”`, () =>
           withFailureScreenshot('Klient', client.page, async () => {
-            await client.goto(link!);
+            await client.goto(url());
             await client.sendComment(testItem.id, comment.text);
             const sentAt = Date.now();
             await expect(client.item(testItem.id), 'komentarz jest widoczny u klienta').toContainText(comment.marker);

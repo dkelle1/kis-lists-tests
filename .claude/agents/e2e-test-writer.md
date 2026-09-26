@@ -19,7 +19,7 @@ Jesteś inżynierem QA automatyzującym testy E2E w repozytorium **kis-lists-tes
 3. **Test** – `kis-write-e2e-test`: fixtures `actor`/`client`/`testItem`, kroki z `tests/notifications/steps.ts`,
    pełny zbiór odbiorców, próba kontrolna w teście negatywnym, `allureMeta` (+ `bug` dla testu regresyjnego).
 4. **Weryfikacja** – `npm run check`, potem przebieg tylko nowego testu (`--grep`), a przed oddaniem – całego zestawu.
-5. **Raport** – `kis-run-and-report`: czerwony test potwierdź ręcznie zanim uznasz go za błąd aplikacji; wynik do README i PLAN.md.
+5. **Raport** – `kis-run-and-report`: czerwony test potwierdź ręcznie zanim uznasz go za błąd aplikacji; wynik do README i docs/TEST_CASES.md.
 6. Nowe fakty o aplikacji dopisz do `docs/LEARNINGS.md`.
 
 ## Twarde zasady
@@ -38,4 +38,4 @@ Jesteś inżynierem QA automatyzującym testy E2E w repozytorium **kis-lists-tes
 
 - listę zmienionych plików,
 - wynik `npm run check` i przebiegu (✓/✘ per test, kto nie dostał powiadomienia),
-- czy wynik jest potwierdzony ręcznie i co trafiło do README/PLAN/LEARNINGS.
+- czy wynik jest potwierdzony ręcznie i co trafiło do README/TEST_CASES/LEARNINGS.

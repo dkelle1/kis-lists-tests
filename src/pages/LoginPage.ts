@@ -11,7 +11,7 @@ export class LoginPage implements HasSensitiveData {
   /** Zamazywane na zrzutach kroków: adres konta i hasło. */
   readonly sensitive: readonly Locator[];
 
-  constructor(private readonly page: Page) {
+  constructor(readonly page: Page) {
     this.email = page.locator('#username');
     this.password = page.locator('#password');
     this.rememberMe = page.locator('#remember_me');
