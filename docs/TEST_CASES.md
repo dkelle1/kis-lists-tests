@@ -172,9 +172,12 @@ Zgłoszenia błędów: [BUGS.md](BUGS.md). Podsumowanie wyników: [README – se
 ### N-05 – Komentarz na innej liście · ⏳
 
 - **Oczekiwany rezultat:** zespół listy testowej nie dostaje powiadomienia.
-- **Rzeczywisty rezultat:** nie wykonano – wymaga drugiej listy testowej; menu tworzenia nowej listy („UTWÓRZ” →
-  „Utwórz listę”) nie udało się jeszcze rozpoznać automatem (submenu nie otwierało się w skrypcie rozpoznania).
-  Do zrobienia w kolejnym podejściu (`kis-explore-app`).
+- **Rzeczywisty rezultat:** nie wykonano. Przycisk „UTWÓRZ” na `/lists` poprawnie otwiera okno „Podaj nazwę listy”
+  (rozpoznane), ale samo utworzenie drugiej listy nie powiodło się – po kliknięciu „UTWÓRZ LISTĘ” przycisk zostaje
+  w stanie ładowania bez końca, żadne żądanie sieciowe do serwera nie jest widoczne (`page.waitForResponse` – timeout
+  20 s), a strona `/lists` niezależnie od tego kilkukrotnie zwracała `upstream request failed`. To wygląda na
+  **chwilową niestabilność backendu aplikacji**, a nie błąd skryptu czy limit środowiska (log proxy sandboksa nie
+  pokazuje żadnych odrzuceń dla `kislist.com`). Do powtórzenia, gdy aplikacja będzie stabilna.
 
 ### N-06 – Pusty komentarz / same spacje · ✅
 
@@ -188,6 +191,13 @@ Zgłoszenia błędów: [BUGS.md](BUGS.md). Podsumowanie wyników: [README – se
 
 - **Oczekiwany rezultat:** brak nowego powiadomienia „dodał komentarz”. **Rzeczywisty rezultat:** nie wykonano.
 
+### N-08 – Klient tylko przegląda udostępnioną listę (R2) · ✅
+
+- **Kroki:** 1) liczba powiadomień każdego członka; 2) klient otwiera link i niczego nie komentuje; 3) ponowne liczenie po 20 s.
+- **Oczekiwany rezultat:** liczba powiadomień bez zmian.
+- **Rzeczywisty rezultat:** zgodnie z oczekiwaniem.
+- **Automatyzacja:** 🤖 `client-comments.spec.ts` › N-08.
+
 ### N-09 – Treść komentarza z HTML/JS (bezpieczeństwo) · ❌ [BUG-01](BUGS.md#bug-01)
 
 - **Kroki:** 1) Marcin wpisuje w czacie zespołu ładunek `<img src=x onerror=alert(1)>` znak po znaku (nie przez
@@ -199,25 +209,33 @@ Zgłoszenia błędów: [BUGS.md](BUGS.md). Podsumowanie wyników: [README – se
   powiadomienia** (ten sam wzorzec co P-05: autor Członek zespołu).
 - **Automatyzacja:** 🤖 `team-comments.spec.ts` › N-09 (`@regression`).
 
-### N-08 – Klient tylko przegląda udostępnioną listę (R2) · ✅
+### N-10 – Kanał e-mail jako alternatywa dla powiadomienia w aplikacji · ❌ [BUG-01](BUGS.md#bug-01)
 
-- **Kroki:** 1) liczba powiadomień każdego członka; 2) klient otwiera link i niczego nie komentuje; 3) ponowne liczenie po 20 s.
-- **Oczekiwany rezultat:** liczba powiadomień bez zmian.
-- **Rzeczywisty rezultat:** zgodnie z oczekiwaniem.
-- **Automatyzacja:** 🤖 `client-comments.spec.ts` › N-08.
+- **Warunki wstępne:** w ustawieniach konta nie ma opcji powiadomień e-mail (sprawdzone ręcznie – U-03/BUG-01);
+  hipoteza: może aplikacja i tak wysyła e-mail przy komentarzu, niezależnie od panelu `/inbox`.
+- **Kroki:** 1) zapisz `since` = czas przed wysłaniem; 2) Marcin dodaje komentarz w czacie zespołu (bez oznaczeń); 3) odpytaj skrzynkę Gmail Piotra (Gmail API, `to:` + `after:<since>`) przez 75 s.
+- **Oczekiwany rezultat:** skoro w aplikacji nie ma ustawień powiadomień e-mail, brak e-maila jest zgodny z UI –
+  ale warto to zweryfikować, bo mógłby to być dodatkowy, nieudokumentowany kanał łagodzący BUG-01.
+- **Rzeczywisty rezultat:** **żaden e-mail nie przyszedł** do Piotra w ciągu 75 s od komentarza Marcina –
+  potwierdza to, że e-mail **nie jest** działającym zamiennikiem powiadomienia w aplikacji; BUG-01 dotyka
+  użytkownika całkowicie (żaden kanał go nie ostrzega o komentarzu).
+- **Automatyzacja:** ✋ jednorazowy skrypt diagnostyczny (Gmail API), nie wchodzi na stałe do zestawu CI – wymagałby
+  utrzymywania dodatkowej, kosztownej zależności (odpytywanie Gmaila) dla scenariusza, który nie jest osobnym
+  wymaganiem R1–R3, tylko dodatkowym potwierdzeniem zasięgu BUG-01.
 
 ---
 
 ## Podsumowanie
 
-| Status      | Liczba | Przypadki                                                              |
-| ----------- | :----: | ---------------------------------------------------------------------- |
-| ✅ zgodnie  |   7    | P-06, P-08, P-10, N-01, N-03, N-06, N-08                               |
-| ❌ błąd     |   12   | P-01, P-02, P-03, P-04, P-05, P-07, P-09, P-12, P-13, P-14, N-02, N-09 |
-| ⏳ nie wyk. |   4    | P-11, N-04, N-05, N-07                                                 |
+| Status      | Liczba | Przypadki                                                                    |
+| ----------- | :----: | ---------------------------------------------------------------------------- |
+| ✅ zgodnie  |   7    | P-06, P-08, P-10, N-01, N-03, N-06, N-08                                     |
+| ❌ błąd     |   13   | P-01, P-02, P-03, P-04, P-05, P-07, P-09, P-12, P-13, P-14, N-02, N-09, N-10 |
+| ⏳ nie wyk. |   4    | P-11, N-04, N-05, N-07                                                       |
 
 P-13, P-14 i N-09 każdorazowo **potwierdzają, że treść komentarza zapisuje się poprawnie** (długi tekst, seria
 komentarzy, ładunek HTML/JS pokazany bezpiecznie jako tekst) – czerwony wynik dotyczy wyłącznie brakującego
-powiadomienia (BUG-01), nie utraty ani uszkodzenia danych.
+powiadomienia (BUG-01), nie utraty ani uszkodzenia danych. N-10 potwierdza, że e-mail nie jest zapasowym kanałem
+powiadomienia – BUG-01 dotyka użytkownika w każdym kanale.
 
 Uruchomienie testów automatycznych: [README – sekcja 5](../README.md#5-test-automatyczny-playwright--typescript).
