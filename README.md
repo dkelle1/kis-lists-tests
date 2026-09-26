@@ -311,8 +311,8 @@ Zalecana jest osobna skrzynka tylko do testów: token pozwala czytać całą skr
 Wymagania: Node.js ≥ 20.
 
 ```bash
-git clone https://github.com/dkelle1/rekrutacja-kis.git
-cd rekrutacja-kis
+git clone https://github.com/dkelle1/kis-lists-tests.git
+cd kis-lists-tests
 npm ci
 npx playwright install chromium
 cp .env.example .env               # konta (admin, piotr, marcin, guest), id listy, link klienta, dostęp do Gmaila
@@ -355,7 +355,7 @@ Konfiguracja jednorazowa: **Settings → Secrets and variables → Actions** –
 | `KIS_ITEM_ID`, `CLIENT_PROPOSAL_URL`, `<KONTO>_DEVICE_ID`       |          | produkt do komentarzy, propozycja (P-01), logowanie bez kodu |
 
 Najszybciej: uzupełnij lokalny `.env` i wyślij wszystkie wartości jednym poleceniem
-[GitHub CLI](https://cli.github.com/): `gh secret set -f .env --repo dkelle1/rekrutacja-kis`.
+[GitHub CLI](https://cli.github.com/): `gh secret set -f .env --repo dkelle1/kis-lists-tests`.
 
 Opcjonalnie zmienne (Variables): `BASE_URL`, `<KONTO>_DISPLAY_NAME`. Sekrety nie trafiają do logów ani do przebiegów
 z forków, a workflow E2E uruchamia się tylko ręcznie.
