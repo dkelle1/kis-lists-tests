@@ -75,7 +75,9 @@ Dla zadania „dopisz test” zacznij od [WORKFLOW.md](WORKFLOW.md) i skilli w `
   komentarza znika z listy, a **duplikat nie tworzy drugiego wpisu, tylko zwiększa licznik** – „dokładnie 1 wpis ze znacznikiem”
   nie wykryje duplikatu; do tego trzeba porównać licznik grupy przed i po zdarzeniu (do zrobienia).
 - Pusto: „Wszystko przeczytane, wszystko ogarnięte.”; zakładki „Inbox / Powiadomienia / Wyczyszczone”.
-- Powiadomienie **nie zawiera nazwy produktu ani listy** (tylko projekt, autor, treść).
+- Powiadomienie o komentarzu do produktu pokazuje projekt, listę, **sekcję i produkt** („Salon / Narożnik…”), autora i treść
+  (starsza grupa „Piotr dodał/a komentarz” z poziomu projektu – bez produktu). Uwaga: `.notification-context` zawiera
+  tylko „`<autor>` dodał/a komentarz” – produkt jest w osobnym elemencie wpisu, więc sprawdzaj cały wpis.
 - W trakcie testów **nie przyszły e-maile o komentarzach**; w ustawieniach konta (Profil → Ustawienia aplikacji) **nie ma opcji powiadomień**.
 - Powiadomienia pojawiają się w ciągu kilku sekund (okno 20 s wystarcza); brak powiadomienia potwierdzono ręcznie po ~15 min.
 
@@ -104,6 +106,8 @@ BUG-01: zespół jest powiadamiany **tylko przez „@”**. Wyjątek do wyjaśni
 - **GitHub Actions:** artefakty repozytoriów prywatnych liczą się do limitu miejsca konta (Free 500 MB) – przy przekroczeniu `upload-artifact` zwraca „Artifact storage quota has been hit”; publiczne repozytorium nie ma limitu. Akcje w wersji v4 działają na wycofywanym Node 20 → używamy v5.
 - **Wideo dla `browser.newContext()`:** `use.video` nagrywa tylko wbudowany kontekst Playwrighta – konteksty kont z fixture'ów trzeba nagrywać przez `recordVideo` i dołączać po `context.close()` (`src/support/video.ts`). Trace działa dla wszystkich kontekstów.
 - **Zrzuty w Allure:** `testInfo.attach()` wywołane wewnątrz `test.step` trafia pod ten krok; automatyczne `screenshot: 'only-on-failure'` ląduje na poziomie testu bez podpisu (po jednym na kontekst) – dlatego zrzuty robi dekorator `@step` i kroki testów.
+- **Trace w Allure:** allure-playwright zawsze dołącza trace (kilka–kilkanaście MB na test); nie ma opcji, więc `src/allure/reporter.ts` odfiltrowuje go w `onTestEnd` – trace zostaje w raporcie HTML Playwrighta. Ścieżka reportera musi być bezwzględna (`path.join(__dirname, …)`), bo względną Playwright liczy od pliku konfiguracji.
+- **Zrzuty:** JPEG (`quality: 70`) i `mask` dla adresów e-mail (`page.getByText(/…@…/)`) oraz pól logowania; zrzut po kliknięciu „Zaloguj” wymaga czekania na nową stronę (`waitForURL`), inaczej pokazuje pół-wyrenderowaną stronę.
 - `--reporter=list` w CLI **wyłącza Allure** (nadpisuje reportery z konfiguracji) – do sprawdzenia raportu uruchamiaj bez tej flagi.
 - Konfiguracja w `.local/` zapisuje `allure-results` względem katalogu roboczego (nie katalogu configu).
 
@@ -129,7 +133,7 @@ BUG-01: zespół jest powiadamiany **tylko przez „@”**. Wyjątek do wyjaśni
 - **Asercje miękkie per odbiorca** – raport pokazuje wynik dla każdej osoby, nie tylko pierwszą rozbieżność. Treść sprawdzaj tylko gdy wpis istnieje (inaczej 15 s szumu na każdej asercji).
 - **Próby kontrolne** w testach negatywnych (np. oznaczony Marcin musi dostać powiadomienie), inaczej „brak” przechodzi przy zepsutym lokatorze.
 - **Testy regresyjne błędów są czerwone** (bez `test.fail()`), mają tag `@regression` i link Allure `issue` → „Błąd: BUG-0x”.
-- `failOnFlakyTests: true` + `retries: 1` w CI – przerywany błąd nie może zostać ukryty ponowieniem.
+- `retries: 0` – przerywany błąd nie może zostać ukryty ponowieniem, a znane błędy i tak nie przechodzą.
 - **Tytuły testów nie mogą czytać `.env`** (`playwright test --list` w CI działa bez sekretów) – używaj `personaName()`.
 - Sekret nieustawiony w GitHub Actions trafia do procesu jako **pusty napis** → `env()` odfiltrowuje `''` przed walidacją zod.
 - `browser.newContext()` w fixture dziedziczy opcje `use` (baseURL, locale, launchOptions) – potwierdzone w źródłach Playwrighta.

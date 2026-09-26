@@ -43,8 +43,7 @@ export class NotificationCenter {
    * Wczytuje centrum powiadomień od nowa – powiadomienia powstają w tle, po stronie serwera.
    * Czeka, aż lista się wyrenderuje (wpisy albo komunikat o braku), żeby liczenie nie trafiło w pusty DOM.
    */
-  // Bez zrzutu: wywoływane w pętli odpytywania; stan centrum dokumentuje krok weryfikacji w teście.
-  @step('Odśwież centrum powiadomień', { screenshot: false })
+  @step('Odśwież centrum powiadomień')
   async refresh(): Promise<void> {
     await this.page.goto('/inbox');
     await this.entries.first().or(this.emptyState).waitFor();

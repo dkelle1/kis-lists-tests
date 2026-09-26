@@ -51,7 +51,7 @@ test.describe('R1/R2: komentarz klienta', () => {
           await expectNotified(await actor(key), {
             comment,
             sentAt,
-            expected: { author: CLIENT_AUTHOR, action: COMMENT_ADDED },
+            expected: { product: testItem.name, author: CLIENT_AUTHOR, action: COMMENT_ADDED },
           });
         }
       },
