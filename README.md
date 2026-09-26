@@ -5,14 +5,35 @@ Raport testerski oraz test E2E (Playwright + TypeScript) do zadania rekrutacyjne
 > Plan realizacji z podziałem na subtaski: [PLAN.md](PLAN.md). Wiedza o aplikacji i pułapkach: [docs/LEARNINGS.md](docs/LEARNINGS.md);
 > proces dopisywania testów: [docs/WORKFLOW.md](docs/WORKFLOW.md) (skille i agent Claude Code w `.claude/`).
 >
-> **Status:** testy wykonane 2026-09-26 na https://kislist.com (ręcznie i automatycznie).
-> Znalezione błędy: [BUG-01](#bug-01), [BUG-02](#bug-02), [BUG-03](#bug-03) – każdy odtwarza test regresyjny.
+> **Status:** testy wykonane 2026-09-26 na https://kislist.com (ręcznie i automatycznie, także w GitHub Actions).
+> Znalezione błędy: [BUG-01](docs/BUGS.md#bug-01), [BUG-02](docs/BUGS.md#bug-02), [BUG-03](docs/BUGS.md#bug-03) –
+> każdy odtwarza test regresyjny.
+>
+> - Przypadki testowe (kroki, oczekiwany i rzeczywisty rezultat): **[docs/TEST_CASES.md](docs/TEST_CASES.md)**
+> - Zgłoszenia błędów: **[docs/BUGS.md](docs/BUGS.md)**
+
+### Zgodność z zadaniem
+
+| Wymaganie zadania                                                             | Gdzie                                                                                                    |
+| ----------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| Przejście interfejsu jako członkowie zespołu i jako klient                    | sekcja 2, [docs/LEARNINGS.md](docs/LEARNINGS.md) (role, lista, komentarze, widok klienta, powiadomienia) |
+| Plan testów: scenariusze pozytywne i negatywne                                | sekcja 3, [docs/TEST_CASES.md](docs/TEST_CASES.md) – 12 pozytywnych, 8 negatywnych                       |
+| Wykonanie testów i opis wyników                                               | sekcja 4, [docs/TEST_CASES.md](docs/TEST_CASES.md), [docs/BUGS.md](docs/BUGS.md)                         |
+| Test E2E w Playwright (TypeScript) odtwarzający znaleziony problem (regresja) | `tests/notifications/*.spec.ts` – tag `@regression` (BUG-01…03); sekcja 5                                |
+| Publiczne repozytorium: README (raport + instrukcja), `/tests`, konfiguracja  | ten plik, `tests/`, `playwright.config.ts`, `package.json`, `tsconfig.json`, `.env.example`, `.github/`  |
+| Uruchomienie po sklonowaniu                                                   | sekcja 5 „Uruchomienie lokalne” (`npm ci` → `.env` → `npm test`) i „Uruchomienie w GitHub Actions”       |
+
+Zakres nieobjęty wykonaniem (⏳): P-01 (R1 – na liście testowej nie ma propozycji dla klienta), P-09, P-11, N-04…N-07 –
+opisane w [docs/TEST_CASES.md](docs/TEST_CASES.md).
 
 ---
 
 ## 1. Kontekst
 
-Zgłoszenie: _członkowie zespołu nie zawsze otrzymują powiadomienia o komentarzach na listach_.
+Zgłoszenie: _członkowie zespołu nie zawsze otrzymują powiadomienia o komentarzach na listach_. Zespół biura
+projektowego ze zgłoszenia: Piotr (założyciel), Anna (zarządza projektem), Marcin (kosztorys), Michalina (praca
+w terenie). Konta testowe odwzorowują **role** dostępne w KIS List (sekcja 2), a nie cztery osoby jeden do jednego –
+wyniki pokazują, że błąd zależy od roli odbiorcy i od oznaczenia „@”.
 
 ### Wymagania
 
@@ -111,6 +132,8 @@ Wyniki automatyczne (Playwright) zgodne z wykonaniem ręcznym.
 | P-09, P-11, N-04…N-07 |                |                  |                  |                |  ⏳   | poza zakresem tego przebiegu (patrz PLAN.md)                                       |
 
 ### Zgłoszone błędy
+
+Pełne zgłoszenia (środowisko, kroki, obserwacje): [docs/BUGS.md](docs/BUGS.md).
 
 #### BUG-01
 
@@ -331,6 +354,15 @@ npm run check                      # typecheck + lint + format
 
 Dane logowania są czytane wyłącznie ze zmiennych środowiskowych (`.env` jest w `.gitignore`) –
 w repozytorium nie ma żadnych haseł.
+
+**Dla recenzenta:** testy działają na prawdziwych kontach KIS List, więc potrzebują danych w `.env` (konta z rolami
+Administrator / Współpracownik / Członek zespołu / Gość powiązane z listą, link udostępnienia listy, dostęp do skrzynki
+z kodami 2FA). Bez nich:
+
+- `npm ci && npm run check && npx playwright test --list` działa od razu po sklonowaniu (typy, lint, lista testów);
+- `npm test` zatrzymuje się na starcie z listą brakujących zmiennych;
+- wyniki przebiegu na kontach autora: zakładka **Actions → „E2E – powiadomienia o komentarzach”** (podsumowanie
+  i artefakt `allure-report` z raportem w jednym pliku `index.html`). Dane kont testowych mogę udostępnić na prośbę.
 
 ### Uruchomienie w GitHub Actions
 

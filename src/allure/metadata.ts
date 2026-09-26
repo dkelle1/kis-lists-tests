@@ -3,8 +3,11 @@ import type { TestDetailsAnnotation } from '@playwright/test';
 export type Requirement = 'R1' | 'R2' | 'R3';
 export type Severity = 'blocker' | 'critical' | 'normal' | 'minor' | 'trivial';
 
-export const TEST_PLAN_URL = 'https://github.com/dkelle1/kis-lists-tests/blob/main/README.md#3-plan-testów';
-export const BUGS_URL = 'https://github.com/dkelle1/kis-lists-tests/blob/main/README.md#zgłoszone-błędy';
+const DOCS = 'https://github.com/dkelle1/kis-lists-tests/blob/main/docs';
+/** Przypadki testowe (P-xx / N-xx) – link „Plan testów” w Allure. */
+export const TEST_PLAN_URL = `${DOCS}/TEST_CASES.md`;
+/** Zgłoszenie błędu – link „Błąd: BUG-0x” w Allure prowadzi do sekcji tego błędu. */
+export const bugUrl = (id: string): string => `${DOCS}/BUGS.md#${id.toLowerCase()}`;
 
 const FEATURES: Record<Requirement, string> = {
   R1: 'R1: klient komentuje propozycję',
