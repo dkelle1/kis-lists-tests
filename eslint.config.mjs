@@ -7,6 +7,8 @@ export default tseslint.config(
   {
     ignores: [
       'node_modules',
+      // szablony skryptów rozpoznania uruchamiane poza frameworkiem (kopiowane do .local/)
+      '.claude/skills/*/templates',
       'playwright-report',
       'test-results',
       'allure-results',
