@@ -2,7 +2,7 @@
 
 Raport testerski oraz test E2E (Playwright + TypeScript) do zadania rekrutacyjnego KIS List.
 
-> Wiedza o aplikacji i pułapkach: [docs/LEARNINGS.md](docs/LEARNINGS.md);
+> Wiedza o aplikacji i pułapkach: [.claude/LEARNINGS.md](.claude/LEARNINGS.md);
 > proces dopisywania testów: [docs/WORKFLOW.md](docs/WORKFLOW.md) (skille i agent Claude Code w `.claude/`).
 >
 > **Status:** testy wykonane 2026-09-26 na https://kislist.com (ręcznie i automatycznie, także w GitHub Actions).
@@ -14,14 +14,14 @@ Raport testerski oraz test E2E (Playwright + TypeScript) do zadania rekrutacyjne
 
 ### Zgodność z zadaniem
 
-| Wymaganie zadania                                                             | Gdzie                                                                                                    |
-| ----------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
-| Przejście interfejsu jako członkowie zespołu i jako klient                    | sekcja 2, [docs/LEARNINGS.md](docs/LEARNINGS.md) (role, lista, komentarze, widok klienta, powiadomienia) |
-| Plan testów: scenariusze pozytywne i negatywne                                | sekcja 3, [docs/TEST_CASES.md](docs/TEST_CASES.md) – 14 pozytywnych, 10 negatywnych                      |
-| Wykonanie testów i opis wyników                                               | sekcja 4, [docs/TEST_CASES.md](docs/TEST_CASES.md), [docs/BUGS.md](docs/BUGS.md)                         |
-| Test E2E w Playwright (TypeScript) odtwarzający znaleziony problem (regresja) | `tests/notifications/*.spec.ts` – tag `@regression` (BUG-01…03); sekcja 5                                |
-| Publiczne repozytorium: README (raport + instrukcja), `/tests`, konfiguracja  | ten plik, `tests/`, `playwright.config.ts`, `package.json`, `tsconfig.json`, `.env.example`, `.github/`  |
-| Uruchomienie po sklonowaniu                                                   | sekcja 5 „Uruchomienie lokalne” (`npm ci` → `.env` → `npm test`) i „Uruchomienie w GitHub Actions”       |
+| Wymaganie zadania                                                             | Gdzie                                                                                                          |
+| ----------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| Przejście interfejsu jako członkowie zespołu i jako klient                    | sekcja 2, [.claude/LEARNINGS.md](.claude/LEARNINGS.md) (role, lista, komentarze, widok klienta, powiadomienia) |
+| Plan testów: scenariusze pozytywne i negatywne                                | sekcja 3, [docs/TEST_CASES.md](docs/TEST_CASES.md) – 14 pozytywnych, 10 negatywnych                            |
+| Wykonanie testów i opis wyników                                               | sekcja 4, [docs/TEST_CASES.md](docs/TEST_CASES.md), [docs/BUGS.md](docs/BUGS.md)                               |
+| Test E2E w Playwright (TypeScript) odtwarzający znaleziony problem (regresja) | `tests/notifications/*.spec.ts` – tag `@regression` (BUG-01…03); sekcja 5                                      |
+| Publiczne repozytorium: README (raport + instrukcja), `/tests`, konfiguracja  | ten plik, `tests/`, `playwright.config.ts`, `package.json`, `tsconfig.json`, `.env.example`, `.github/`        |
+| Uruchomienie po sklonowaniu                                                   | sekcja 5 „Uruchomienie lokalne” (`npm ci` → `.env` → `npm test`) i „Uruchomienie w GitHub Actions”             |
 
 Zakres nieobjęty wykonaniem (⏳): P-11, N-04, N-07 – opisane w [docs/TEST_CASES.md](docs/TEST_CASES.md).
 
@@ -226,7 +226,7 @@ kontrolna (Marcin, który ma dostęp, oznaczony „@”) potwierdziła, że kana
 | Próby kontrolne w testach negatywnych                    | N-02: oznaczony Marcin musi dostać powiadomienie; N-08: widać wpisy albo komunikat „pusto”           | test „braku” nie przechodzi przy zepsutym lokatorze czy niedziałającym systemie  |
 
 ¹ Aplikacja grupuje powiadomienia tego samego rodzaju (licznik przy wpisie), więc duplikat mógłby tylko zwiększyć licznik
-grupy – wykrycie tego wymaga porównania licznika przed i po (planowane, patrz docs/LEARNINGS.md).
+grupy – wykrycie tego wymaga porównania licznika przed i po (planowane, patrz .claude/LEARNINGS.md).
 
 Asercje per odbiorca są **miękkie** (`expect.soft`): przy macierzy nadawca → odbiorcy raport pokazuje wynik dla
 każdej osoby (kto dostał, kto nie), a nie tylko pierwszą rozbieżność.

@@ -2,7 +2,7 @@
 
 Wiedza zebrana podczas rozpoznania aplikacji, budowy frameworka i wykonania testów (wrzesień 2026).
 Każdy punkt jest **zaobserwowany na żywej aplikacji**, chyba że oznaczono inaczej.
-Dla zadania „dopisz test” zacznij od [WORKFLOW.md](WORKFLOW.md) i skilli w `.claude/skills/`.
+Dla zadania „dopisz test” zacznij od [WORKFLOW.md](../docs/WORKFLOW.md) i skilli w `.claude/skills/`.
 
 ---
 

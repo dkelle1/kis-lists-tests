@@ -6,7 +6,7 @@ description: Pisanie lub poprawa testu E2E (Playwright + TypeScript) w repozytor
 # Pisanie testu E2E w kis-lists-tests
 
 Przed pisaniem: scenariusz musi być w planie (README, sekcja 3) i sprawdzony na żywo (skill `kis-explore-app`).
-Kontekst aplikacji: [docs/LEARNINGS.md](../../../docs/LEARNINGS.md).
+Kontekst aplikacji: [.claude/LEARNINGS.md](../../LEARNINGS.md).
 
 ## Gdzie co jest
 
