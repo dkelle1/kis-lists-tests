@@ -31,9 +31,12 @@ Dla zadania „dopisz test” zacznij od [WORKFLOW.md](WORKFLOW.md) i skilli w `
 
 - Plan próbny EXPERT: 5 stanowisk („Wykorzystano 3 z 5 miejsc”).
 - Projekt może mieć też **klientów projektu** (adresy widoczne w nagłówku powiadomienia o komentarzu klienta).
-- **Zespół jest globalny dla konta, nie dla listy** – `/team` (nie `/lists/<id>/team`, tego adresu nie ma – 404):
-  „Członkowie zespołu mogą udostępniać i edytować **wszystkie** listy i ulubione”. Nie ma więc osobnego kroku
-  „dodaj tę osobę do tej listy” – dodanie kogoś do zespołu daje mu dostęp do wszystkich list na koncie.
+- **Dostęp do nowej listy zależy od roli, wbrew opisowi na `/team`** – tekst „Członkowie zespołu mogą udostępniać
+  i edytować **wszystkie** listy i ulubione” sugeruje globalny dostęp dla każdego, ale zweryfikowane na żywo (N-05,
+  druga lista utworzona przez admina) pokazuje inaczej: rola **„Członek zespołu”** (Marcin) rzeczywiście widzi
+  każdą nową listę od razu (i pojawia się w podpowiedziach „@”), a rola **„Współpracownik”** (Piotr) – **nie**,
+  dopóki nie zostanie do tej konkretnej listy zaproszony. `/team` (nie `/lists/<id>/team`, tego adresu nie ma – 404)
+  pokazuje więc opis trafny tylko dla „Członków zespołu”.
 - **Przycisk „ZAPROŚ” w `/team` bywa wyłączony** po wyczerpaniu miejsc planu (u nas 3 z 5 zajęte, a mimo to przycisk
   jest `disabled` – limit dotyczy najwyraźniej też liczby zaproszeń, nie tylko aktywnych kont). P-11/N-04
   (dodanie/usunięcie członka) wymagają więc albo wolnego miejsca, albo zmiany planu – **nie da się tego wywołać
@@ -43,11 +46,22 @@ Dla zadania „dopisz test” zacznij od [WORKFLOW.md](WORKFLOW.md) i skilli w `
   nie znajdzie, bo dopasowanie jest wtedy wrażliwe na wielkość liter mimo że sama nazwa zgadza się case-insensitive
   – używaj samego `'Utwórz'` albo dopasowania po tekście, bez `exact`). Klik otwiera dialog „Podaj nazwę listy” →
   pole tekstowe → przycisk „Utwórz listę” (aktywny dopiero po wpisaniu nazwy).
-- **Backend bywa niestabilny w czasie testów:** `/lists` czasem zwraca całą stronę z samym tekstem
-  „upstream request failed” (do powtórzenia przez ponowne `goto`), a wysłanie formularza „Utwórz listę” raz
-  zostało w nieskończonym stanie ładowania – żadne żądanie POST nie pojawiło się w logu sieciowym Playwrighta
-  (`page.waitForResponse` – timeout 20 s), więc nie jest to blokada proxy sandboksa (log `$HTTPS_PROXY/__agentproxy/status`
-  nie pokazuje odrzuceń dla `kislist.com`), tylko chwilowa awaria po stronie aplikacji.
+- **Backend bywa niestabilny** – zaobserwowana raz (2026-09-26 wieczorem) pełna, kilkugodzinna awaria: `kislist.com`
+  zwracał **502** na każdej stronie (`/`, `/lists`, `/inbox`, `/lists/<id>/edit`, `/team`), potwierdzone niezależnie
+  Playwrightem i czystym `curl` przez to samo proxy (`server: nginx/1.31.4` odpowiadał, ale zwracał 502 – front żyje,
+  backend aplikacji nie). Log proxy sandboksa (`$HTTPS_PROXY/__agentproxy/status`) nie pokazywał żadnych odrzuceń dla
+  `kislist.com`, więc to nie ograniczenie środowiska. Po ustąpieniu awarii (rano) wszystko wróciło do normy (200).
+  Część prób z tamtego okresu (np. tworzenie listy) wisiała w nieskończonym stanie ładowania bez odpowiedzi – ale
+  część **faktycznie się zapisała po stronie serwera mimo braku odpowiedzi dla klienta** (osierocone listy pojawiły
+  się następnego dnia) – więc po takiej awarii warto sprawdzić `/lists`, zanim uzna się próbę za nieudaną.
+- **Dodawanie produktu do nowej (pustej) listy:** ikona „+” w nagłówku → sekcja „Nowa sekcja” z linkiem
+  „Dodaj wizualizację, notatkę lub produkt” → „Dodaj produkt” tworzy pusty wiersz z polem nazwy. Pole nazwy to
+  placeholder `<i class="text-muted">` wewnątrz elementu z `contentEditable` dziedziczonym z rodzica (nie ma
+  atrybutu `placeholder` na `<input>`) – kliknięcie samego `<i>` bywa niestabilne (`element is not visible` przy
+  ponownych próbach); nazwa produktu nie jest wymagana, żeby dodać komentarz do wiersza (ikona komentarzy działa
+  mimo pustej nazwy).
+- **Usuwanie listy:** menu „⋮” na końcu wiersza listy na `/lists` (widoczne po najechaniu) → „Usuń listę” → dialog
+  potwierdzenia z przyciskiem „USUŃ”.
 
 ### 1.3 Lista i komentarze (widok zespołu)
 
