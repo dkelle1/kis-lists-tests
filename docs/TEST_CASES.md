@@ -187,7 +187,7 @@ Zgłoszenia błędów: [BUGS.md](BUGS.md). Podsumowanie wyników: [README – se
   Piotr nie dostał niczego po 43 s obserwacji.
 - **Uwaga:** rola dostępu do listy ma znaczenie – „Członek zespołu” (Marcin) automatycznie widzi każdą nową listę
   na koncie, a „Współpracownik” (Piotr) tylko te, do których został zaproszony. To koryguje wcześniejszy wniosek
-  w `docs/LEARNINGS.md` („zespół jest globalny dla konta”) – dotyczy to tylko roli „Członek zespołu”, nie każdej roli.
+  w `../.claude/LEARNINGS.md` („zespół jest globalny dla konta”) – dotyczy to tylko roli „Członek zespołu”, nie każdej roli.
 - **Automatyzacja:** ✋ jednorazowy skrypt weryfikacyjny (druga lista nie jest częścią stałej konfiguracji `.env`/CI –
   wymagałaby utrzymywania dodatkowego listId wyłącznie dla tego jednego scenariusza).
 
