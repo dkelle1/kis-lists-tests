@@ -105,15 +105,15 @@ Zgłoszenia błędów: [BUGS.md](BUGS.md). Podsumowanie wyników: [README – se
 - **Rzeczywisty rezultat:** autor ✅, rodzaj zdarzenia ✅, sekcja i produkt (np. „Salon / Narożnik…”) ✅, treść ✅, projekt ✅.
 - **Automatyzacja:** 🤖 asercje w `tests/notifications/steps.ts` (`expectNotified`).
 
-### P-11 – Członek dodany do listy później (R3) · ⏳
+### P-11 – Członek dodany do listy później (R3) · ⏳ [BUG-04](BUGS.md#bug-04)
 
-- **Kroki:** dodać nową osobę do zespołu, następnie komentarz innego członka.
+- **Kroki:** dodać nową osobę do zespołu (rola „Członek zespołu” – ta rola widzi każdą listę na koncie automatycznie,
+  patrz N-05), następnie komentarz innego członka.
 - **Oczekiwany rezultat:** nowa osoba dostaje powiadomienia o nowych komentarzach (nie o starszych).
-- **Rzeczywisty rezultat:** **zablokowane przez konto, nie przez brak czasu** – przycisk „ZAPROŚ” w `/team` jest
-  wyłączony (plan próbny: 3 z 5 miejsc już zajęte). Nowe konto wymaga ręcznej rejestracji (reCAPTCHA – poza zakresem
-  automatyzacji). Zespół w KIS List jest **globalny dla konta** (komunikat w `/team`: „Członkowie zespołu mogą
-  udostępniać i edytować wszystkie listy i ulubione”) – nie ma osobnego przypisania „ta osoba do tej listy”, więc
-  scenariusz wymaga zmiany planu (dodatkowe miejsce) albo nowego, ręcznie założonego konta.
+- **Rzeczywisty rezultat:** **zablokowane przez błąd aplikacji, nie przez brak czasu** – przycisk „ZAPROŚ” w `/team`
+  jest wyłączony mimo wolnych miejsc w planie (3 z 5 zajęte, 2 wolne) – patrz [BUG-04](BUGS.md#bug-04). Reprodukowane
+  niezależnie dwa dni z rzędu. Nowe konto wymaga też ręcznej rejestracji (reCAPTCHA – poza zakresem automatyzacji),
+  co niezależnie ograniczałoby automatyzację tego scenariusza nawet bez BUG-04.
 
 ### P-12 – Komentarz członka zespołu w zakładce „Komentarze klienta” (R3) · ❌ [BUG-01](BUGS.md#bug-01)
 
@@ -163,21 +163,33 @@ Zgłoszenia błędów: [BUGS.md](BUGS.md). Podsumowanie wyników: [README – se
 - **Kroki / wynik:** sprawdzane w P-03, P-04, P-05 – Klient1 (Gość) nie dostał powiadomienia.
 - **Automatyzacja:** 🤖 `team-comments.spec.ts` (krok „Klient1 (gość) nie dostaje powiadomienia”).
 
-### N-04 – Członek usunięty z listy · ⏳
+### N-04 – Członek usunięty z listy · ⏳ [BUG-04](BUGS.md#bug-04)
 
 - **Oczekiwany rezultat:** po usunięciu z zespołu nie dostaje powiadomień.
-- **Rzeczywisty rezultat:** nie wykonano – zależy od P-11 (ta sama blokada: brak wolnego miejsca, żeby najpierw
-  kogoś dodać, a potem usunąć).
+- **Rzeczywisty rezultat:** nie wykonano – zależy od P-11 (ta sama blokada: [BUG-04](BUGS.md#bug-04) uniemożliwia
+  dodanie kogokolwiek, więc nie ma kogo najpierw dodać, a potem usunąć).
 
-### N-05 – Komentarz na innej liście · ⏳
+### N-05 – Komentarz na innej liście · ✅
 
-- **Oczekiwany rezultat:** zespół listy testowej nie dostaje powiadomienia.
-- **Rzeczywisty rezultat:** nie wykonano. Przycisk „UTWÓRZ” na `/lists` poprawnie otwiera okno „Podaj nazwę listy”
-  (rozpoznane), ale samo utworzenie drugiej listy nie powiodło się – po kliknięciu „UTWÓRZ LISTĘ” przycisk zostaje
-  w stanie ładowania bez końca, żadne żądanie sieciowe do serwera nie jest widoczne (`page.waitForResponse` – timeout
-  20 s), a strona `/lists` niezależnie od tego kilkukrotnie zwracała `upstream request failed`. To wygląda na
-  **chwilową niestabilność backendu aplikacji**, a nie błąd skryptu czy limit środowiska (log proxy sandboksa nie
-  pokazuje żadnych odrzuceń dla `kislist.com`). Do powtórzenia, gdy aplikacja będzie stabilna.
+- **Warunki wstępne:** poprzednia próba (dzień wcześniej) napotkała ogólną, chwilową niedostępność aplikacji
+  (`kislist.com` zwracał 502 na każdej stronie – potwierdzone niezależnie Playwrightem i czystym `curl` przez to
+  samo proxy). Po ustąpieniu awarii aplikacja odpowiadała normalnie (200) i test wykonano do końca.
+- **Kroki:** 1) Administrator tworzy nową, drugą listę („UTWÓRZ” → „Podaj nazwę listy”) i dodaje do niej jeden
+  produkt; 2) sprawdzenie listy podpowiedzi „@” w komentarzu na tej liście; 3) Administrator dodaje zwykły komentarz
+  (bez oznaczeń) w czacie zespołu; 4) próba kontrolna: Administrator oznacza `@Marcin` w kolejnym komentarzu na tej
+  samej liście; 5) centrum powiadomień Piotra i Marcina po obu komentarzach; 6) lista usunięta po teście.
+- **Oczekiwany rezultat:** Piotr (nie ma dostępu do tej listy) nie dostaje żadnego powiadomienia z żadnego z dwóch
+  komentarzy; Marcin (ma dostęp) dostaje powiadomienie o oznaczeniu „@” (próba kontrolna potwierdzająca, że kanał
+  powiadomień na tej liście w ogóle działa – „brak” u Piotra nie jest tylko efektem BUG-01).
+- **Rzeczywisty rezultat:** zgodnie z oczekiwaniem. Piotr **nie widniał nawet na liście podpowiedzi „@”** na tej
+  liście (widoczni byli tylko Damian Keller i Marcin) – dowód izolacji niezależny od powiadomień. Zwykły komentarz
+  (bez „@”) nie powiadomił nikogo (spójne z BUG-01). Komentarz z oznaczeniem `@Marcin` powiadomił Marcina w 14 s;
+  Piotr nie dostał niczego po 43 s obserwacji.
+- **Uwaga:** rola dostępu do listy ma znaczenie – „Członek zespołu” (Marcin) automatycznie widzi każdą nową listę
+  na koncie, a „Współpracownik” (Piotr) tylko te, do których został zaproszony. To koryguje wcześniejszy wniosek
+  w `../.claude/LEARNINGS.md` („zespół jest globalny dla konta”) – dotyczy to tylko roli „Członek zespołu”, nie każdej roli.
+- **Automatyzacja:** ✋ jednorazowy skrypt weryfikacyjny (druga lista nie jest częścią stałej konfiguracji `.env`/CI –
+  wymagałaby utrzymywania dodatkowego listId wyłącznie dla tego jednego scenariusza).
 
 ### N-06 – Pusty komentarz / same spacje · ✅
 
@@ -229,9 +241,9 @@ Zgłoszenia błędów: [BUGS.md](BUGS.md). Podsumowanie wyników: [README – se
 
 | Status      | Liczba | Przypadki                                                                    |
 | ----------- | :----: | ---------------------------------------------------------------------------- |
-| ✅ zgodnie  |   7    | P-06, P-08, P-10, N-01, N-03, N-06, N-08                                     |
+| ✅ zgodnie  |   8    | P-06, P-08, P-10, N-01, N-03, N-05, N-06, N-08                               |
 | ❌ błąd     |   13   | P-01, P-02, P-03, P-04, P-05, P-07, P-09, P-12, P-13, P-14, N-02, N-09, N-10 |
-| ⏳ nie wyk. |   4    | P-11, N-04, N-05, N-07                                                       |
+| ⏳ nie wyk. |   3    | P-11, N-04, N-07                                                             |
 
 P-13, P-14 i N-09 każdorazowo **potwierdzają, że treść komentarza zapisuje się poprawnie** (długi tekst, seria
 komentarzy, ładunek HTML/JS pokazany bezpiecznie jako tekst) – czerwony wynik dotyczy wyłącznie brakującego

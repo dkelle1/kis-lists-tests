@@ -2,29 +2,29 @@
 
 Raport testerski oraz test E2E (Playwright + TypeScript) do zadania rekrutacyjnego KIS List.
 
-> Wiedza o aplikacji i pułapkach: [docs/LEARNINGS.md](docs/LEARNINGS.md);
+> Wiedza o aplikacji i pułapkach: [.claude/LEARNINGS.md](.claude/LEARNINGS.md);
 > proces dopisywania testów: [docs/WORKFLOW.md](docs/WORKFLOW.md) (skille i agent Claude Code w `.claude/`).
 >
-> **Status:** testy wykonane 2026-09-26 na https://kislist.com (ręcznie i automatycznie, także w GitHub Actions).
+> **Status:** testy wykonane 2026-09-26–27 na https://kislist.com (ręcznie i automatycznie, także w GitHub Actions).
 > Znalezione błędy: [BUG-01](docs/BUGS.md#bug-01), [BUG-02](docs/BUGS.md#bug-02), [BUG-03](docs/BUGS.md#bug-03) –
-> każdy odtwarza test regresyjny.
+> każdy odtwarza test regresyjny; [BUG-04](docs/BUGS.md#bug-04) – poza zakresem powiadomień, bez automatyzacji.
 >
 > - Przypadki testowe (kroki, oczekiwany i rzeczywisty rezultat): **[docs/TEST_CASES.md](docs/TEST_CASES.md)**
 > - Zgłoszenia błędów: **[docs/BUGS.md](docs/BUGS.md)**
 
 ### Zgodność z zadaniem
 
-| Wymaganie zadania                                                             | Gdzie                                                                                                    |
-| ----------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
-| Przejście interfejsu jako członkowie zespołu i jako klient                    | sekcja 2, [docs/LEARNINGS.md](docs/LEARNINGS.md) (role, lista, komentarze, widok klienta, powiadomienia) |
-| Plan testów: scenariusze pozytywne i negatywne                                | sekcja 3, [docs/TEST_CASES.md](docs/TEST_CASES.md) – 14 pozytywnych, 10 negatywnych                      |
-| Wykonanie testów i opis wyników                                               | sekcja 4, [docs/TEST_CASES.md](docs/TEST_CASES.md), [docs/BUGS.md](docs/BUGS.md)                         |
-| Test E2E w Playwright (TypeScript) odtwarzający znaleziony problem (regresja) | `tests/notifications/*.spec.ts` – tag `@regression` (BUG-01…03); sekcja 5                                |
-| Publiczne repozytorium: README (raport + instrukcja), `/tests`, konfiguracja  | ten plik, `tests/`, `playwright.config.ts`, `package.json`, `tsconfig.json`, `.env.example`, `.github/`  |
-| Uruchomienie po sklonowaniu                                                   | sekcja 5 „Uruchomienie lokalne” (`npm ci` → `.env` → `npm test`) i „Uruchomienie w GitHub Actions”       |
+| Wymaganie zadania                                                             | Gdzie                                                                                                          |
+| ----------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| Przejście interfejsu jako członkowie zespołu i jako klient                    | sekcja 2, [.claude/LEARNINGS.md](.claude/LEARNINGS.md) (role, lista, komentarze, widok klienta, powiadomienia) |
+| Plan testów: scenariusze pozytywne i negatywne                                | sekcja 3, [docs/TEST_CASES.md](docs/TEST_CASES.md) – 14 pozytywnych, 10 negatywnych                            |
+| Wykonanie testów i opis wyników                                               | sekcja 4, [docs/TEST_CASES.md](docs/TEST_CASES.md), [docs/BUGS.md](docs/BUGS.md)                               |
+| Test E2E w Playwright (TypeScript) odtwarzający znaleziony problem (regresja) | `tests/notifications/*.spec.ts` – tag `@regression` (BUG-01…03); sekcja 5                                      |
+| Publiczne repozytorium: README (raport + instrukcja), `/tests`, konfiguracja  | ten plik, `tests/`, `playwright.config.ts`, `package.json`, `tsconfig.json`, `.env.example`, `.github/`        |
+| Uruchomienie po sklonowaniu                                                   | sekcja 5 „Uruchomienie lokalne” (`npm ci` → `.env` → `npm test`) i „Uruchomienie w GitHub Actions”             |
 
-Zakres nieobjęty wykonaniem (⏳): P-11, N-04, N-05, N-07 – opisane w [docs/TEST_CASES.md](docs/TEST_CASES.md)
-(N-05 – druga lista testowa – napotkała chwilową niestabilność backendu aplikacji przy tworzeniu listy).
+Zakres nieobjęty wykonaniem (⏳): P-11, N-04 (zablokowane przez [BUG-04](docs/BUGS.md#bug-04)), N-07 – opisane
+w [docs/TEST_CASES.md](docs/TEST_CASES.md).
 
 ---
 
@@ -118,28 +118,30 @@ z prawem edycji, a warianty z `@` sprawdzają, czy oznaczenie nie zawęża odbio
 Legenda: ✅ zgodnie z wymaganiem · ❌ błąd · „autor” – autor komentarza · ⏳ nie wykonano.
 Wyniki automatyczne (Playwright) zgodne z wykonaniem ręcznym.
 
-| ID                     | Damian (admin) | Piotr (współpr.) | Marcin (członek) | Klient1 (gość) | Wynik | Uwagi                                                                                     |
-| ---------------------- | :------------: | :--------------: | :--------------: | :------------: | :---: | ----------------------------------------------------------------------------------------- |
-| P-01                   |       ✅       |        ✅        |      **❌**      |    – (brak)    |  ❌   | [BUG-02](#bug-02) – członek zespołu nie dostaje powiadomienia o komentarzu do propozycji  |
-| P-02                   |       ✅       |        ✅        |      **❌**      |    – (brak)    |  ❌   | [BUG-02](#bug-02) – członek zespołu nie dostaje powiadomienia o komentarzu klienta        |
-| P-03 + N-01            |    autor ✅    |      **❌**      |      **❌**      |   ✅ (brak)    |  ❌   | [BUG-01](#bug-01)                                                                         |
-| P-04 + N-01            |     **❌**     |     autor ✅     |      **❌**      |   ✅ (brak)    |  ❌   | [BUG-01](#bug-01)                                                                         |
-| P-05 + N-01            |     **❌**     |      **❌**      |     autor ✅     |   ✅ (brak)    |  ❌   | [BUG-01](#bug-01)                                                                         |
-| P-06                   |       –        |        ✅        |      autor       |       –        |  ✅   | oznaczony dostaje „Marcin oznaczył/a Ciebie w komentarzu”                                 |
-| P-07                   |    autor ✅    |      **❌**      |        ✅        |       –        |  ❌   | [BUG-01](#bug-01) – powiadomiony tylko oznaczony                                          |
-| P-08                   |     autor      |        ✅        |        ✅        |       –        |  ✅   | po jednym powiadomieniu, bez duplikatów                                                   |
-| P-10                   |       ✅       |        ✅        |        ✅        |       –        |  ✅   | autor, rodzaj zdarzenia, treść, projekt; **brak nazwy produktu** (uwaga U-01)             |
-| P-12                   |     **❌**     |      **❌**      |      **❌**      |       –        |  ❌   | ręcznie: komentarze Marcina i Piotra w „Komentarze klienta” – brak powiadomień            |
-| N-02                   | **❌** (jest)  |        –         |   ✅ (kontr.)    |       –        |  ❌   | [BUG-03](#bug-03) – autor oznaczający siebie dostaje powiadomienie                        |
-| N-03                   |       –        |        –         |        –         |   ✅ (brak)    |  ✅   | sprawdzane w P-03…P-05                                                                    |
-| N-08                   |       ✅       |        ✅        |        ✅        |       –        |  ✅   | liczba powiadomień bez zmian                                                              |
-| P-09                   |     **❌**     | ✅ (autor wątku) |     autor ✅     |       –        |  ❌   | [BUG-01](#bug-01) – o odpowiedzi dowiaduje się tylko autor komentarza nadrzędnego         |
-| N-06                   |       –        |        –         |        ✅        |       –        |  ✅   | pusty komentarz i same spacje nie są dodawane                                             |
-| P-13                   |    autor ✅    |      **❌**      |        –         |       –        |  ❌   | [BUG-01](#bug-01) – długi komentarz (~800 zn.) zapisuje się poprawnie, powiadomienia brak |
-| P-14                   |       –        |      **❌**      |     autor ✅     |       –        |  ❌   | [BUG-01](#bug-01) – 3 komentarze pod rząd zapisują się poprawnie, powiadomień brak        |
-| N-09                   |     **❌**     |        –         |     autor ✅     |       –        |  ❌   | [BUG-01](#bug-01) – ładunek HTML bezpieczny (brak `alert`), powiadomienia brak            |
-| N-10                   |       –        |      **❌**      |        –         |       –        |  ❌   | [BUG-01](#bug-01) – brak e-maila do Piotra w 75 s; e-mail nie jest zapasowym kanałem      |
-| P-11, N-04, N-05, N-07 |                |                  |                  |                |  ⏳   | poza zakresem tego przebiegu (patrz docs/TEST_CASES.md)                                   |
+| ID          | Damian (admin) | Piotr (współpr.) | Marcin (członek) | Klient1 (gość) | Wynik | Uwagi                                                                                     |
+| ----------- | :------------: | :--------------: | :--------------: | :------------: | :---: | ----------------------------------------------------------------------------------------- |
+| P-01        |       ✅       |        ✅        |      **❌**      |    – (brak)    |  ❌   | [BUG-02](#bug-02) – członek zespołu nie dostaje powiadomienia o komentarzu do propozycji  |
+| P-02        |       ✅       |        ✅        |      **❌**      |    – (brak)    |  ❌   | [BUG-02](#bug-02) – członek zespołu nie dostaje powiadomienia o komentarzu klienta        |
+| P-03 + N-01 |    autor ✅    |      **❌**      |      **❌**      |   ✅ (brak)    |  ❌   | [BUG-01](#bug-01)                                                                         |
+| P-04 + N-01 |     **❌**     |     autor ✅     |      **❌**      |   ✅ (brak)    |  ❌   | [BUG-01](#bug-01)                                                                         |
+| P-05 + N-01 |     **❌**     |      **❌**      |     autor ✅     |   ✅ (brak)    |  ❌   | [BUG-01](#bug-01)                                                                         |
+| P-06        |       –        |        ✅        |      autor       |       –        |  ✅   | oznaczony dostaje „Marcin oznaczył/a Ciebie w komentarzu”                                 |
+| P-07        |    autor ✅    |      **❌**      |        ✅        |       –        |  ❌   | [BUG-01](#bug-01) – powiadomiony tylko oznaczony                                          |
+| P-08        |     autor      |        ✅        |        ✅        |       –        |  ✅   | po jednym powiadomieniu, bez duplikatów                                                   |
+| P-10        |       ✅       |        ✅        |        ✅        |       –        |  ✅   | autor, rodzaj zdarzenia, treść, projekt; **brak nazwy produktu** (uwaga U-01)             |
+| P-12        |     **❌**     |      **❌**      |      **❌**      |       –        |  ❌   | ręcznie: komentarze Marcina i Piotra w „Komentarze klienta” – brak powiadomień            |
+| N-02        | **❌** (jest)  |        –         |   ✅ (kontr.)    |       –        |  ❌   | [BUG-03](#bug-03) – autor oznaczający siebie dostaje powiadomienie                        |
+| N-03        |       –        |        –         |        –         |   ✅ (brak)    |  ✅   | sprawdzane w P-03…P-05                                                                    |
+| N-08        |       ✅       |        ✅        |        ✅        |       –        |  ✅   | liczba powiadomień bez zmian                                                              |
+| P-09        |     **❌**     | ✅ (autor wątku) |     autor ✅     |       –        |  ❌   | [BUG-01](#bug-01) – o odpowiedzi dowiaduje się tylko autor komentarza nadrzędnego         |
+| N-06        |       –        |        –         |        ✅        |       –        |  ✅   | pusty komentarz i same spacje nie są dodawane                                             |
+| P-13        |    autor ✅    |      **❌**      |        –         |       –        |  ❌   | [BUG-01](#bug-01) – długi komentarz (~800 zn.) zapisuje się poprawnie, powiadomienia brak |
+| P-14        |       –        |      **❌**      |     autor ✅     |       –        |  ❌   | [BUG-01](#bug-01) – 3 komentarze pod rząd zapisują się poprawnie, powiadomień brak        |
+| N-09        |     **❌**     |        –         |     autor ✅     |       –        |  ❌   | [BUG-01](#bug-01) – ładunek HTML bezpieczny (brak `alert`), powiadomienia brak            |
+| N-10        |       –        |      **❌**      |        –         |       –        |  ❌   | [BUG-01](#bug-01) – brak e-maila do Piotra w 75 s; e-mail nie jest zapasowym kanałem      |
+| N-05        |    autor ✅    |    ✅ (brak)     | ✅ (kontr. „@”)  |       –        |  ✅   | druga lista: Piotr (brak dostępu) – nic; Marcin (ma dostęp) – powiadomienie o „@” w 14 s  |
+| P-11, N-04  |                |                  |                  |                |  ⏳   | [BUG-04](#bug-04) – nie da się dodać nikogo do zespołu mimo wolnych miejsc                |
+| N-07        |                |                  |                  |                |  ⏳   | poza zakresem tego przebiegu (patrz docs/TEST_CASES.md)                                   |
 
 ### Zgłoszone błędy
 
@@ -184,6 +186,21 @@ Pełne zgłoszenia (środowisko, kroki, obserwacje): [docs/BUGS.md](docs/BUGS.md
 - **Rzeczywisty rezultat:** Marcin – tak; autor również dostaje „oznaczył/a Ciebie w komentarzu”.
 - **Test regresyjny:** `tests/notifications/team-comments.spec.ts` – N-02.
 
+#### BUG-04
+
+- **Tytuł:** Nie można zaprosić nikogo do zespołu, mimo że plan pokazuje wolne miejsca.
+- **Priorytet:** średni (poza zakresem R1–R3, ale blokuje podstawową funkcję opłaconego planu i uniemożliwiło
+  wykonanie P-11 i N-04).
+- **Kroki:** Administrator otwiera `/team`; licznik pokazuje „Wykorzystano 3 z 5 miejsc” (2 wolne); kliknięcie
+  „ZAPROŚ”.
+- **Oczekiwany rezultat:** przycisk pozwala dodać kolejną osobę (mamy 2 wolne miejsca), a jeśli mimo to nie można –
+  komunikat wyjaśnia dlaczego.
+- **Rzeczywisty rezultat:** przycisk „ZAPROŚ” jest trwale `disabled`, bez żadnego komunikatu o przyczynie – jego
+  `title` to zwykły opis funkcji, nie informacja o blokadzie.
+- **Częstotliwość / środowisko:** zawsze, reprodukowane niezależnie dwa dni z rzędu (2026-09-26 i 2026-09-27),
+  kislist.com, Chrome.
+- **Test regresyjny:** brak – wymagałby ingerencji w plan/płatności konta, poza zakresem automatyzacji.
+
 #### Uwagi (nie-błędy)
 
 - **U-01:** komentarz klienta z linku jest podpisany „Klient/ka”, a nagłówek powiadomienia pokazuje adresy wszystkich
@@ -208,6 +225,12 @@ w serii, z ładunkiem HTML) zapisują się poprawnie – czerwony wynik dotyczy 
 że po komentarzu Marcina do Piotra nie przyszedł żaden e-mail w ciągu 75 s; e-mail nie jest więc zapasowym kanałem
 powiadomienia. Szczegóły: [docs/TEST_CASES.md](docs/TEST_CASES.md) (N-10).
 
+**N-05 (komentarz na innej liście)** – też jednorazowy skrypt weryfikacyjny, wykonany na osobnej, tymczasowej liście
+testowej (utworzonej i usuniętej w ramach weryfikacji – druga lista nie jest częścią stałej konfiguracji `.env`/CI).
+Wynik: ✅ zgodnie z wymaganiem – Piotr (bez dostępu do tej listy) nie dostał żadnego powiadomienia, a próba
+kontrolna (Marcin, który ma dostęp, oznaczony „@”) potwierdziła, że kanał powiadomień na tej liście działa. Szczegóły:
+[docs/TEST_CASES.md](docs/TEST_CASES.md) (N-05).
+
 ### Co dokładnie weryfikują testy
 
 | Sprawdzenie                                              | Jak                                                                                                  | Po co                                                                            |
@@ -220,7 +243,7 @@ powiadomienia. Szczegóły: [docs/TEST_CASES.md](docs/TEST_CASES.md) (N-10).
 | Próby kontrolne w testach negatywnych                    | N-02: oznaczony Marcin musi dostać powiadomienie; N-08: widać wpisy albo komunikat „pusto”           | test „braku” nie przechodzi przy zepsutym lokatorze czy niedziałającym systemie  |
 
 ¹ Aplikacja grupuje powiadomienia tego samego rodzaju (licznik przy wpisie), więc duplikat mógłby tylko zwiększyć licznik
-grupy – wykrycie tego wymaga porównania licznika przed i po (planowane, patrz docs/LEARNINGS.md).
+grupy – wykrycie tego wymaga porównania licznika przed i po (planowane, patrz .claude/LEARNINGS.md).
 
 Asercje per odbiorca są **miękkie** (`expect.soft`): przy macierzy nadawca → odbiorcy raport pokazuje wynik dla
 każdej osoby (kto dostał, kto nie), a nie tylko pierwszą rozbieżność.

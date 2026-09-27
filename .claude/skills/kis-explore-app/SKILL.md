@@ -6,7 +6,7 @@ description: Rozpoznanie żywej aplikacji KIS List przed napisaniem lub poprawą
 # Rozpoznanie aplikacji KIS List
 
 Cel: **zanim dopiszesz lokator albo asercję, zobacz to na żywo.** Wszystko, co wiadomo, jest w
-[docs/LEARNINGS.md](../../../docs/LEARNINGS.md) (sekcja 1) – przeczytaj ją najpierw, żeby nie odkrywać tego samego.
+[.claude/LEARNINGS.md](../../LEARNINGS.md) (sekcja 1) – przeczytaj ją najpierw, żeby nie odkrywać tego samego.
 
 ## Przygotowanie (raz na sesję)
 
@@ -54,6 +54,6 @@ Zasady:
 
 ## Wynik
 
-- Nowe fakty dopisz do `docs/LEARNINGS.md` (sekcja 1) – krótko, z selektorem i warunkiem, w którym to zachodzi.
+- Nowe fakty dopisz do `../../LEARNINGS.md` (sekcja 1) – krótko, z selektorem i warunkiem, w którym to zachodzi.
 - Lokatory przenieś do Page Objectu (`src/pages/…`) zgodnie ze skillem `kis-write-e2e-test`.
 - Zrzuty i logi zostają w `.local/` (nie commitujemy).
