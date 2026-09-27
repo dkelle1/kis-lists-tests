@@ -105,15 +105,22 @@ Zgłoszenia błędów: [BUGS.md](BUGS.md). Podsumowanie wyników: [README – se
 - **Rzeczywisty rezultat:** autor ✅, rodzaj zdarzenia ✅, sekcja i produkt (np. „Salon / Narożnik…”) ✅, treść ✅, projekt ✅.
 - **Automatyzacja:** 🤖 asercje w `tests/notifications/steps.ts` (`expectNotified`).
 
-### P-11 – Członek dodany do listy później (R3) · ⏳
+### P-11 – Członek dodany do listy później (R3) · ✅
 
-- **Kroki:** dodać nową osobę do zespołu (rola „Członek zespołu” – ta rola widzi każdą listę na koncie automatycznie,
-  patrz N-05), następnie komentarz innego członka.
-- **Oczekiwany rezultat:** nowa osoba dostaje powiadomienia o nowych komentarzach (nie o starszych).
-- **Rzeczywisty rezultat:** nie wykonano. Przycisk „ZAPROŚ” w `/team` jest domyślnie wyłączony, ale to zwykłe
-  zachowanie formularza – aktywuje się po wpisaniu adresu e-mail w polu obok (mylnie uznane wcześniej za błąd
-  aplikacji). Zaproszenie wysyła realny e-mail i wymaga wyboru roli/miejsca w planie – do wykonania za zgodą
-  użytkownika, patrz `.claude/LEARNINGS.md`.
+- **Warunki wstępne:** za zgodą użytkownika zaproszono nową osobę (Anna) do zespołu jako „Członek zespołu” –
+  zaproszenie e-mailem z `/team`, rejestracja przez link `/register/join/<token>` (bez reCAPTCHA – inny formularz
+  niż publiczna `/rejestracja`).
+- **Kroki:** 1) sprawdzenie `/inbox` Anny zaraz po dołączeniu (stan wyjściowy); 2) Marcin dodaje zwykły komentarz
+  (bez „@”); 3) Marcin dodaje komentarz z oznaczeniem `@Anna`; 4) centrum powiadomień Anny po obu komentarzach.
+- **Oczekiwany rezultat:** Anna nie ma żadnych powiadomień sprzed dołączenia; po oznaczeniu „@” dostaje
+  powiadomienie o nowym komentarzu.
+- **Rzeczywisty rezultat:** zgodnie z oczekiwaniem. `/inbox` Anny był pusty od razu po dołączeniu („Powiadomienia 0”,
+  „Wszystko przeczytane, wszystko ogarnięte”). Zwykły komentarz (bez „@”) jej nie powiadomił (spójne z
+  [BUG-01](BUGS.md#bug-01)); komentarz z oznaczeniem `@Anna` powiadomił ją w 20 s – potwierdza, że nowo dodany
+  członek zespołu jest poprawnie podłączony do systemu powiadomień (widoczny na liście „@”, dostaje powiadomienia
+  jak każdy inny członek).
+- **Automatyzacja:** ✋ jednorazowy skrypt weryfikacyjny (konto zaproszone przez użytkownika, nie jest częścią
+  stałej konfiguracji `.env`/CI).
 
 ### P-12 – Komentarz członka zespołu w zakładce „Komentarze klienta” (R3) · ❌ [BUG-01](BUGS.md#bug-01)
 
@@ -163,10 +170,16 @@ Zgłoszenia błędów: [BUGS.md](BUGS.md). Podsumowanie wyników: [README – se
 - **Kroki / wynik:** sprawdzane w P-03, P-04, P-05 – Klient1 (Gość) nie dostał powiadomienia.
 - **Automatyzacja:** 🤖 `team-comments.spec.ts` (krok „Klient1 (gość) nie dostaje powiadomienia”).
 
-### N-04 – Członek usunięty z listy · ⏳
+### N-04 – Członek usunięty z listy · ✅
 
-- **Oczekiwany rezultat:** po usunięciu z zespołu nie dostaje powiadomień.
-- **Rzeczywisty rezultat:** nie wykonano – zależy od P-11 (najpierw trzeba kogoś dodać, żeby potem usunąć).
+- **Kroki:** 1) Administrator usuwa Annę z zespołu (`/team` → „Usuń członka zespołu” → potwierdzenie); 2) sprawdzenie
+  listy podpowiedzi „@”; 3) Marcin dodaje komentarz kontrolny; 4) próba wejścia Anny na listę (jej zapisana sesja); 5) centrum powiadomień Anny.
+- **Oczekiwany rezultat:** po usunięciu z zespołu Anna nie dostaje powiadomień i nie ma dostępu do listy.
+- **Rzeczywisty rezultat:** zgodnie z oczekiwaniem – i silniej niż wymagane. Anna od razu zniknęła z listy
+  podpowiedzi „@” (widoczni tylko Damian, Marcin, Piotr). Próba wejścia na `/lists/<id>/edit` **przekierowała ją na
+  `/profile`** jej własnego, oddzielnego konta (status „Plan nieaktywny”) – utraciła dostęp do całej listy, nie
+  tylko do powiadomień. Komentarz kontrolny Marcina jej nie powiadomił (sprawdzone przez 39 s).
+- **Automatyzacja:** ✋ jednorazowy skrypt weryfikacyjny (jak P-11).
 
 ### N-05 – Komentarz na innej liście · ✅
 
@@ -240,9 +253,9 @@ Zgłoszenia błędów: [BUGS.md](BUGS.md). Podsumowanie wyników: [README – se
 
 | Status      | Liczba | Przypadki                                                                    |
 | ----------- | :----: | ---------------------------------------------------------------------------- |
-| ✅ zgodnie  |   8    | P-06, P-08, P-10, N-01, N-03, N-05, N-06, N-08                               |
+| ✅ zgodnie  |   10   | P-06, P-08, P-10, P-11, N-01, N-03, N-04, N-05, N-06, N-08                   |
 | ❌ błąd     |   13   | P-01, P-02, P-03, P-04, P-05, P-07, P-09, P-12, P-13, P-14, N-02, N-09, N-10 |
-| ⏳ nie wyk. |   3    | P-11, N-04, N-07                                                             |
+| ⏳ nie wyk. |   1    | N-07                                                                         |
 
 P-13, P-14 i N-09 każdorazowo **potwierdzają, że treść komentarza zapisuje się poprawnie** (długi tekst, seria
 komentarzy, ładunek HTML/JS pokazany bezpiecznie jako tekst) – czerwony wynik dotyczy wyłącznie brakującego
