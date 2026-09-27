@@ -1,16 +1,14 @@
 # Zgłoszenia błędów – powiadomienia o komentarzach (KIS List)
 
-Błędy znalezione podczas wykonania planu testów ([TEST_CASES.md](TEST_CASES.md)) 2026-09-26–27.
-BUG-01…03 odtwarza test regresyjny (`@regression`) – czerwony do czasu poprawki, w raporcie Allure ma link
-„Błąd: BUG-0x” oraz zrzut centrum powiadomień każdej osoby pod krokiem weryfikacji. BUG-04 dotyczy zarządzania
-zespołem (poza zakresem powiadomień) i nie ma automatyzacji – patrz uzasadnienie przy zgłoszeniu.
+Błędy znalezione podczas wykonania planu testów ([TEST_CASES.md](TEST_CASES.md)) 2026-09-26.
+Każdy błąd odtwarza test regresyjny (`@regression`) – czerwony do czasu poprawki; w raporcie Allure ma link „Błąd: BUG-0x”
+oraz zrzut centrum powiadomień każdej osoby pod krokiem weryfikacji.
 
-| ID                | Tytuł                                                                                                                  | Wymaganie  | Priorytet | Test regresyjny                                      |
-| ----------------- | ---------------------------------------------------------------------------------------------------------------------- | :--------: | :-------: | ---------------------------------------------------- |
-| [BUG-01](#bug-01) | Komentarz członka zespołu powiadamia tylko osoby oznaczone „@” (przy odpowiedzi – tylko autora wątku), nie cały zespół |     R3     |  wysoki   | P-03, P-04, P-05, P-07, P-09, P-13, P-14, N-09, N-10 |
-| [BUG-02](#bug-02) | Rola „Członek zespołu” nie dostaje powiadomienia o komentarzu klienta (propozycja i udostępniona lista)                |   R1, R2   |  wysoki   | P-01, P-02                                           |
-| [BUG-03](#bug-03) | Autor oznaczający samego siebie dostaje powiadomienie o własnym komentarzu                                             |     R3     |   niski   | N-02                                                 |
-| [BUG-04](#bug-04) | Nie można zaprosić nikogo do zespołu mimo wolnych miejsc w planie (3 z 5 zajęte)                                       | poza R1–R3 |  średni   | brak (poza zakresem automatyzacji)                   |
+| ID                | Tytuł                                                                                                                  | Wymaganie | Priorytet | Test regresyjny                                      |
+| ----------------- | ---------------------------------------------------------------------------------------------------------------------- | :-------: | :-------: | ---------------------------------------------------- |
+| [BUG-01](#bug-01) | Komentarz członka zespołu powiadamia tylko osoby oznaczone „@” (przy odpowiedzi – tylko autora wątku), nie cały zespół |    R3     |  wysoki   | P-03, P-04, P-05, P-07, P-09, P-13, P-14, N-09, N-10 |
+| [BUG-02](#bug-02) | Rola „Członek zespołu” nie dostaje powiadomienia o komentarzu klienta (propozycja i udostępniona lista)                |  R1, R2   |  wysoki   | P-01, P-02                                           |
+| [BUG-03](#bug-03) | Autor oznaczający samego siebie dostaje powiadomienie o własnym komentarzu                                             |    R3     |   niski   | N-02                                                 |
 
 **Środowisko (wszystkie błędy):** https://kislist.com (plan EXPERT – wersja próbna), Chrome/Chromium desktop, język polski,
 lista „PROJEKT REKRUTACJA / KOSZTORYS”. Konta: Damian Keller (Administrator), Piotr (Współpracownik), Marcin (Członek
@@ -121,47 +119,6 @@ P-13, P-14, N-09; N-10 – jednorazowa weryfikacja skryptem (Gmail API), nieauto
 **Rzeczywisty rezultat:** Marcin ✅; Administrator również dostaje „Damian Keller oznaczył/a Ciebie w komentarzu” ❌.
 
 **Test regresyjny:** `tests/notifications/team-comments.spec.ts` – N-02.
-
----
-
-## BUG-04
-
-**Nie można zaprosić nikogo do zespołu, mimo że plan pokazuje wolne miejsca.**
-
-| Pole          | Wartość                                                                           |
-| ------------- | --------------------------------------------------------------------------------- |
-| Wymaganie     | poza R1–R3 (zarządzanie zespołem) – zablokowało wykonanie P-11 i N-04             |
-| Priorytet     | średni – nie dotyczy powiadomień, ale blokuje podstawową funkcję opłaconego planu |
-| Częstotliwość | zawsze, reprodukowane niezależnie dwa dni z rzędu (2026-09-26 i 2026-09-27)       |
-| Przypadki     | blokuje P-11, N-04 (`docs/TEST_CASES.md`)                                         |
-
-**Kroki:**
-
-1. Zaloguj się jako Administrator (Damian Keller).
-2. Otwórz `/team`.
-3. Zobacz licznik „Wykorzystano 3 z 5 miejsc” (2 członków zespołu + 1 współpracownik = 3 z limitu 5).
-4. Spróbuj kliknąć przycisk „ZAPROŚ”.
-
-**Oczekiwany rezultat:** skoro wykorzystano 3 z 5 miejsc, przycisk „ZAPROŚ” pozwala dodać kolejną osobę (mamy 2 wolne
-miejsca) – ewentualnie, jeśli z jakiegoś powodu nie można, komunikat lub tooltip powinien wyjaśniać dlaczego.
-
-**Rzeczywisty rezultat:** przycisk „ZAPROŚ” ma atrybut `disabled` i nie reaguje na kliknięcie. Jego `title`
-(„Dodaj osobę, z którą chcesz współdzielić wszystkie listy i ulubione.”) to zwykły opis funkcji, **nie komunikat o
-przyczynie blokady** – użytkownik nie ma żadnej wskazówki, dlaczego nie może zaprosić nikogo mimo wolnych miejsc.
-
-**Dodatkowe obserwacje:**
-
-- Stan jest stabilny w czasie – ten sam wynik obserwowany 2026-09-26 i ponownie 2026-09-27 (różne dni, ta sama
-  liczba miejsc: 3 z 5).
-- Limit „3 z 5” może w rzeczywistości dotyczyć czegoś innego niż liczba aktywnych kont (np. limit zaproszeń
-  wysłanych w historii, niezależnie od tego, czy zostały zaakceptowane, czy konto zostało później usunięte) – nie
-  udało się tego potwierdzić bez dostępu do panelu rozliczeń/planu.
-- Bezpośredni skutek dla tego zadania: nie dało się wykonać P-11 (nowy członek dostaje powiadomienia o nowych
-  komentarzach) ani N-04 (usunięty członek przestaje je dostawać) – oba wymagają najpierw dodania osoby do zespołu.
-
-**Test regresyjny:** brak – scenariusz nie wchodzi w skład automatyzacji R1–R3, a jego weryfikacja wymagałaby
-ingerencji w plan/płatności konta (zmiana pakietu), co jest poza zakresem tego zadania i wymaga zgody właściciela
-konta.
 
 ---
 

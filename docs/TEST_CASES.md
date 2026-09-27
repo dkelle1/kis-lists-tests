@@ -105,15 +105,15 @@ Zgłoszenia błędów: [BUGS.md](BUGS.md). Podsumowanie wyników: [README – se
 - **Rzeczywisty rezultat:** autor ✅, rodzaj zdarzenia ✅, sekcja i produkt (np. „Salon / Narożnik…”) ✅, treść ✅, projekt ✅.
 - **Automatyzacja:** 🤖 asercje w `tests/notifications/steps.ts` (`expectNotified`).
 
-### P-11 – Członek dodany do listy później (R3) · ⏳ [BUG-04](BUGS.md#bug-04)
+### P-11 – Członek dodany do listy później (R3) · ⏳
 
 - **Kroki:** dodać nową osobę do zespołu (rola „Członek zespołu” – ta rola widzi każdą listę na koncie automatycznie,
   patrz N-05), następnie komentarz innego członka.
 - **Oczekiwany rezultat:** nowa osoba dostaje powiadomienia o nowych komentarzach (nie o starszych).
-- **Rzeczywisty rezultat:** **zablokowane przez błąd aplikacji, nie przez brak czasu** – przycisk „ZAPROŚ” w `/team`
-  jest wyłączony mimo wolnych miejsc w planie (3 z 5 zajęte, 2 wolne) – patrz [BUG-04](BUGS.md#bug-04). Reprodukowane
-  niezależnie dwa dni z rzędu. Nowe konto wymaga też ręcznej rejestracji (reCAPTCHA – poza zakresem automatyzacji),
-  co niezależnie ograniczałoby automatyzację tego scenariusza nawet bez BUG-04.
+- **Rzeczywisty rezultat:** nie wykonano. Przycisk „ZAPROŚ” w `/team` jest domyślnie wyłączony, ale to zwykłe
+  zachowanie formularza – aktywuje się po wpisaniu adresu e-mail w polu obok (mylnie uznane wcześniej za błąd
+  aplikacji). Zaproszenie wysyła realny e-mail i wymaga wyboru roli/miejsca w planie – do wykonania za zgodą
+  użytkownika, patrz `.claude/LEARNINGS.md`.
 
 ### P-12 – Komentarz członka zespołu w zakładce „Komentarze klienta” (R3) · ❌ [BUG-01](BUGS.md#bug-01)
 
@@ -163,11 +163,10 @@ Zgłoszenia błędów: [BUGS.md](BUGS.md). Podsumowanie wyników: [README – se
 - **Kroki / wynik:** sprawdzane w P-03, P-04, P-05 – Klient1 (Gość) nie dostał powiadomienia.
 - **Automatyzacja:** 🤖 `team-comments.spec.ts` (krok „Klient1 (gość) nie dostaje powiadomienia”).
 
-### N-04 – Członek usunięty z listy · ⏳ [BUG-04](BUGS.md#bug-04)
+### N-04 – Członek usunięty z listy · ⏳
 
 - **Oczekiwany rezultat:** po usunięciu z zespołu nie dostaje powiadomień.
-- **Rzeczywisty rezultat:** nie wykonano – zależy od P-11 (ta sama blokada: [BUG-04](BUGS.md#bug-04) uniemożliwia
-  dodanie kogokolwiek, więc nie ma kogo najpierw dodać, a potem usunąć).
+- **Rzeczywisty rezultat:** nie wykonano – zależy od P-11 (najpierw trzeba kogoś dodać, żeby potem usunąć).
 
 ### N-05 – Komentarz na innej liście · ✅
 
