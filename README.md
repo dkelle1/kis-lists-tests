@@ -23,8 +23,7 @@ Raport testerski oraz test E2E (Playwright + TypeScript) do zadania rekrutacyjne
 | Publiczne repozytorium: README (raport + instrukcja), `/tests`, konfiguracja  | ten plik, `tests/`, `playwright.config.ts`, `package.json`, `tsconfig.json`, `.env.example`, `.github/`  |
 | Uruchomienie po sklonowaniu                                                   | sekcja 5 „Uruchomienie lokalne” (`npm ci` → `.env` → `npm test`) i „Uruchomienie w GitHub Actions”       |
 
-Zakres nieobjęty wykonaniem (⏳): P-11, N-04, N-05, N-07 – opisane w [docs/TEST_CASES.md](docs/TEST_CASES.md)
-(N-05 – druga lista testowa – napotkała chwilową niestabilność backendu aplikacji przy tworzeniu listy).
+Zakres nieobjęty wykonaniem (⏳): P-11, N-04, N-07 – opisane w [docs/TEST_CASES.md](docs/TEST_CASES.md).
 
 ---
 
@@ -118,28 +117,29 @@ z prawem edycji, a warianty z `@` sprawdzają, czy oznaczenie nie zawęża odbio
 Legenda: ✅ zgodnie z wymaganiem · ❌ błąd · „autor” – autor komentarza · ⏳ nie wykonano.
 Wyniki automatyczne (Playwright) zgodne z wykonaniem ręcznym.
 
-| ID                     | Damian (admin) | Piotr (współpr.) | Marcin (członek) | Klient1 (gość) | Wynik | Uwagi                                                                                     |
-| ---------------------- | :------------: | :--------------: | :--------------: | :------------: | :---: | ----------------------------------------------------------------------------------------- |
-| P-01                   |       ✅       |        ✅        |      **❌**      |    – (brak)    |  ❌   | [BUG-02](#bug-02) – członek zespołu nie dostaje powiadomienia o komentarzu do propozycji  |
-| P-02                   |       ✅       |        ✅        |      **❌**      |    – (brak)    |  ❌   | [BUG-02](#bug-02) – członek zespołu nie dostaje powiadomienia o komentarzu klienta        |
-| P-03 + N-01            |    autor ✅    |      **❌**      |      **❌**      |   ✅ (brak)    |  ❌   | [BUG-01](#bug-01)                                                                         |
-| P-04 + N-01            |     **❌**     |     autor ✅     |      **❌**      |   ✅ (brak)    |  ❌   | [BUG-01](#bug-01)                                                                         |
-| P-05 + N-01            |     **❌**     |      **❌**      |     autor ✅     |   ✅ (brak)    |  ❌   | [BUG-01](#bug-01)                                                                         |
-| P-06                   |       –        |        ✅        |      autor       |       –        |  ✅   | oznaczony dostaje „Marcin oznaczył/a Ciebie w komentarzu”                                 |
-| P-07                   |    autor ✅    |      **❌**      |        ✅        |       –        |  ❌   | [BUG-01](#bug-01) – powiadomiony tylko oznaczony                                          |
-| P-08                   |     autor      |        ✅        |        ✅        |       –        |  ✅   | po jednym powiadomieniu, bez duplikatów                                                   |
-| P-10                   |       ✅       |        ✅        |        ✅        |       –        |  ✅   | autor, rodzaj zdarzenia, treść, projekt; **brak nazwy produktu** (uwaga U-01)             |
-| P-12                   |     **❌**     |      **❌**      |      **❌**      |       –        |  ❌   | ręcznie: komentarze Marcina i Piotra w „Komentarze klienta” – brak powiadomień            |
-| N-02                   | **❌** (jest)  |        –         |   ✅ (kontr.)    |       –        |  ❌   | [BUG-03](#bug-03) – autor oznaczający siebie dostaje powiadomienie                        |
-| N-03                   |       –        |        –         |        –         |   ✅ (brak)    |  ✅   | sprawdzane w P-03…P-05                                                                    |
-| N-08                   |       ✅       |        ✅        |        ✅        |       –        |  ✅   | liczba powiadomień bez zmian                                                              |
-| P-09                   |     **❌**     | ✅ (autor wątku) |     autor ✅     |       –        |  ❌   | [BUG-01](#bug-01) – o odpowiedzi dowiaduje się tylko autor komentarza nadrzędnego         |
-| N-06                   |       –        |        –         |        ✅        |       –        |  ✅   | pusty komentarz i same spacje nie są dodawane                                             |
-| P-13                   |    autor ✅    |      **❌**      |        –         |       –        |  ❌   | [BUG-01](#bug-01) – długi komentarz (~800 zn.) zapisuje się poprawnie, powiadomienia brak |
-| P-14                   |       –        |      **❌**      |     autor ✅     |       –        |  ❌   | [BUG-01](#bug-01) – 3 komentarze pod rząd zapisują się poprawnie, powiadomień brak        |
-| N-09                   |     **❌**     |        –         |     autor ✅     |       –        |  ❌   | [BUG-01](#bug-01) – ładunek HTML bezpieczny (brak `alert`), powiadomienia brak            |
-| N-10                   |       –        |      **❌**      |        –         |       –        |  ❌   | [BUG-01](#bug-01) – brak e-maila do Piotra w 75 s; e-mail nie jest zapasowym kanałem      |
-| P-11, N-04, N-05, N-07 |                |                  |                  |                |  ⏳   | poza zakresem tego przebiegu (patrz docs/TEST_CASES.md)                                   |
+| ID               | Damian (admin) | Piotr (współpr.) | Marcin (członek) | Klient1 (gość) | Wynik | Uwagi                                                                                     |
+| ---------------- | :------------: | :--------------: | :--------------: | :------------: | :---: | ----------------------------------------------------------------------------------------- |
+| P-01             |       ✅       |        ✅        |      **❌**      |    – (brak)    |  ❌   | [BUG-02](#bug-02) – członek zespołu nie dostaje powiadomienia o komentarzu do propozycji  |
+| P-02             |       ✅       |        ✅        |      **❌**      |    – (brak)    |  ❌   | [BUG-02](#bug-02) – członek zespołu nie dostaje powiadomienia o komentarzu klienta        |
+| P-03 + N-01      |    autor ✅    |      **❌**      |      **❌**      |   ✅ (brak)    |  ❌   | [BUG-01](#bug-01)                                                                         |
+| P-04 + N-01      |     **❌**     |     autor ✅     |      **❌**      |   ✅ (brak)    |  ❌   | [BUG-01](#bug-01)                                                                         |
+| P-05 + N-01      |     **❌**     |      **❌**      |     autor ✅     |   ✅ (brak)    |  ❌   | [BUG-01](#bug-01)                                                                         |
+| P-06             |       –        |        ✅        |      autor       |       –        |  ✅   | oznaczony dostaje „Marcin oznaczył/a Ciebie w komentarzu”                                 |
+| P-07             |    autor ✅    |      **❌**      |        ✅        |       –        |  ❌   | [BUG-01](#bug-01) – powiadomiony tylko oznaczony                                          |
+| P-08             |     autor      |        ✅        |        ✅        |       –        |  ✅   | po jednym powiadomieniu, bez duplikatów                                                   |
+| P-10             |       ✅       |        ✅        |        ✅        |       –        |  ✅   | autor, rodzaj zdarzenia, treść, projekt; **brak nazwy produktu** (uwaga U-01)             |
+| P-12             |     **❌**     |      **❌**      |      **❌**      |       –        |  ❌   | ręcznie: komentarze Marcina i Piotra w „Komentarze klienta” – brak powiadomień            |
+| N-02             | **❌** (jest)  |        –         |   ✅ (kontr.)    |       –        |  ❌   | [BUG-03](#bug-03) – autor oznaczający siebie dostaje powiadomienie                        |
+| N-03             |       –        |        –         |        –         |   ✅ (brak)    |  ✅   | sprawdzane w P-03…P-05                                                                    |
+| N-08             |       ✅       |        ✅        |        ✅        |       –        |  ✅   | liczba powiadomień bez zmian                                                              |
+| P-09             |     **❌**     | ✅ (autor wątku) |     autor ✅     |       –        |  ❌   | [BUG-01](#bug-01) – o odpowiedzi dowiaduje się tylko autor komentarza nadrzędnego         |
+| N-06             |       –        |        –         |        ✅        |       –        |  ✅   | pusty komentarz i same spacje nie są dodawane                                             |
+| P-13             |    autor ✅    |      **❌**      |        –         |       –        |  ❌   | [BUG-01](#bug-01) – długi komentarz (~800 zn.) zapisuje się poprawnie, powiadomienia brak |
+| P-14             |       –        |      **❌**      |     autor ✅     |       –        |  ❌   | [BUG-01](#bug-01) – 3 komentarze pod rząd zapisują się poprawnie, powiadomień brak        |
+| N-09             |     **❌**     |        –         |     autor ✅     |       –        |  ❌   | [BUG-01](#bug-01) – ładunek HTML bezpieczny (brak `alert`), powiadomienia brak            |
+| N-10             |       –        |      **❌**      |        –         |       –        |  ❌   | [BUG-01](#bug-01) – brak e-maila do Piotra w 75 s; e-mail nie jest zapasowym kanałem      |
+| N-05             |    autor ✅    |    ✅ (brak)     | ✅ (kontr. „@”)  |       –        |  ✅   | druga lista: Piotr (brak dostępu) – nic; Marcin (ma dostęp) – powiadomienie o „@” w 14 s  |
+| P-11, N-04, N-07 |                |                  |                  |                |  ⏳   | poza zakresem tego przebiegu (patrz docs/TEST_CASES.md)                                   |
 
 ### Zgłoszone błędy
 
@@ -207,6 +207,12 @@ w serii, z ładunkiem HTML) zapisują się poprawnie – czerwony wynik dotyczy 
 **N-10 (kanał e-mail)** to jednorazowy skrypt diagnostyczny (Gmail API), nie stały test w tym zestawie – potwierdził,
 że po komentarzu Marcina do Piotra nie przyszedł żaden e-mail w ciągu 75 s; e-mail nie jest więc zapasowym kanałem
 powiadomienia. Szczegóły: [docs/TEST_CASES.md](docs/TEST_CASES.md) (N-10).
+
+**N-05 (komentarz na innej liście)** – też jednorazowy skrypt weryfikacyjny, wykonany na osobnej, tymczasowej liście
+testowej (utworzonej i usuniętej w ramach weryfikacji – druga lista nie jest częścią stałej konfiguracji `.env`/CI).
+Wynik: ✅ zgodnie z wymaganiem – Piotr (bez dostępu do tej listy) nie dostał żadnego powiadomienia, a próba
+kontrolna (Marcin, który ma dostęp, oznaczony „@”) potwierdziła, że kanał powiadomień na tej liście działa. Szczegóły:
+[docs/TEST_CASES.md](docs/TEST_CASES.md) (N-05).
 
 ### Co dokładnie weryfikują testy
 

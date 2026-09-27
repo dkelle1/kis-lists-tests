@@ -169,15 +169,27 @@ Zgłoszenia błędów: [BUGS.md](BUGS.md). Podsumowanie wyników: [README – se
 - **Rzeczywisty rezultat:** nie wykonano – zależy od P-11 (ta sama blokada: brak wolnego miejsca, żeby najpierw
   kogoś dodać, a potem usunąć).
 
-### N-05 – Komentarz na innej liście · ⏳
+### N-05 – Komentarz na innej liście · ✅
 
-- **Oczekiwany rezultat:** zespół listy testowej nie dostaje powiadomienia.
-- **Rzeczywisty rezultat:** nie wykonano. Przycisk „UTWÓRZ” na `/lists` poprawnie otwiera okno „Podaj nazwę listy”
-  (rozpoznane), ale samo utworzenie drugiej listy nie powiodło się – po kliknięciu „UTWÓRZ LISTĘ” przycisk zostaje
-  w stanie ładowania bez końca, żadne żądanie sieciowe do serwera nie jest widoczne (`page.waitForResponse` – timeout
-  20 s), a strona `/lists` niezależnie od tego kilkukrotnie zwracała `upstream request failed`. To wygląda na
-  **chwilową niestabilność backendu aplikacji**, a nie błąd skryptu czy limit środowiska (log proxy sandboksa nie
-  pokazuje żadnych odrzuceń dla `kislist.com`). Do powtórzenia, gdy aplikacja będzie stabilna.
+- **Warunki wstępne:** poprzednia próba (dzień wcześniej) napotkała ogólną, chwilową niedostępność aplikacji
+  (`kislist.com` zwracał 502 na każdej stronie – potwierdzone niezależnie Playwrightem i czystym `curl` przez to
+  samo proxy). Po ustąpieniu awarii aplikacja odpowiadała normalnie (200) i test wykonano do końca.
+- **Kroki:** 1) Administrator tworzy nową, drugą listę („UTWÓRZ” → „Podaj nazwę listy”) i dodaje do niej jeden
+  produkt; 2) sprawdzenie listy podpowiedzi „@” w komentarzu na tej liście; 3) Administrator dodaje zwykły komentarz
+  (bez oznaczeń) w czacie zespołu; 4) próba kontrolna: Administrator oznacza `@Marcin` w kolejnym komentarzu na tej
+  samej liście; 5) centrum powiadomień Piotra i Marcina po obu komentarzach; 6) lista usunięta po teście.
+- **Oczekiwany rezultat:** Piotr (nie ma dostępu do tej listy) nie dostaje żadnego powiadomienia z żadnego z dwóch
+  komentarzy; Marcin (ma dostęp) dostaje powiadomienie o oznaczeniu „@” (próba kontrolna potwierdzająca, że kanał
+  powiadomień na tej liście w ogóle działa – „brak” u Piotra nie jest tylko efektem BUG-01).
+- **Rzeczywisty rezultat:** zgodnie z oczekiwaniem. Piotr **nie widniał nawet na liście podpowiedzi „@”** na tej
+  liście (widoczni byli tylko Damian Keller i Marcin) – dowód izolacji niezależny od powiadomień. Zwykły komentarz
+  (bez „@”) nie powiadomił nikogo (spójne z BUG-01). Komentarz z oznaczeniem `@Marcin` powiadomił Marcina w 14 s;
+  Piotr nie dostał niczego po 43 s obserwacji.
+- **Uwaga:** rola dostępu do listy ma znaczenie – „Członek zespołu” (Marcin) automatycznie widzi każdą nową listę
+  na koncie, a „Współpracownik” (Piotr) tylko te, do których został zaproszony. To koryguje wcześniejszy wniosek
+  w `docs/LEARNINGS.md` („zespół jest globalny dla konta”) – dotyczy to tylko roli „Członek zespołu”, nie każdej roli.
+- **Automatyzacja:** ✋ jednorazowy skrypt weryfikacyjny (druga lista nie jest częścią stałej konfiguracji `.env`/CI –
+  wymagałaby utrzymywania dodatkowego listId wyłącznie dla tego jednego scenariusza).
 
 ### N-06 – Pusty komentarz / same spacje · ✅
 
@@ -229,9 +241,9 @@ Zgłoszenia błędów: [BUGS.md](BUGS.md). Podsumowanie wyników: [README – se
 
 | Status      | Liczba | Przypadki                                                                    |
 | ----------- | :----: | ---------------------------------------------------------------------------- |
-| ✅ zgodnie  |   7    | P-06, P-08, P-10, N-01, N-03, N-06, N-08                                     |
+| ✅ zgodnie  |   8    | P-06, P-08, P-10, N-01, N-03, N-05, N-06, N-08                               |
 | ❌ błąd     |   13   | P-01, P-02, P-03, P-04, P-05, P-07, P-09, P-12, P-13, P-14, N-02, N-09, N-10 |
-| ⏳ nie wyk. |   4    | P-11, N-04, N-05, N-07                                                       |
+| ⏳ nie wyk. |   3    | P-11, N-04, N-07                                                             |
 
 P-13, P-14 i N-09 każdorazowo **potwierdzają, że treść komentarza zapisuje się poprawnie** (długi tekst, seria
 komentarzy, ładunek HTML/JS pokazany bezpiecznie jako tekst) – czerwony wynik dotyczy wyłącznie brakującego
