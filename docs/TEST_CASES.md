@@ -105,15 +105,15 @@ Zgłoszenia błędów: [BUGS.md](BUGS.md). Podsumowanie wyników: [README – se
 - **Rzeczywisty rezultat:** autor ✅, rodzaj zdarzenia ✅, sekcja i produkt (np. „Salon / Narożnik…”) ✅, treść ✅, projekt ✅.
 - **Automatyzacja:** 🤖 asercje w `tests/notifications/steps.ts` (`expectNotified`).
 
-### P-11 – Członek dodany do listy później (R3) · ⏳
+### P-11 – Członek dodany do listy później (R3) · ⏳ [BUG-04](BUGS.md#bug-04)
 
-- **Kroki:** dodać nową osobę do zespołu, następnie komentarz innego członka.
+- **Kroki:** dodać nową osobę do zespołu (rola „Członek zespołu” – ta rola widzi każdą listę na koncie automatycznie,
+  patrz N-05), następnie komentarz innego członka.
 - **Oczekiwany rezultat:** nowa osoba dostaje powiadomienia o nowych komentarzach (nie o starszych).
-- **Rzeczywisty rezultat:** **zablokowane przez konto, nie przez brak czasu** – przycisk „ZAPROŚ” w `/team` jest
-  wyłączony (plan próbny: 3 z 5 miejsc już zajęte). Nowe konto wymaga ręcznej rejestracji (reCAPTCHA – poza zakresem
-  automatyzacji). Zespół w KIS List jest **globalny dla konta** (komunikat w `/team`: „Członkowie zespołu mogą
-  udostępniać i edytować wszystkie listy i ulubione”) – nie ma osobnego przypisania „ta osoba do tej listy”, więc
-  scenariusz wymaga zmiany planu (dodatkowe miejsce) albo nowego, ręcznie założonego konta.
+- **Rzeczywisty rezultat:** **zablokowane przez błąd aplikacji, nie przez brak czasu** – przycisk „ZAPROŚ” w `/team`
+  jest wyłączony mimo wolnych miejsc w planie (3 z 5 zajęte, 2 wolne) – patrz [BUG-04](BUGS.md#bug-04). Reprodukowane
+  niezależnie dwa dni z rzędu. Nowe konto wymaga też ręcznej rejestracji (reCAPTCHA – poza zakresem automatyzacji),
+  co niezależnie ograniczałoby automatyzację tego scenariusza nawet bez BUG-04.
 
 ### P-12 – Komentarz członka zespołu w zakładce „Komentarze klienta” (R3) · ❌ [BUG-01](BUGS.md#bug-01)
 
@@ -163,11 +163,11 @@ Zgłoszenia błędów: [BUGS.md](BUGS.md). Podsumowanie wyników: [README – se
 - **Kroki / wynik:** sprawdzane w P-03, P-04, P-05 – Klient1 (Gość) nie dostał powiadomienia.
 - **Automatyzacja:** 🤖 `team-comments.spec.ts` (krok „Klient1 (gość) nie dostaje powiadomienia”).
 
-### N-04 – Członek usunięty z listy · ⏳
+### N-04 – Członek usunięty z listy · ⏳ [BUG-04](BUGS.md#bug-04)
 
 - **Oczekiwany rezultat:** po usunięciu z zespołu nie dostaje powiadomień.
-- **Rzeczywisty rezultat:** nie wykonano – zależy od P-11 (ta sama blokada: brak wolnego miejsca, żeby najpierw
-  kogoś dodać, a potem usunąć).
+- **Rzeczywisty rezultat:** nie wykonano – zależy od P-11 (ta sama blokada: [BUG-04](BUGS.md#bug-04) uniemożliwia
+  dodanie kogokolwiek, więc nie ma kogo najpierw dodać, a potem usunąć).
 
 ### N-05 – Komentarz na innej liście · ✅
 
