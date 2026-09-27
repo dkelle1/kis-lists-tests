@@ -37,10 +37,11 @@ Dla zadania „dopisz test” zacznij od [WORKFLOW.md](../docs/WORKFLOW.md) i sk
   każdą nową listę od razu (i pojawia się w podpowiedziach „@”), a rola **„Współpracownik”** (Piotr) – **nie**,
   dopóki nie zostanie do tej konkretnej listy zaproszony. `/team` (nie `/lists/<id>/team`, tego adresu nie ma – 404)
   pokazuje więc opis trafny tylko dla „Członków zespołu”.
-- **Przycisk „ZAPROŚ” w `/team` bywa wyłączony** po wyczerpaniu miejsc planu (u nas 3 z 5 zajęte, a mimo to przycisk
-  jest `disabled` – limit dotyczy najwyraźniej też liczby zaproszeń, nie tylko aktywnych kont). P-11/N-04
-  (dodanie/usunięcie członka) wymagają więc albo wolnego miejsca, albo zmiany planu – **nie da się tego wywołać
-  samym UI bez ingerencji w konto/plan**.
+- **Zapraszanie do zespołu:** na `/team` jest pole `input[type=email]` (placeholder „Zaproś dodatkową osobę przez
+  email”) obok przycisku „ZAPROŚ” – **przycisk jest `disabled` tylko dopóki pole jest puste**, to zwykła walidacja
+  formularza, nie limit planu (mylnie uznane za błąd aplikacji – zgłoszenie BUG-04 zostało wycofane). Po wpisaniu
+  adresu przycisk się aktywuje. Realna wysyłka zaproszenia (e-mail, wybór roli, zużycie miejsca w planie „3 z 5”)
+  wymaga zgody użytkownika i nie została jeszcze wykonana – do tego P-11/N-04.
 - **Tworzenie nowej listy:** `/lists` → zielony przycisk „Utwórz” (renderowany wielkimi literami przez CSS – jego
   **prawdziwy tekst DOM to „Utwórz”, nie „UTWÓRZ”**; `getByRole('button', { name: 'UTWÓRZ', exact: true })` nic
   nie znajdzie, bo dopasowanie jest wtedy wrażliwe na wielkość liter mimo że sama nazwa zgadza się case-insensitive
