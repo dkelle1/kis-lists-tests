@@ -40,8 +40,18 @@ Dla zadania „dopisz test” zacznij od [WORKFLOW.md](../docs/WORKFLOW.md) i sk
 - **Zapraszanie do zespołu:** na `/team` jest pole `input[type=email]` (placeholder „Zaproś dodatkową osobę przez
   email”) obok przycisku „ZAPROŚ” – **przycisk jest `disabled` tylko dopóki pole jest puste**, to zwykła walidacja
   formularza, nie limit planu (mylnie uznane za błąd aplikacji – zgłoszenie BUG-04 zostało wycofane). Po wpisaniu
-  adresu przycisk się aktywuje. Realna wysyłka zaproszenia (e-mail, wybór roli, zużycie miejsca w planie „3 z 5”)
-  wymaga zgody użytkownika i nie została jeszcze wykonana – do tego P-11/N-04.
+  adresu i kliknięciu przycisk wysyła e-mail „Zaproszenie do dołączenia do zespołu” z linkiem
+  `/register/join/<token>` – **ten formularz rejestracji nie ma reCAPTCHA** (inaczej niż publiczna `/rejestracja`),
+  pole e-mail jest już wypełnione i `readonly`, wystarczy podać imię i hasło. Nowa osoba jest zalogowana od razu po
+  rejestracji i dostaje rolę „Członek zespołu” (widoczna wtedy na liście „@” każdej listy na koncie – patrz N-05).
+- **Usuwanie członka zespołu:** ikona przy wierszu na `/team` (link `a[title="Usuń członka zespołu"]`) → dialog
+  „Potwierdź usunięcie” → przycisk „Usuń” (tekst DOM bez wielkich liter, jak przy „Utwórz” – nie używaj `exact` przy
+  dopasowaniu). **Pułapka:** administrator (właściciel) nie ma tej ikony, więc `.first()` na stronie z więcej niż
+  jednym członkiem trafi w PIERWSZEGO na liście, niekoniecznie w zamierzoną osobę – zawsze zawężaj lokator do
+  wiersza z konkretnym adresem e-mail. Po usunięciu osoba natychmiast znika z listy „@”, a próba wejścia na listę
+  przekierowuje ją na `/profile` jej własnego (teraz osobnego) konta – traci dostęp do całej listy, nie tylko do
+  powiadomień. Zaproszenie tego samego adresu e-mail ponownie przywraca członkostwo od razu (bez ponownej
+  rejestracji) – konto samo w sobie nie jest usuwane, tylko jego przypisanie do zespołu.
 - **Tworzenie nowej listy:** `/lists` → zielony przycisk „Utwórz” (renderowany wielkimi literami przez CSS – jego
   **prawdziwy tekst DOM to „Utwórz”, nie „UTWÓRZ”**; `getByRole('button', { name: 'UTWÓRZ', exact: true })` nic
   nie znajdzie, bo dopasowanie jest wtedy wrażliwe na wielkość liter mimo że sama nazwa zgadza się case-insensitive
