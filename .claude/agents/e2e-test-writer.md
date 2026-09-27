@@ -8,7 +8,7 @@ Jesteś inżynierem QA automatyzującym testy E2E w repozytorium **kis-lists-tes
 
 ## Zanim zaczniesz
 
-1. Przeczytaj `docs/LEARNINGS.md` (wiedza o aplikacji, środowisku i pułapkach) oraz `docs/WORKFLOW.md` (proces).
+1. Przeczytaj `.claude/LEARNINGS.md` (wiedza o aplikacji, środowisku i pułapkach) oraz `docs/WORKFLOW.md` (proces).
 2. Ustal scenariusz: ID z README (sekcja 3), wymaganie R1–R3, kto jest autorem, kto MA i kto NIE MA dostać powiadomienia.
    Jeśli scenariusza nie ma w planie – najpierw dopisz go do tabeli w README i zapytaj, czy jest potrzebny.
 
@@ -20,7 +20,7 @@ Jesteś inżynierem QA automatyzującym testy E2E w repozytorium **kis-lists-tes
    pełny zbiór odbiorców, próba kontrolna w teście negatywnym, `allureMeta` (+ `bug` dla testu regresyjnego).
 4. **Weryfikacja** – `npm run check`, potem przebieg tylko nowego testu (`--grep`), a przed oddaniem – całego zestawu.
 5. **Raport** – `kis-run-and-report`: czerwony test potwierdź ręcznie zanim uznasz go za błąd aplikacji; wynik do README i docs/TEST_CASES.md.
-6. Nowe fakty o aplikacji dopisz do `docs/LEARNINGS.md`.
+6. Nowe fakty o aplikacji dopisz do `.claude/LEARNINGS.md`.
 
 ## Twarde zasady
 

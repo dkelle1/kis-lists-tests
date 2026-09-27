@@ -18,7 +18,7 @@ Całość może wykonać agent `e2e-test-writer` (`.claude/agents/e2e-test-write
 
 - Skrypt w `.local/explore/` na zalogowanych kontach (`.auth/`), zrzut ekranu, lokatory.
 - Wykonaj scenariusz ręcznie (skryptem) i sprawdź powiadomienia wszystkich kont na `/inbox`.
-- Nowe fakty → `docs/LEARNINGS.md`.
+- Nowe fakty → `../.claude/LEARNINGS.md`.
 
 ## 3. Page Object
 

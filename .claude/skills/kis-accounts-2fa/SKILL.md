@@ -5,7 +5,7 @@ description: Konta testowe KIS List, logowanie z 2FA (kod z e-maila) i sekrety �
 
 # Konta, 2FA i sekrety
 
-Szczegóły i uzasadnienia: [docs/LEARNINGS.md](../../../docs/LEARNINGS.md), sekcje 1.1, 1.2 i 3.
+Szczegóły i uzasadnienia: [.claude/LEARNINGS.md](../../LEARNINGS.md), sekcje 1.1, 1.2 i 3.
 
 ## Jak loguje się konto (`src/support/session.ts`, krok „Sesja: <konto>” w każdym teście)
 
